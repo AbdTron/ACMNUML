@@ -46,3 +46,5 @@ const getCroppedImage = async (imageSrc, cropAreaPixels, fileType = 'image/jpeg'
 export default getCroppedImage
 
 
+
+

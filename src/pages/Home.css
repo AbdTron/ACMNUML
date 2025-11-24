@@ -163,12 +163,34 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   overflow: hidden;
+  transition: transform 0.5s ease, border-color 0.35s ease, box-shadow 0.45s ease;
 }
 
 .hero-card-link {
   text-decoration: none;
   color: inherit;
   display: block;
+}
+
+.hero-card-link:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 40px 70px rgba(14, 116, 144, 0.35);
+}
+
+.hero-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.hero-card-link:hover::after {
+  opacity: 1;
 }
 
 .hero-gradient {
@@ -360,14 +382,16 @@
   border: 1px solid var(--border-color);
   background: var(--bg-white);
   box-shadow: var(--shadow-md);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .team-support-avatar {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 1rem;
   overflow: hidden;
   flex-shrink: 0;
+  background: rgba(37, 99, 235, 0.12);
 }
 
 .team-support-avatar img {
@@ -392,6 +416,12 @@
 .team-support-card span {
   color: var(--text-light);
   font-size: 0.9rem;
+}
+
+.team-support-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 .team-cta {
@@ -425,16 +455,21 @@
   display: flex;
   gap: 1.5rem;
   background: var(--bg-white);
-  border: 1px solid var(--border-color);
+  border: 1px solid transparent;
   border-radius: 1rem;
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
   transition: transform 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  background-image: linear-gradient(var(--bg-white), var(--bg-white)),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.4), rgba(59, 130, 246, 0.1));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 
 .event-card-preview:hover {
   transform: translateY(-4px);
-  border-color: rgba(37, 99, 235, 0.4);
+  border-color: transparent;
 }
 
 .event-date-preview {
@@ -480,7 +515,7 @@
 
 .highlight-card {
   background: var(--bg-white);
-  border: 1px solid var(--border-color);
+  border: 1px solid transparent;
   border-radius: 1.25rem;
   padding: 1.5rem;
   text-decoration: none;
@@ -489,12 +524,17 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  background-image: linear-gradient(var(--bg-white), var(--bg-white)),
+    linear-gradient(120deg, rgba(59, 130, 246, 0.3), rgba(99, 102, 241, 0.08));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 
 .highlight-card:hover {
   transform: translateY(-6px);
-  border-color: var(--primary-color);
+  border-color: transparent;
+  box-shadow: var(--shadow-xl);
 }
 
 .highlight-tag {
