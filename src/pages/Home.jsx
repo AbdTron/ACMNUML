@@ -104,8 +104,6 @@ const Home = () => {
   ]
 
   const displayCabinet = cabinetMembers.length ? cabinetMembers : fallbackCabinet
-  const mainLead = displayCabinet[0]
-  const supportingLeads = displayCabinet.slice(1)
 
   const getMemberImage = (member) => {
     if (member?.image) return member.image
@@ -296,35 +294,21 @@ const Home = () => {
             <h2>Current Cabinet</h2>
             <p>Meet the students orchestrating ACM NUML</p>
           </div>
-          <div className="team-showcase">
-            {mainLead && (
-              <div
-                className="team-feature"
-                style={{ backgroundImage: `url(${getMemberImage(mainLead)})` }}
-              >
-                <div className="team-feature-overlay" />
-                <div className="team-feature-content">
-                  <p className="team-label">Chapter Lead</p>
-                  <h3>{mainLead.name}</h3>
-                  <span>{mainLead.role}</span>
-                  <p>{mainLead.detail || mainLead.program}</p>
+          <div className="team-grid-landing">
+            {displayCabinet.map((member) => (
+              <div key={member.role || member.id} className="team-card-landing">
+                <div className="team-avatar-landing">
+                  <img src={getMemberImage(member)} alt={member.name} />
+                </div>
+                <div className="team-info-landing">
+                  <h3>{member.name}</h3>
+                  <p className="team-role-landing">{member.role}</p>
+                  {member.detail || member.program ? (
+                    <span className="team-detail-landing">{member.detail || member.program}</span>
+                  ) : null}
                 </div>
               </div>
-            )}
-            <div className="team-support-grid">
-              {supportingLeads.map((member) => (
-                <div key={member.role || member.id} className="team-support-card">
-                  <div className="team-support-avatar">
-                    <img src={getMemberImage(member)} alt={member.name} />
-                  </div>
-                  <div>
-                    <p className="team-support-role">{member.role}</p>
-                    <h4>{member.name}</h4>
-                    <span>{member.detail || member.program}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
           <div className="team-cta">
             <Link to="/team" className="btn btn-outline">
