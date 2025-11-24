@@ -31,23 +31,6 @@ const Navbar = () => {
           <span className="logo-subtitle">NUML</span>
         </Link>
 
-        <div className="navbar-actions">
-          <button
-            className="theme-toggle"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? <FiSun /> : <FiMoon />}
-          </button>
-          <button
-            className="navbar-toggle"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <FiX /> : <FiMenu />}
-          </button>
-        </div>
-
         <ul className={`navbar-menu ${isOpen ? 'active' : ''}`}>
           {navLinks.map((link) => (
             <li key={link.path} className="navbar-item">
@@ -73,6 +56,23 @@ const Navbar = () => {
             </li>
           )}
         </ul>
+
+        <div className="navbar-actions">
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+          >
+            {theme === 'dark' ? <FiSun /> : <FiMoon />}
+          </button>
+          <button
+            className="navbar-toggle"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
       </div>
     </nav>
   )

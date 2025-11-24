@@ -6,6 +6,7 @@ import NotificationPopup from './components/NotificationPopup'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Events from './pages/Events'
+import EventDetail from './pages/EventDetail'
 import Team from './pages/Team'
 import Gallery from './pages/Gallery'
 import Join from './pages/Join'
@@ -21,7 +22,7 @@ import AdminTeam from './pages/admin/AdminTeam'
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="app">
           <Navbar />
           <NotificationPopup />
@@ -29,6 +30,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/events" element={<Events />} />
+              <Route path="/events/:eventId" element={<EventDetail />} />
               <Route path="/team" element={<Team />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/join" element={<Join />} />

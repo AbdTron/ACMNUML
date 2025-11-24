@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { FiX, FiBell } from 'react-icons/fi'
 import './NotificationPopup.css'
@@ -13,23 +13,31 @@ const NotificationPopup = () => {
       if (!db) return
       try {
         const notificationsRef = collection(db, 'notifications')
-        const q = query(
-          notificationsRef,
-          where('active', '==', true),
-          orderBy('createdAt', 'desc'),
-          limit(1)
-        )
+        const q = query(notificationsRef, where('active', '==', true))
         
         const querySnapshot = await getDocs(q)
         if (!querySnapshot.empty) {
-          const notif = querySnapshot.docs[0].data()
-          const notifId = querySnapshot.docs[0].id
-          
-          // Check if user has dismissed this notification
-          const dismissed = localStorage.getItem(`notification_${notifId}_dismissed`)
-          if (!dismissed) {
-            setNotification({ id: notifId, ...notif })
-            setIsVisible(true)
+          const sorted = querySnapshot.docs
+            .map((docSnap) => {
+              const data = docSnap.data()
+              const createdAt = data.createdAt?.toDate
+                ? data.createdAt.toDate()
+                : data.createdAt
+              return { id: docSnap.id, ...data, createdAt }
+            })
+            .sort((a, b) => {
+              const first = a.createdAt ? new Date(a.createdAt).getTime() : 0
+              const second = b.createdAt ? new Date(b.createdAt).getTime() : 0
+              return second - first
+            })
+
+          if (sorted.length) {
+            const latest = sorted[0]
+            const dismissed = localStorage.getItem(`notification_${latest.id}_dismissed`)
+            if (!dismissed) {
+              setNotification(latest)
+              setIsVisible(true)
+            }
           }
         }
       } catch (error) {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { collection, query, getDocs, orderBy, where } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { format } from 'date-fns'
@@ -103,61 +104,63 @@ const Events = () => {
               {events.map((event) => {
                 const status = getEventStatus(event.date)
                 return (
-                  <div key={event.id} className="event-card">
-                    {event.coverUrl && (
-                      <div className="event-cover">
-                        <img src={event.coverUrl} alt={event.title} />
-                      </div>
-                    )}
-                    <div className="event-header">
-                      <div className="event-date-large">
-                        <span className="event-day-large">
-                          {format(new Date(event.date), 'dd')}
-                        </span>
-                        <span className="event-month-large">
-                          {format(new Date(event.date), 'MMM')}
-                        </span>
-                      </div>
-                      {status === 'upcoming' && (
-                        <span className="event-badge upcoming">Upcoming</span>
-                      )}
-                      {status === 'today' && (
-                        <span className="event-badge today">Today</span>
-                      )}
-                      {status === 'past' && (
-                        <span className="event-badge past">Past</span>
-                      )}
-                    </div>
-                    <div className="event-body">
-                      <h3 className="event-title">{event.title}</h3>
-                      <p className="event-description">{event.description}</p>
-                      <div className="event-details">
-                        {event.location && (
-                          <div className="event-detail">
-                            <FiMapPin />
-                            <span>{event.location}</span>
-                          </div>
-                        )}
-                        <div className="event-detail">
-                          <FiCalendar />
-                          <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
+                  <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
+                    <div className="event-card">
+                      {event.coverUrl && (
+                        <div className="event-cover">
+                          <img src={event.coverUrl} alt={event.title} />
                         </div>
-                        {event.time && (
-                          <div className="event-detail">
-                            <FiClock />
-                            <span>{event.time}</span>
-                          </div>
-                        )}
-                      </div>
-                      {event.type && (
-                        <div className="event-type">
-                          <span className={`type-badge ${event.type.toLowerCase()}`}>
-                            {event.type}
+                      )}
+                      <div className="event-header">
+                        <div className="event-date-large">
+                          <span className="event-day-large">
+                            {format(new Date(event.date), 'dd')}
+                          </span>
+                          <span className="event-month-large">
+                            {format(new Date(event.date), 'MMM')}
                           </span>
                         </div>
-                      )}
+                        {status === 'upcoming' && (
+                          <span className="event-badge upcoming">Upcoming</span>
+                        )}
+                        {status === 'today' && (
+                          <span className="event-badge today">Today</span>
+                        )}
+                        {status === 'past' && (
+                          <span className="event-badge past">Past</span>
+                        )}
+                      </div>
+                      <div className="event-body">
+                        <h3 className="event-title">{event.title}</h3>
+                        <p className="event-description">{event.description}</p>
+                        <div className="event-details">
+                          {event.location && (
+                            <div className="event-detail">
+                              <FiMapPin />
+                              <span>{event.location}</span>
+                            </div>
+                          )}
+                          <div className="event-detail">
+                            <FiCalendar />
+                            <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
+                          </div>
+                          {event.time && (
+                            <div className="event-detail">
+                              <FiClock />
+                              <span>{event.time}</span>
+                            </div>
+                          )}
+                        </div>
+                        {event.type && (
+                          <div className="event-type">
+                            <span className={`type-badge ${event.type.toLowerCase()}`}>
+                              {event.type}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>

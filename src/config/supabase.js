@@ -6,6 +6,7 @@ const defaultAnonKey =
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || defaultUrl
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || defaultAnonKey
+const supabaseBucket = import.meta.env.VITE_SUPABASE_BUCKET || 'media'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -14,18 +15,19 @@ export const uploadToSupabase = async (file, folder = 'media') => {
   const fileExt = file.name.split('.').pop()
   const filePath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
 
-  const { error } = await supabase.storage.from('media').upload(filePath, file, {
+  const storageBucket = supabase.storage.from(supabaseBucket)
+  const { error } = await storageBucket.upload(filePath, file, {
     cacheControl: '3600',
     upsert: false,
   })
 
   if (error) {
-    throw error
+    throw new Error(error.message || 'Upload failed')
   }
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from('media').getPublicUrl(filePath)
+  } = storageBucket.getPublicUrl(filePath)
 
   return publicUrl
 }

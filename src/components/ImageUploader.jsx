@@ -17,8 +17,8 @@ const ImageUploader = ({ label, value, onChange, folder = 'media' }) => {
       const url = await uploadToSupabase(file, folder)
       onChange(url)
     } catch (err) {
-      console.error(err)
-      setError('Upload failed. Please try again.')
+      console.error('Image upload failed:', err)
+      setError(err.message || 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
     }

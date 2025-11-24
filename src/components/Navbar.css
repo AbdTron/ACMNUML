@@ -14,12 +14,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1.5rem;
 }
 
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: 1.5rem;
 }
 
 .navbar-logo {
@@ -78,6 +80,8 @@
   list-style: none;
   gap: 2rem;
   align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
 .navbar-item {
@@ -133,6 +137,8 @@
   }
 
   .navbar-menu {
+    flex: unset;
+    justify-content: flex-start;
     position: fixed;
     left: -100%;
     top: 70px;

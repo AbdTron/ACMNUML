@@ -41,6 +41,12 @@ const Team = () => {
 
   const roles = ['all', 'president', 'vice president', 'secretary', 'treasurer', 'member']
 
+  const getMemberImage = (member) => {
+    if (member.image) return member.image
+    const initials = encodeURIComponent(member.name || 'ACM')
+    return `https://ui-avatars.com/api/?name=${initials}&background=2563eb&color=fff`
+  }
+
   return (
     <div className="team-page">
       <div className="page-header">
@@ -83,11 +89,7 @@ const Team = () => {
               {filteredMembers.map((member) => (
                 <div key={member.id} className="team-card">
                   <div className="team-image-wrapper">
-                    {member.image ? (
-                      <img src={member.image} alt={member.name} className="team-image" />
-                    ) : (
-                      <div className="team-image-placeholder">{member.name?.charAt(0).toUpperCase()}</div>
-                    )}
+                    <img src={getMemberImage(member)} alt={member.name} className="team-image" />
                   </div>
                   <div className="team-info">
                     <h3 className="team-name">{member.name}</h3>
