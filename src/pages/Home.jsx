@@ -320,68 +320,40 @@ const Home = () => {
 
       {/* Join Section */}
       <section className="section join-section">
-        <div className="container join-grid">
-          <div>
-            <p className="section-label">Join Us</p>
-            <h2>Recruitment for Spring 2025 starts soon.</h2>
-            <p>
-              If you love building products, telling stories, designing visuals, or running events,
-              ACM NUML has a lane for you. Collaborate with peers, meet alumni mentors, and ship
-              projects that matter.
-            </p>
-            <div className="chip-row">
-              {departments.map((dept) => (
-                <span key={dept} className="chip">
-                  {dept}
-                </span>
-              ))}
+        <div className="container">
+          <div className="join-hero">
+            <div className="join-content">
+              <p className="section-label">Join Us</p>
+              <h2>Recruitment for Spring 2025 starts soon.</h2>
+              <p className="join-description">
+                If you love building products, telling stories, designing visuals, or running events,
+                ACM NUML has a lane for you. Collaborate with peers, meet alumni mentors, and ship
+                projects that matter.
+              </p>
+              <div className="chip-row">
+                {departments.map((dept) => (
+                  <span key={dept} className="chip">
+                    {dept}
+                  </span>
+                ))}
+              </div>
+              <Link to="/join" className="btn btn-primary">
+                Apply Now
+              </Link>
             </div>
-            <Link to="/join" className="btn btn-primary">
-              Apply Now
-            </Link>
-          </div>
-          <div className="join-card">
-            <FiUserPlus />
-            <h3>Why join?</h3>
-            <ul>
-              <li>Hands-on mentorship from alumni</li>
-              <li>Priority access to closed workshops</li>
-              <li>Opportunity to lead flagship events</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* Join Section */}
-      <section className="section join-section">
-        <div className="container join-grid">
-          <div>
-            <p className="section-label">Join Us</p>
-            <h2>Recruitment for Spring 2025 starts soon.</h2>
-            <p>
-              If you love building products, telling stories, designing visuals, or running events,
-              ACM NUML has a lane for you. Collaborate with peers, meet alumni mentors, and ship
-              projects that matter.
-            </p>
-            <div className="chip-row">
-              {departments.map((dept) => (
-                <span key={dept} className="chip">
-                  {dept}
-                </span>
-              ))}
+            <div className="join-benefits">
+              <div className="benefit-card">
+                <FiUserPlus />
+                <h3>Why join?</h3>
+                <ul>
+                  <li>Hands-on mentorship from alumni</li>
+                  <li>Priority access to closed workshops</li>
+                  <li>Opportunity to lead flagship events</li>
+                  <li>Build your portfolio with real projects</li>
+                  <li>Network with industry professionals</li>
+                </ul>
+              </div>
             </div>
-            <Link to="/join" className="btn btn-primary">
-              Apply Now
-            </Link>
-          </div>
-          <div className="join-card">
-            <FiUserPlus />
-            <h3>Why join?</h3>
-            <ul>
-              <li>Hands-on mentorship from alumni</li>
-              <li>Priority access to closed workshops</li>
-              <li>Opportunity to lead flagship events</li>
-            </ul>
           </div>
         </div>
       </section>
