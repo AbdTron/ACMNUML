@@ -152,17 +152,13 @@ const AdminTeam = () => {
                     </div>
                     <div className="form-group">
                       <label>Role *</label>
-                      <select
+                      <input
+                        type="text"
                         value={formData.role}
                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      >
-                        <option value="President">President</option>
-                        <option value="Vice President">Vice President</option>
-                        <option value="General Secretary">General Secretary</option>
-                        <option value="Treasurer">Treasurer</option>
-                        <option value="Lead">Lead</option>
-                        <option value="Member">Member</option>
-                      </select>
+                        placeholder="e.g., Director Partnerships"
+                        required
+                      />
                     </div>
                   </div>
 
@@ -227,6 +223,7 @@ const AdminTeam = () => {
                     folder="team"
                     value={formData.image}
                     onChange={(url) => setFormData({ ...formData, image: url })}
+                    aspect={1}
                   />
 
                   <div className="form-actions">

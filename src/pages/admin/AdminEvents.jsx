@@ -305,6 +305,7 @@ const AdminEvents = () => {
                   folder="events"
                   value={formData.coverUrl}
                   onChange={(url) => setFormData({ ...formData, coverUrl: url })}
+                  aspect={16 / 9}
                 />
                   <div className="form-actions">
                     <button type="button" onClick={() => {
