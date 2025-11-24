@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   collection, 
   getDocs, 
-  addDoc, 
+  setDoc,
   updateDoc, 
   deleteDoc, 
   doc,
@@ -40,6 +40,15 @@ const AdminEvents = () => {
     location: '',
     type: 'Workshop'
   })
+
+  const createEventId = (title) => {
+    const slug = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+    return slug || `event-${Date.now()}`
+  }
 
   useEffect(() => {
     fetchEvents()
@@ -91,7 +100,8 @@ const AdminEvents = () => {
         await updateDoc(doc(db, 'events', editingEvent.id), eventData)
         alert('Event updated successfully!')
       } else {
-        await addDoc(collection(db, 'events'), eventData)
+        const eventId = createEventId(formData.title)
+        await setDoc(doc(db, 'events', eventId), eventData)
         alert('Event added successfully!')
       }
 

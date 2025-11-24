@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FiMenu, FiX, FiShield } from 'react-icons/fi'
+import { FiMenu, FiX, FiShield, FiMoon, FiSun } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import './Navbar.css'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
   const { isAdmin } = useAuth()
+  const { theme, toggleTheme } = useTheme()
 
   const isActive = (path) => location.pathname === path
 
@@ -29,13 +31,22 @@ const Navbar = () => {
           <span className="logo-subtitle">NUML</span>
         </Link>
 
-        <button
-          className="navbar-toggle"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <FiX /> : <FiMenu />}
-        </button>
+        <div className="navbar-actions">
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+          >
+            {theme === 'dark' ? <FiSun /> : <FiMoon />}
+          </button>
+          <button
+            className="navbar-toggle"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
 
         <ul className={`navbar-menu ${isOpen ? 'active' : ''}`}>
           {navLinks.map((link) => (
