@@ -96,6 +96,12 @@ firebase deploy --only firestore:rules
 - **Edit/Delete**: Update or remove notifications
 - **Link Support**: Add optional links to notifications
 
+### Team Management (`/admin/team`)
+- **Add Members**: Create detailed profiles with bio, role, socials
+- **Image Uploads**: Upload portraits directly to Supabase Storage
+- **Ordering**: Control the display order for leadership vs members
+- **Edit/Delete**: Keep the roster up-to-date
+
 ### Settings (`/admin/settings`)
 - **Google Form URL**: Update the join form URL
 - **Contact Information**: Update email, phone, and address
@@ -150,6 +156,7 @@ firebase deploy --only firestore:rules
 - `/admin/login` - Login page
 - `/admin` - Dashboard (protected)
 - `/admin/events` - Events management (protected)
+- `/admin/team` - Team management (protected)
 - `/admin/notifications` - Notifications management (protected)
 - `/admin/settings` - Settings (protected)
 

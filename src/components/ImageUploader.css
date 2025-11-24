@@ -1,0 +1,74 @@
+.image-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.image-uploader label {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.upload-box {
+  border: 2px dashed var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-light);
+  transition: border-color 0.3s ease;
+}
+
+.upload-box:hover {
+  border-color: var(--primary-color);
+}
+
+.upload-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-light);
+}
+
+.upload-trigger svg {
+  font-size: 2rem;
+  color: var(--primary-color);
+}
+
+.upload-trigger span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.preview {
+  position: relative;
+}
+
+.preview img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-md);
+}
+
+.remove-btn {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-white);
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+.upload-error {
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+
+

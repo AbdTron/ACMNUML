@@ -104,6 +104,11 @@ const Events = () => {
                 const status = getEventStatus(event.date)
                 return (
                   <div key={event.id} className="event-card">
+                    {event.coverUrl && (
+                      <div className="event-cover">
+                        <img src={event.coverUrl} alt={event.title} />
+                      </div>
+                    )}
                     <div className="event-header">
                       <div className="event-date-large">
                         <span className="event-day-large">

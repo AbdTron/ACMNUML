@@ -24,6 +24,7 @@ import {
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminEvents.css'
+import ImageUploader from '../../components/ImageUploader'
 
 const AdminEvents = () => {
   const { currentUser } = useAuth()
@@ -38,7 +39,8 @@ const AdminEvents = () => {
     date: '',
     time: '',
     location: '',
-    type: 'Workshop'
+    type: 'Workshop',
+    coverUrl: ''
   })
 
   const createEventId = (title) => {
@@ -113,7 +115,8 @@ const AdminEvents = () => {
         date: '',
         time: '',
         location: '',
-        type: 'Workshop'
+        type: 'Workshop',
+        coverUrl: ''
       })
       fetchEvents()
     } catch (error) {
@@ -130,7 +133,8 @@ const AdminEvents = () => {
       date: format(new Date(event.date), 'yyyy-MM-dd'),
       time: event.time || '',
       location: event.location || '',
-      type: event.type || 'Workshop'
+      type: event.type || 'Workshop',
+      coverUrl: event.coverUrl || ''
     })
     setShowForm(true)
   }
@@ -296,6 +300,12 @@ const AdminEvents = () => {
                       </select>
                     </div>
                   </div>
+                <ImageUploader
+                  label="Event Cover"
+                  folder="events"
+                  value={formData.coverUrl}
+                  onChange={(url) => setFormData({ ...formData, coverUrl: url })}
+                />
                   <div className="form-actions">
                     <button type="button" onClick={() => {
                       setShowForm(false)
@@ -320,6 +330,7 @@ const AdminEvents = () => {
               <table>
                 <thead>
                   <tr>
+                    <th>Cover</th>
                     <th>Title</th>
                     <th>Date</th>
                     <th>Type</th>
@@ -332,6 +343,13 @@ const AdminEvents = () => {
                     const status = getEventStatus(event.date)
                     return (
                       <tr key={event.id}>
+                        <td>
+                          {event.coverUrl ? (
+                            <img src={event.coverUrl} alt={event.title} className="cover-thumb" />
+                          ) : (
+                            <span className="no-cover">No cover</span>
+                          )}
+                        </td>
                         <td>
                           <strong>{event.title}</strong>
                           <br />

@@ -84,64 +84,55 @@ const Team = () => {
                 <div key={member.id} className="team-card">
                   <div className="team-image-wrapper">
                     {member.image ? (
-                      <img 
-                        src={member.image} 
-                        alt={member.name}
-                        className="team-image"
-                      />
+                      <img src={member.image} alt={member.name} className="team-image" />
                     ) : (
-                      <div className="team-image-placeholder">
-                        {member.name?.charAt(0).toUpperCase()}
-                      </div>
+                      <div className="team-image-placeholder">{member.name?.charAt(0).toUpperCase()}</div>
                     )}
                   </div>
                   <div className="team-info">
                     <h3 className="team-name">{member.name}</h3>
                     <p className="team-role">{member.role}</p>
-                    {member.bio && (
-                      <p className="team-bio">{member.bio}</p>
-                    )}
+                    {member.bio && <p className="team-bio">{member.bio}</p>}
+                    <ul className="team-meta">
+                      {member.email && <li>{member.email}</li>}
+                    </ul>
                     <div className="team-social">
-                      {member.email && (
-                        <a 
-                          href={`mailto:${member.email}`}
-                          className="social-link"
-                          aria-label="Email"
-                        >
-                          <FiMail />
-                        </a>
-                      )}
                       {member.linkedin && (
-                        <a 
+                        <a
+                          className="social-link"
                           href={member.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="social-link"
                           aria-label="LinkedIn"
                         >
                           <FiLinkedin />
                         </a>
                       )}
                       {member.github && (
-                        <a 
+                        <a
+                          className="social-link"
                           href={member.github}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="social-link"
                           aria-label="GitHub"
                         >
                           <FiGithub />
                         </a>
                       )}
                       {member.twitter && (
-                        <a 
+                        <a
+                          className="social-link"
                           href={member.twitter}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="social-link"
                           aria-label="Twitter"
                         >
                           <FiTwitter />
+                        </a>
+                      )}
+                      {member.email && (
+                        <a className="social-link" href={`mailto:${member.email}`} aria-label="Email">
+                          <FiMail />
                         </a>
                       )}
                     </div>

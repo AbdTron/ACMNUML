@@ -77,6 +77,13 @@ const AdminDashboard = () => {
       color: '#2563eb'
     },
     {
+      icon: FiUsers,
+      title: 'Team Profiles',
+      description: 'Showcase and edit team members',
+      link: '/admin/team',
+      color: '#10b981'
+    },
+    {
       icon: FiBell,
       title: 'Notifications',
       description: 'Create and manage popup notifications',

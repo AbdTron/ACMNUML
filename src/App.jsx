@@ -16,6 +16,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminEvents from './pages/admin/AdminEvents'
 import AdminNotifications from './pages/admin/AdminNotifications'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminTeam from './pages/admin/AdminTeam'
 
 function App() {
   return (
@@ -63,6 +64,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AdminSettings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/team"
+                element={
+                  <ProtectedRoute>
+                    <AdminTeam />
                   </ProtectedRoute>
                 }
               />

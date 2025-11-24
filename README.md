@@ -19,6 +19,22 @@ Official website for the ACM (Association for Computing Machinery) Society at NU
 - React Router
 - React Icons
 
+## Media Storage
+
+The project can optionally connect to Supabase Storage for event covers and team portraits.
+
+1. Create a Supabase project (already provided: `acmnuml`).
+2. Create a public storage bucket named `media`.
+3. Set the bucket policy to allow public reads.
+4. Add the Supabase URL and anon key to your `.env` file:
+
+```
+VITE_SUPABASE_URL=https://vtphwfdsorogemcmcnyf.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
+```
+
+Admin pages now let you upload images directly; the file is stored in the `media` bucket and only the public URL is saved in Firestore.
+
 ## Setup Instructions
 
 1. **Install Dependencies**

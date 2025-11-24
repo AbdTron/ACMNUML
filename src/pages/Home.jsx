@@ -1,5 +1,15 @@
 import { Link } from 'react-router-dom'
-import { FiCalendar, FiUsers, FiImage, FiArrowRight } from 'react-icons/fi'
+import {
+  FiCalendar,
+  FiUsers,
+  FiImage,
+  FiArrowRight,
+  FiZap,
+  FiCode,
+  FiAward,
+  FiTrendingUp,
+  FiGlobe
+} from 'react-icons/fi'
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useEffect, useState } from 'react'
@@ -64,6 +74,47 @@ const Home = () => {
     },
   ]
 
+  const stats = [
+    { label: 'Members', value: '500+', detail: 'Active students' },
+    { label: 'Events', value: '40+', detail: 'Per academic year' },
+    { label: 'Partners', value: '25+', detail: 'Industry collaborations' },
+    { label: 'Projects', value: '60+', detail: 'Student-led builds' },
+  ]
+
+  const innovationTracks = [
+    {
+      icon: FiCode,
+      title: 'Dev Labs',
+      description: 'Weekly build sessions focused on full-stack & cloud.',
+      tags: ['React', 'Firebase', 'DevOps'],
+    },
+    {
+      icon: FiTrendingUp,
+      title: 'Career Fusion',
+      description: 'Mentorship, resume reviews, interview practice, and alumni meetups.',
+      tags: ['Mentorship', 'Career'],
+    },
+    {
+      icon: FiAward,
+      title: 'Impact Challenge',
+      description: 'Cross-discipline teams solve real problems with tech.',
+      tags: ['SDGs', 'Product'],
+    },
+  ]
+
+  const testimonials = [
+    {
+      quote: 'ACM NUML gave me a fast-track route to collaborating with ambitious peers and mentors.',
+      name: 'Areeba Khan',
+      role: 'Lead Organizer • Hacktoberfest',
+    },
+    {
+      quote: 'Workshops, labs, and mentorship kept me motivated to ship projects that matter.',
+      name: 'Umair Farooq',
+      role: 'DevOps Track Mentor',
+    },
+  ]
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -76,6 +127,17 @@ const Home = () => {
             Empowering the next generation of computer scientists through
             innovation, collaboration, and community.
           </p>
+          <div className="hero-badges">
+            <div className="badge glow">
+              <span className="badge-dot"></span>
+              National award-winning chapter
+            </div>
+            <div className="badge outline">
+              <FiZap />
+              Real-world project incubator
+            </div>
+          </div>
+
           <div className="hero-buttons">
             <Link to="/events" className="btn btn-primary">
               Explore Events
@@ -87,6 +149,28 @@ const Home = () => {
         </div>
         <div className="hero-image">
           <div className="hero-gradient"></div>
+          <div className="hero-card">
+            <span className="hero-card-label">Next up</span>
+            <h3>Founders Bootcamp</h3>
+            <p>Prototype sprint • 32 seats • Hybrid</p>
+            <div className="hero-card-footer">
+              <span>Oct 12 • Innovation Lab</span>
+              <FiArrowRight />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="stats-section">
+        <div className="container stats-grid">
+          {stats.map((stat) => (
+            <div key={stat.label} className="stat-card">
+              <div className="stat-value">{stat.value}</div>
+              <p className="stat-label">{stat.label}</p>
+              <span>{stat.detail}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -117,6 +201,37 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Innovation Tracks */}
+      <section className="section innovation-section">
+        <div className="container">
+          <div className="section-title">
+            <h2>Build more than résumés</h2>
+            <p>Hands-on tracks curated with industry partners</p>
+          </div>
+          <div className="innovation-grid">
+            {innovationTracks.map((track) => {
+              const Icon = track.icon
+              return (
+                <div key={track.title} className="innovation-card">
+                  <div className="innovation-icon">
+                    <Icon />
+                  </div>
+                  <div>
+                    <h3>{track.title}</h3>
+                    <p>{track.description}</p>
+                  </div>
+                  <div className="tag-list">
+                    {track.tags.map((tag) => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Upcoming Events Section */}
       <section className="section section-alt">
         <div className="container">
@@ -131,23 +246,24 @@ const Home = () => {
               {upcomingEvents.map((event) => {
                 const eventDate = event.date?.toDate ? event.date.toDate() : new Date(event.date)
                 return (
-                <div key={event.id} className="event-card-preview">
-                  <div className="event-date-preview">
-                    <span className="event-day">
-                      {eventDate.getDate()}
-                    </span>
-                    <span className="event-month">
-                      {eventDate.toLocaleString('default', { month: 'short' })}
-                    </span>
+                  <div key={event.id} className="event-card-preview">
+                    {event.coverUrl && (
+                      <div className="event-thumb" style={{ backgroundImage: `url(${event.coverUrl})` }}></div>
+                    )}
+                    <div className="event-date-preview">
+                      <span className="event-day">{eventDate.getDate()}</span>
+                      <span className="event-month">
+                        {eventDate.toLocaleString('default', { month: 'short' })}
+                      </span>
+                    </div>
+                    <div className="event-content-preview">
+                      <h3 className="event-title-preview">{event.title}</h3>
+                      <p className="event-description-preview">{event.description}</p>
+                      <Link to="/events" className="event-link-preview">
+                        View Details <FiArrowRight />
+                      </Link>
+                    </div>
                   </div>
-                  <div className="event-content-preview">
-                    <h3 className="event-title-preview">{event.title}</h3>
-                    <p className="event-description-preview">{event.description}</p>
-                    <Link to="/events" className="event-link-preview">
-                      View Details <FiArrowRight />
-                    </Link>
-                  </div>
-                </div>
                 )
               })}
               <div className="events-view-all">
@@ -161,6 +277,28 @@ const Home = () => {
               <p>No upcoming events at the moment. Check back soon!</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="section testimonials-section">
+        <div className="container">
+          <div className="section-title">
+            <h2>Voices from the community</h2>
+            <p>Stories from members and mentors shaping our chapter</p>
+          </div>
+          <div className="testimonials-grid">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.name} className="testimonial-card">
+                <FiGlobe />
+                <p className="quote">“{testimonial.quote}”</p>
+                <div className="author">
+                  <strong>{testimonial.name}</strong>
+                  <span>{testimonial.role}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
