@@ -31,6 +31,7 @@ const AdminGallery = () => {
   const navigate = useNavigate()
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
   const [showGalleryForm, setShowGalleryForm] = useState(false)
   const [showImageForm, setShowImageForm] = useState(false)
   const [selectedGallery, setSelectedGallery] = useState(null)
@@ -57,6 +58,7 @@ const AdminGallery = () => {
       return
     }
     try {
+      setErrorMessage('')
       const galleriesRef = collection(db, 'galleries')
       const q = query(galleriesRef, orderBy('createdAt', 'desc'))
       const querySnapshot = await getDocs(q)
@@ -78,7 +80,7 @@ const AdminGallery = () => {
       setGalleries(galleriesData)
     } catch (error) {
       console.error('Error fetching galleries:', error)
-      alert('Error loading galleries')
+      setErrorMessage('Unable to load galleries. Please check your permissions or try again.')
     } finally {
       setLoading(false)
     }
@@ -308,6 +310,11 @@ const AdminGallery = () => {
 
       <div className="admin-content">
         <div className="container">
+        {errorMessage && (
+          <div className="admin-error-banner">
+            {errorMessage}
+          </div>
+        )}
           {/* Gallery Form Modal */}
           {showGalleryForm && (
             <div className="modal-overlay" onClick={() => {

@@ -9,7 +9,6 @@ import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
 import Team from './pages/Team'
 import Gallery from './pages/Gallery'
-import GalleryDetail from './pages/GalleryDetail'
 import Join from './pages/Join'
 import About from './pages/About'
 import Contact from './pages/Contact'
@@ -19,7 +18,6 @@ import AdminEvents from './pages/admin/AdminEvents'
 import AdminNotifications from './pages/admin/AdminNotifications'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminTeam from './pages/admin/AdminTeam'
-import AdminGallery from './pages/admin/AdminGallery'
 
 function App() {
   return (
@@ -35,7 +33,6 @@ function App() {
               <Route path="/events/:eventId" element={<EventDetail />} />
               <Route path="/team" element={<Team />} />
               <Route path="/gallery" element={<Gallery />} />
-              <Route path="/gallery/:galleryId" element={<GalleryDetail />} />
               <Route path="/join" element={<Join />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
@@ -77,14 +74,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AdminTeam />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/gallery"
-                element={
-                  <ProtectedRoute>
-                    <AdminGallery />
                   </ProtectedRoute>
                 }
               />

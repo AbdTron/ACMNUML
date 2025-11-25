@@ -95,6 +95,16 @@ const EventDetail = () => {
               </div>
             )}
           </div>
+          {event.registerLink && (
+            <a
+              href={event.registerLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="event-detail-cta"
+            >
+              Register for Event
+            </a>
+          )}
         </div>
       </div>
 

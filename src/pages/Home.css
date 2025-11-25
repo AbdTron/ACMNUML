@@ -56,7 +56,6 @@
   font-size: clamp(2.75rem, 5vw, 4.25rem);
   margin-bottom: 1rem;
   line-height: 1.1;
-  color: white;
 }
 
 .hero-highlight {
@@ -173,26 +172,9 @@
   color: white;
 }
 
-.hero-card p {
-  color: rgba(255, 255, 255, 0.9);
-}
-
 [data-theme='light'] .hero-card {
   background: rgba(15, 23, 42, 0.98);
   border-color: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-[data-theme='light'] .hero-card h3 {
-  color: white;
-}
-
-[data-theme='light'] .hero-card p {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-[data-theme='light'] .hero-title {
-  color: white;
 }
 
 .hero-card-link {
@@ -241,9 +223,23 @@
 .hero-card h3 {
   margin: 0.75rem 0;
   font-size: 1.75rem;
-  color: white;
 }
 
+.hero-register-btn {
+  margin-top: 1rem;
+  align-self: flex-start;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-register-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
 .hero-card-footer {
   display: flex;
   justify-content: space-between;
@@ -438,6 +434,9 @@
   justify-content: center;
   transition: all 0.35s ease;
   position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .team-card-landing:hover .team-avatar-landing {
@@ -557,6 +556,25 @@
   margin: 0.75rem 0;
 }
 
+.event-register-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+}
+
+.event-register-link::after {
+  content: '↗';
+  font-size: 0.75rem;
+}
+
+.event-register-link:hover {
+  color: var(--primary-dark);
+}
 .events-view-all {
   text-align: center;
   margin-top: 0.5rem;

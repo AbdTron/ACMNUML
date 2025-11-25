@@ -25,6 +25,7 @@ const defaultForm = {
   twitter: '',
   order: 1,
   image: '',
+  imageCrops: null,
 }
 
 const AdminTeam = () => {
@@ -63,6 +64,22 @@ const AdminTeam = () => {
     setEditingMember(null)
   }
 
+  const handleImageChange = (payload) => {
+    if (!payload) {
+      setFormData({ ...formData, image: '', imageCrops: null })
+      return
+    }
+
+    if (typeof payload === 'string') {
+      setFormData({ ...formData, image: payload, imageCrops: null })
+      return
+    }
+
+    if (typeof payload === 'object' && payload.url) {
+      setFormData({ ...formData, image: payload.url, imageCrops: payload.crops || null })
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!db) return
@@ -93,6 +110,7 @@ const AdminTeam = () => {
       twitter: member.twitter || '',
       order: member.order || 1,
       image: member.image || '',
+      imageCrops: member.imageCrops || null,
     })
     setShowForm(true)
   }
@@ -222,8 +240,11 @@ const AdminTeam = () => {
                     label="Profile Image"
                     folder="team"
                     value={formData.image}
-                    onChange={(url) => setFormData({ ...formData, image: url })}
-                    aspect={1}
+                    onChange={handleImageChange}
+                    variants={[
+                      { key: 'landing', label: 'Landing card crop', aspect: 4 / 5 },
+                      { key: 'profile', label: 'Team directory crop', aspect: 1 },
+                    ]}
                   />
 
                   <div className="form-actions">

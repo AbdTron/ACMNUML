@@ -14,9 +14,34 @@ import { db } from '../config/firebase'
 import { useEffect, useState } from 'react'
 import './Home.css'
 
+const clamp = (value) => Math.min(100, Math.max(0, value))
+
+const getCropStyles = (imageUrl, crop) => {
+  if (!imageUrl) return {}
+  if (!crop || !crop.width || !crop.height || crop.width >= 1 || crop.height >= 1) {
+    return {
+      backgroundImage: `url(${imageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }
+  }
+
+  const sizeX = (1 / crop.width) * 100
+  const sizeY = (1 / crop.height) * 100
+  const posX = clamp((crop.x / (1 - crop.width || 1)) * 100)
+  const posY = clamp((crop.y / (1 - crop.height || 1)) * 100)
+
+  return {
+    backgroundImage: `url(${imageUrl})`,
+    backgroundSize: `${sizeX}% ${sizeY}%`,
+    backgroundPosition: `${posX}% ${posY}%`,
+  }
+}
+
 const Home = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [pastEvents, setPastEvents] = useState([])
   const [cabinetMembers, setCabinetMembers] = useState([])
 
   useEffect(() => {
@@ -50,7 +75,33 @@ const Home = () => {
       }
     }
 
+    const fetchPastEvents = async () => {
+      if (!db) return
+      try {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const eventsRef = collection(db, 'events')
+        const pastQuery = query(
+          eventsRef,
+          where('date', '<', today),
+          orderBy('date', 'desc'),
+          limit(3)
+        )
+
+        const snap = await getDocs(pastQuery)
+        const events = []
+        snap.forEach((doc) => {
+          events.push({ id: doc.id, ...doc.data() })
+        })
+        setPastEvents(events)
+      } catch (error) {
+        console.error('Error fetching past events:', error)
+      }
+    }
+
     fetchUpcomingEvents()
+    fetchPastEvents()
   }, [])
 
   useEffect(() => {
@@ -116,18 +167,31 @@ const Home = () => {
       title: 'Google Cloud Workshop',
       description: 'Hands-on labs on Vertex AI & Firebase extensions with 120 students.',
       tag: 'Hands-on Lab',
+      link: '/events',
     },
     {
       title: 'Industrial Visit: TAGS Solutions',
       description: 'Senior cohort explored fintech deployments & DevOps pipelines.',
       tag: 'Industry Connect',
+      link: '/events',
     },
     {
       title: 'Programming Competition 2024',
       description: '90+ participants, 3 problem tracks, powered by ACM judges.',
       tag: 'Competition',
+      link: '/events',
     },
   ]
+
+  const highlightData = pastEvents.length
+    ? pastEvents.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        tag: event.type || 'Event',
+        link: `/events/${event.id}`,
+      }))
+    : highlightCards
 
   const departments = ['Events', 'Technical', 'Dev Labs', 'Public Relations', 'Media & Graphics', 'Content', 'Community']
 
@@ -203,6 +267,17 @@ const Home = () => {
                   {upcomingEvents[0].description ||
                     'Prototype sprint • limited seats • collaboration focused'}
                 </p>
+                {upcomingEvents[0]?.registerLink && (
+                  <a
+                    href={upcomingEvents[0].registerLink}
+                    className="btn hero-register-btn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Register
+                  </a>
+                )}
                 <div className="hero-card-footer">
                   <span>
                     {new Date(
@@ -264,6 +339,17 @@ const Home = () => {
                           <span>{event.venue || 'On Campus'}</span>
                           <span>{event.time || 'TBA'}</span>
                         </div>
+                      {event.registerLink && (
+                        <a
+                          href={event.registerLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="event-register-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          RSVP / Register
+                        </a>
+                      )}
                         <span className="event-link-preview">
                           View details <FiArrowRight />
                         </span>
@@ -295,11 +381,14 @@ const Home = () => {
             <p>Meet the students orchestrating ACM NUML</p>
           </div>
           <div className="team-grid-landing">
-            {displayCabinet.map((member) => (
+            {displayCabinet.map((member) => {
+              const avatarUrl = member.image || getMemberImage(member)
+              return (
               <div key={member.role || member.id} className="team-card-landing">
-                <div className="team-avatar-landing">
-                  <img src={getMemberImage(member)} alt={member.name} />
-                </div>
+                <div
+                  className="team-avatar-landing"
+                  style={getCropStyles(avatarUrl, member.imageCrops?.landing)}
+                />
                 <div className="team-info-landing">
                   <h3>{member.name}</h3>
                   <p className="team-role-landing">{member.role}</p>
@@ -308,7 +397,8 @@ const Home = () => {
                   ) : null}
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
           <div className="team-cta">
             <Link to="/team" className="btn btn-outline">
@@ -403,8 +493,8 @@ const Home = () => {
             <p>Proof of impact from the last academic year</p>
           </div>
           <div className="highlights-grid">
-            {highlightCards.map((item) => (
-              <Link key={item.title} to="/events" className="highlight-card">
+            {highlightData.map((item) => (
+              <Link key={item.id || item.title} to={item.link || '/events'} className="highlight-card">
                 <span className="highlight-tag">{item.tag}</span>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>

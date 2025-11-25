@@ -5,15 +5,42 @@ import { uploadToSupabase } from '../config/supabase'
 import getCroppedImage from '../utils/cropImage'
 import './ImageUploader.css'
 
-const ImageUploader = ({ label, value, onChange, folder = 'media', aspect = 1 }) => {
+const normalizeCrop = (croppedArea, dimensions) => {
+  if (!croppedArea || !dimensions) return null
+  const { width, height } = dimensions
+  if (!width || !height) return null
+  return {
+    x: croppedArea.x / width,
+    y: croppedArea.y / height,
+    width: croppedArea.width / width,
+    height: croppedArea.height / height,
+  }
+}
+
+const ImageUploader = ({
+  label,
+  value,
+  onChange,
+  folder = 'media',
+  aspect = 1,
+  variants = [],
+}) => {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [isCropping, setIsCropping] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
   const [originalFile, setOriginalFile] = useState(null)
+  const [imageDimensions, setImageDimensions] = useState(null)
+  const [variantCrops, setVariantCrops] = useState({})
+  const [activeVariantIndex, setActiveVariantIndex] = useState(0)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+
+  const hasVariants = Array.isArray(variants) && variants.length > 0
+  const cropSteps = hasVariants ? variants : [{ key: 'default', label: label || 'Image', aspect }]
+  const activeStep = cropSteps[activeVariantIndex] || cropSteps[0]
+  const previewUrl = typeof value === 'string' || !value ? value : value?.url
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0]
@@ -25,6 +52,13 @@ const ImageUploader = ({ label, value, onChange, folder = 'media', aspect = 1 })
       setOriginalFile(file)
       setIsCropping(true)
       setError('')
+      setVariantCrops({})
+      setActiveVariantIndex(0)
+      const img = new Image()
+      img.onload = () => {
+        setImageDimensions({ width: img.width, height: img.height })
+      }
+      img.src = reader.result
     }
     reader.readAsDataURL(file)
   }
@@ -37,6 +71,9 @@ const ImageUploader = ({ label, value, onChange, folder = 'media', aspect = 1 })
     setIsCropping(false)
     setSelectedImage(null)
     setOriginalFile(null)
+    setImageDimensions(null)
+    setVariantCrops({})
+    setActiveVariantIndex(0)
     setCrop({ x: 0, y: 0 })
     setZoom(1)
     setCroppedAreaPixels(null)
@@ -44,8 +81,32 @@ const ImageUploader = ({ label, value, onChange, folder = 'media', aspect = 1 })
 
   const handleCropConfirm = async () => {
     if (!selectedImage || !croppedAreaPixels || !originalFile) return
+    const normalizedCrop = hasVariants ? normalizeCrop(croppedAreaPixels, imageDimensions) : null
+    const currentStep = cropSteps[activeVariantIndex] || cropSteps[0]
+
     try {
       setUploading(true)
+
+      if (hasVariants) {
+        const updatedCrops = {
+          ...variantCrops,
+          [currentStep.key]: normalizedCrop,
+        }
+
+        if (activeVariantIndex < cropSteps.length - 1) {
+          setVariantCrops(updatedCrops)
+          setActiveVariantIndex((prev) => prev + 1)
+          setCrop({ x: 0, y: 0 })
+          setZoom(1)
+          return
+        }
+
+        const url = await uploadToSupabase(originalFile, folder)
+        onChange({ url, crops: updatedCrops })
+        resetCropper()
+        return
+      }
+
       const croppedBlob = await getCroppedImage(selectedImage, croppedAreaPixels, originalFile.type)
       const croppedFile = new File([croppedBlob], originalFile.name, {
         type: croppedBlob.type || originalFile.type,
@@ -65,9 +126,9 @@ const ImageUploader = ({ label, value, onChange, folder = 'media', aspect = 1 })
     <div className="image-uploader">
       {label && <label>{label}</label>}
       <div className="upload-box">
-        {value ? (
+        {previewUrl ? (
           <div className="preview">
-            <img src={value} alt="Uploaded preview" />
+            <img src={previewUrl} alt="Uploaded preview" />
             <button type="button" className="remove-btn" onClick={() => onChange('')}>
               <FiTrash2 /> Remove
             </button>
@@ -94,12 +155,18 @@ const ImageUploader = ({ label, value, onChange, folder = 'media', aspect = 1 })
       {isCropping && (
         <div className="cropper-modal">
           <div className="cropper-content">
+            {hasVariants && (
+              <div className="cropper-step">
+                <span>Step {activeVariantIndex + 1} of {cropSteps.length}</span>
+                <strong>{activeStep?.label}</strong>
+              </div>
+            )}
             <div className="cropper-area">
               <Cropper
                 image={selectedImage}
                 crop={crop}
                 zoom={zoom}
-                aspect={aspect}
+                aspect={activeStep?.aspect || aspect}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={handleCropComplete}

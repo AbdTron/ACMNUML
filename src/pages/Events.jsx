@@ -130,7 +130,7 @@ const Events = () => {
                           <span className="event-badge past">Past</span>
                         )}
                       </div>
-                      <div className="event-body">
+                    <div className="event-body">
                         <h3 className="event-title">{event.title}</h3>
                         <p className="event-description">{event.description}</p>
                         <div className="event-details">
@@ -157,6 +157,16 @@ const Events = () => {
                               {event.type}
                             </span>
                           </div>
+                        )}
+                        {event.registerLink && (
+                          <a
+                            href={event.registerLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="event-card-register"
+                          >
+                            RSVP / Register
+                          </a>
                         )}
                       </div>
                     </div>

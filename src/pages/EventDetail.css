@@ -8,15 +8,9 @@
   padding: 4rem 0;
 }
 
-[data-theme='light'] .event-detail-hero {
-  background: linear-gradient(135deg, #1e293b, #334155);
-  color: white;
-}
-
 .event-detail-hero h1 {
   font-size: clamp(2.5rem, 5vw, 3.5rem);
   margin-bottom: 1rem;
-  color: white;
 }
 
 .event-detail-hero p {
@@ -36,6 +30,27 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.event-detail-cta {
+  margin-top: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  background: rgba(15, 23, 42, 0.15);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.event-detail-cta:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .back-link {

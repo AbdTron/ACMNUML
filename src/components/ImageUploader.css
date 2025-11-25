@@ -94,6 +94,24 @@
   gap: 1.25rem;
 }
 
+.cropper-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cropper-step span {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.cropper-step strong {
+  font-size: 1rem;
+  color: var(--text-dark);
+}
+
 .cropper-area {
   position: relative;
   width: 100%;

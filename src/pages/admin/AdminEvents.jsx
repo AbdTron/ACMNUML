@@ -40,7 +40,8 @@ const AdminEvents = () => {
     time: '',
     location: '',
     type: 'Workshop',
-    coverUrl: ''
+    coverUrl: '',
+    registerLink: ''
   })
 
   const createEventId = (title) => {
@@ -116,7 +117,8 @@ const AdminEvents = () => {
         time: '',
         location: '',
         type: 'Workshop',
-        coverUrl: ''
+        coverUrl: '',
+        registerLink: ''
       })
       fetchEvents()
     } catch (error) {
@@ -134,7 +136,8 @@ const AdminEvents = () => {
       time: event.time || '',
       location: event.location || '',
       type: event.type || 'Workshop',
-      coverUrl: event.coverUrl || ''
+      coverUrl: event.coverUrl || '',
+      registerLink: event.registerLink || ''
     })
     setShowForm(true)
   }
@@ -307,6 +310,16 @@ const AdminEvents = () => {
                   onChange={(url) => setFormData({ ...formData, coverUrl: url })}
                   aspect={16 / 9}
                 />
+                  <div className="form-group">
+                    <label>Registration / RSVP Link</label>
+                    <input
+                      type="url"
+                      name="registerLink"
+                      value={formData.registerLink}
+                      onChange={handleInputChange}
+                      placeholder="https://forms.gle/..."
+                    />
+                  </div>
                   <div className="form-actions">
                     <button type="button" onClick={() => {
                       setShowForm(false)
