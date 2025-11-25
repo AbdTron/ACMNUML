@@ -2,31 +2,8 @@ import { useState, useEffect } from 'react'
 import { collection, query, getDocs, orderBy } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { FiLinkedin, FiGithub, FiMail, FiTwitter } from 'react-icons/fi'
+import { getCropBackgroundStyle } from '../utils/cropStyles'
 import './Team.css'
-
-const clamp = (value) => Math.min(100, Math.max(0, value))
-
-const getCropStyles = (imageUrl, crop) => {
-  if (!imageUrl) return {}
-  if (!crop || !crop.width || !crop.height || crop.width >= 1 || crop.height >= 1) {
-    return {
-      backgroundImage: `url(${imageUrl})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    }
-  }
-
-  const sizeX = (1 / crop.width) * 100
-  const sizeY = (1 / crop.height) * 100
-  const posX = clamp((crop.x / (1 - crop.width || 1)) * 100)
-  const posY = clamp((crop.y / (1 - crop.height || 1)) * 100)
-
-  return {
-    backgroundImage: `url(${imageUrl})`,
-    backgroundSize: `${sizeX}% ${sizeY}%`,
-    backgroundPosition: `${posX}% ${posY}%`,
-  }
-}
 
 const Team = () => {
   const [teamMembers, setTeamMembers] = useState([])
@@ -112,14 +89,12 @@ const Team = () => {
             <div className="team-grid">
               {filteredMembers.map((member) => {
                 const imageUrl = getMemberImage(member)
+                const cropStyle = getCropBackgroundStyle(imageUrl, member.imageCrops?.profile)
                 return (
                 <div key={member.id} className="team-card">
                   <div className="team-image-wrapper">
                     {imageUrl ? (
-                      <div
-                        className="team-image"
-                        style={getCropStyles(imageUrl, member.imageCrops?.profile)}
-                      />
+                      <div className="team-image" style={cropStyle} />
                     ) : (
                       <div className="team-image-placeholder">{member.name?.charAt(0)}</div>
                     )}

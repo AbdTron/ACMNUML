@@ -12,31 +12,8 @@ import {
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useEffect, useState } from 'react'
+import { getCropBackgroundStyle } from '../utils/cropStyles'
 import './Home.css'
-
-const clamp = (value) => Math.min(100, Math.max(0, value))
-
-const getCropStyles = (imageUrl, crop) => {
-  if (!imageUrl) return {}
-  if (!crop || !crop.width || !crop.height || crop.width >= 1 || crop.height >= 1) {
-    return {
-      backgroundImage: `url(${imageUrl})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    }
-  }
-
-  const sizeX = (1 / crop.width) * 100
-  const sizeY = (1 / crop.height) * 100
-  const posX = clamp((crop.x / (1 - crop.width || 1)) * 100)
-  const posY = clamp((crop.y / (1 - crop.height || 1)) * 100)
-
-  return {
-    backgroundImage: `url(${imageUrl})`,
-    backgroundSize: `${sizeX}% ${sizeY}%`,
-    backgroundPosition: `${posX}% ${posY}%`,
-  }
-}
 
 const Home = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([])
@@ -383,20 +360,18 @@ const Home = () => {
           <div className="team-grid-landing">
             {displayCabinet.map((member) => {
               const avatarUrl = member.image || getMemberImage(member)
+              const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
               return (
-              <div key={member.role || member.id} className="team-card-landing">
-                <div
-                  className="team-avatar-landing"
-                  style={getCropStyles(avatarUrl, member.imageCrops?.landing)}
-                />
-                <div className="team-info-landing">
-                  <h3>{member.name}</h3>
-                  <p className="team-role-landing">{member.role}</p>
-                  {member.detail || member.program ? (
-                    <span className="team-detail-landing">{member.detail || member.program}</span>
-                  ) : null}
+                <div key={member.role || member.id} className="team-card-landing">
+                  <div className="team-avatar-landing" style={cropStyle} />
+                  <div className="team-info-landing">
+                    <h3>{member.name}</h3>
+                    <p className="team-role-landing">{member.role}</p>
+                    {member.detail || member.program ? (
+                      <span className="team-detail-landing">{member.detail || member.program}</span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
               )
             })}
           </div>
