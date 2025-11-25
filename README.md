@@ -26,12 +26,15 @@ The project can optionally connect to Supabase Storage for event covers and team
 1. Create a Supabase project (already provided: `acmnuml`).
 2. Create a public storage bucket named `media`.
 3. Set the bucket policy to allow public reads.
-4. Add the Supabase URL and anon key to your `.env` file:
+4. Add the Supabase URL, anon key, and bucket name to your `.env` file:
 
 ```
 VITE_SUPABASE_URL=https://vtphwfdsorogemcmcnyf.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
+VITE_SUPABASE_BUCKET=media
 ```
+
+**Note:** The `.env` file is gitignored and should not be committed. Each developer needs to create their own `.env` file with these variables. See `.env.example` for a template.
 
 Admin pages now let you upload images directly; the file is stored in the `media` bucket and only the public URL is saved in Firestore.
 

@@ -13,10 +13,22 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // Gallery images collection - read only for public
+    // Gallery images collection (legacy) - read only for public
     match /gallery/{imageId} {
       allow read: if true;
       allow write: if request.auth != null;
+    }
+    
+    // Galleries collection - read only for public
+    match /galleries/{galleryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      
+      // Images subcollection within galleries
+      match /images/{imageId} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
     }
     
     // Contact submissions - anyone can create, only admins can read

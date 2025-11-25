@@ -91,6 +91,13 @@ const AdminDashboard = () => {
       color: '#7c3aed'
     },
     {
+      icon: FiImage,
+      title: 'Galleries',
+      description: 'Manage photo galleries and images',
+      link: '/admin/gallery',
+      color: '#10b981'
+    },
+    {
       icon: FiSettings,
       title: 'Settings',
       description: 'Update form links and site details',

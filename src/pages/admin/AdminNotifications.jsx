@@ -82,7 +82,8 @@ const AdminNotifications = () => {
     try {
       const notificationData = {
         ...formData,
-        createdAt: editingNotification ? editingNotification.createdAt : Timestamp.now()
+        createdAt: editingNotification ? editingNotification.createdAt : Timestamp.now(),
+        reactivationToken: editingNotification?.reactivationToken ?? Date.now()
       }
 
       if (editingNotification) {
@@ -134,8 +135,17 @@ const AdminNotifications = () => {
 
   const toggleActive = async (notification) => {
     try {
+      const becomingActive = !notification.active
+      const updates = {
+        active: becomingActive
+      }
+
+      if (becomingActive) {
+        updates.reactivationToken = Date.now()
+      }
+
       await updateDoc(doc(db, 'notifications', notification.id), {
-        active: !notification.active
+        ...updates
       })
       fetchNotifications()
     } catch (error) {

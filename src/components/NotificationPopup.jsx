@@ -7,6 +7,14 @@ import './NotificationPopup.css'
 const NotificationPopup = () => {
   const [notification, setNotification] = useState(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [hasAcknowledged, setHasAcknowledged] = useState(false)
+  const [dismissKey, setDismissKey] = useState(null)
+
+  const buildDismissKey = (note) => {
+    if (!note) return null
+    const baseToken = note.reactivationToken ?? (note.createdAt ? new Date(note.createdAt).getTime() : 'default')
+    return `notification_${note.id}_${baseToken}`
+  }
 
   useEffect(() => {
     const fetchActiveNotification = async () => {
@@ -33,9 +41,18 @@ const NotificationPopup = () => {
 
           if (sorted.length) {
             const latest = sorted[0]
-            const dismissed = localStorage.getItem(`notification_${latest.id}_dismissed`)
+            const key = buildDismissKey(latest)
+            const legacyKey = `notification_${latest.id}_dismissed`
+
+            if (localStorage.getItem(legacyKey)) {
+              localStorage.removeItem(legacyKey)
+            }
+
+            const dismissed = key ? localStorage.getItem(key) : null
             if (!dismissed) {
               setNotification(latest)
+              setDismissKey(key)
+              setHasAcknowledged(false)
               setIsVisible(true)
             }
           }
@@ -49,11 +66,21 @@ const NotificationPopup = () => {
   }, [])
 
   const handleDismiss = () => {
-    if (notification) {
-      localStorage.setItem(`notification_${notification.id}_dismissed`, 'true')
+    if (!notification || !hasAcknowledged) return
+
+    if (dismissKey) {
+      localStorage.setItem(dismissKey, 'true')
     }
     setIsVisible(false)
+    setNotification(null)
+    setDismissKey(null)
   }
+
+  useEffect(() => {
+    if (notification) {
+      setHasAcknowledged(false)
+    }
+  }, [notification])
 
   if (!isVisible || !notification) return null
 
@@ -71,8 +98,26 @@ const NotificationPopup = () => {
               Learn More →
             </a>
           )}
+          <div className="notification-ack">
+            <label>
+              <input
+                type="checkbox"
+                checked={hasAcknowledged}
+                onChange={(event) => setHasAcknowledged(event.target.checked)}
+              />
+              <span>I have read it</span>
+            </label>
+            {!hasAcknowledged && (
+              <p className="notification-ack-hint">Please confirm before closing.</p>
+            )}
+          </div>
         </div>
-        <button className="notification-close" onClick={handleDismiss} aria-label="Close">
+        <button
+          className="notification-close"
+          onClick={handleDismiss}
+          aria-label="Close"
+          disabled={!hasAcknowledged}
+        >
           <FiX />
         </button>
       </div>

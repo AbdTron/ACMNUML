@@ -1,126 +1,102 @@
 import { useState, useEffect } from 'react'
-import { collection, query, getDocs, orderBy } from 'firebase/firestore'
+import { Link } from 'react-router-dom'
+import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { FiImage, FiX } from 'react-icons/fi'
+import { FiImage, FiFolder, FiArrowRight } from 'react-icons/fi'
 import './Gallery.css'
 
 const Gallery = () => {
-  const [images, setImages] = useState([])
+  const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
-    const fetchImages = async () => {
+    const fetchGalleries = async () => {
       if (!db) {
         setLoading(false)
         return
       }
       try {
-        const galleryRef = collection(db, 'gallery')
-        const q = query(galleryRef, orderBy('uploadDate', 'desc'))
+        const galleriesRef = collection(db, 'galleries')
+        const q = query(galleriesRef, orderBy('createdAt', 'desc'))
         
         const querySnapshot = await getDocs(q)
-        const galleryImages = []
+        const galleriesList = []
         querySnapshot.forEach((doc) => {
-          galleryImages.push({ id: doc.id, ...doc.data() })
+          galleriesList.push({ id: doc.id, ...doc.data() })
         })
-        setImages(galleryImages)
+        setGalleries(galleriesList)
       } catch (error) {
-        console.error('Error fetching gallery:', error)
+        console.error('Error fetching galleries:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchImages()
+    fetchGalleries()
   }, [])
-
-  const openModal = (image) => {
-    setSelectedImage(image)
-  }
-
-  const closeModal = () => {
-    setSelectedImage(null)
-  }
 
   return (
     <div className="gallery-page">
       <div className="page-header">
         <div className="container">
           <h1>Gallery</h1>
-          <p>Memories from our events, workshops, and community gatherings</p>
+          <p>Browse through our collection of event photos and memories</p>
         </div>
       </div>
 
       <section className="section">
         <div className="container">
           {loading ? (
-            <div className="loading">Loading gallery...</div>
-          ) : images.length > 0 ? (
-            <div className="gallery-grid">
-              {images.map((image) => (
-                <div
-                  key={image.id}
-                  className="gallery-item"
-                  onClick={() => openModal(image)}
+            <div className="loading">Loading galleries...</div>
+          ) : galleries.length > 0 ? (
+            <div className="galleries-grid">
+              {galleries.map((gallery) => (
+                <Link
+                  key={gallery.id}
+                  to={`/gallery/${gallery.id}`}
+                  className="gallery-card"
                 >
-                  {image.url ? (
-                    <img 
-                      src={image.url} 
-                      alt={image.caption || 'Gallery image'}
-                      className="gallery-image"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="gallery-placeholder">
-                      <FiImage />
+                  <div className="gallery-thumbnail">
+                    {gallery.thumbnailUrl ? (
+                      <img 
+                        src={gallery.thumbnailUrl} 
+                        alt={gallery.name}
+                        className="thumbnail-image"
+                      />
+                    ) : (
+                      <div className="thumbnail-placeholder">
+                        <FiFolder size={48} />
+                      </div>
+                    )}
+                    <div className="gallery-overlay">
+                      <FiArrowRight size={24} />
                     </div>
-                  )}
-                  {image.caption && (
-                    <div className="gallery-caption">
-                      <p>{image.caption}</p>
-                      {image.eventName && (
-                        <span className="gallery-event">{image.eventName}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                  <div className="gallery-info">
+                    <h3>{gallery.name}</h3>
+                    {gallery.description && (
+                      <p className="gallery-description">{gallery.description}</p>
+                    )}
+                    {gallery.imageCount !== undefined && (
+                      <span className="gallery-count">
+                        <FiImage size={16} />
+                        {gallery.imageCount} {gallery.imageCount === 1 ? 'photo' : 'photos'}
+                      </span>
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           ) : (
-            <div className="no-images">
+            <div className="no-galleries">
               <FiImage size={64} />
-              <p>No images in the gallery yet. Check back soon!</p>
+              <p>No galleries yet. Check back soon!</p>
             </div>
           )}
         </div>
       </section>
-
-      {selectedImage && (
-        <div className="image-modal" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModal}>
-              <FiX />
-            </button>
-            <img 
-              src={selectedImage.url} 
-              alt={selectedImage.caption || 'Gallery image'}
-              className="modal-image"
-            />
-            {selectedImage.caption && (
-              <div className="modal-caption">
-                <p>{selectedImage.caption}</p>
-                {selectedImage.eventName && (
-                  <span className="modal-event">{selectedImage.eventName}</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
 export default Gallery
-
