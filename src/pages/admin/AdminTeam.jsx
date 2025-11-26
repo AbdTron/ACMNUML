@@ -25,6 +25,7 @@ const defaultForm = {
   twitter: '',
   order: 1,
   image: '',
+  filePath: '',
   imageCrops: null,
 }
 
@@ -65,18 +66,24 @@ const AdminTeam = () => {
   }
 
   const handleImageChange = (payload) => {
-    if (!payload) {
-      setFormData({ ...formData, image: '', imageCrops: null })
+    // Handle empty/removed image
+    if (!payload || payload === '' || (typeof payload === 'object' && (!payload.url || payload.url === ''))) {
+      setFormData({ ...formData, image: '', filePath: '', imageCrops: null })
       return
     }
 
     if (typeof payload === 'string') {
-      setFormData({ ...formData, image: payload, imageCrops: null })
+      setFormData({ ...formData, image: payload, filePath: '', imageCrops: null })
       return
     }
 
     if (typeof payload === 'object' && payload.url) {
-      setFormData({ ...formData, image: payload.url, imageCrops: payload.crops || null })
+      setFormData({ 
+        ...formData, 
+        image: payload.url, 
+        filePath: payload.filePath || payload.path || '',
+        imageCrops: payload.crops || null 
+      })
     }
   }
 
@@ -110,6 +117,7 @@ const AdminTeam = () => {
       twitter: member.twitter || '',
       order: member.order || 1,
       image: member.image || '',
+      filePath: member.filePath || '',
       imageCrops: member.imageCrops || null,
     })
     setShowForm(true)
@@ -239,7 +247,7 @@ const AdminTeam = () => {
                   <ImageUploader
                     label="Profile Image"
                     folder="team"
-                    value={formData.image}
+                    value={{ url: formData.image, filePath: formData.filePath, crops: formData.imageCrops }}
                     onChange={handleImageChange}
                     variants={[
                       { key: 'landing', label: 'Landing card crop', aspect: 4 / 5 },

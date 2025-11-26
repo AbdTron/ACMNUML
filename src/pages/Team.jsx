@@ -91,61 +91,73 @@ const Team = () => {
                 const imageUrl = getMemberImage(member)
                 const cropStyle = getCropBackgroundStyle(imageUrl, member.imageCrops?.profile)
                 return (
-                <div key={member.id} className="team-card">
-                  <div className="team-image-wrapper">
-                    {imageUrl ? (
-                      <div className="team-image" style={cropStyle} />
-                    ) : (
-                      <div className="team-image-placeholder">{member.name?.charAt(0)}</div>
-                    )}
-                  </div>
-                  <div className="team-info">
-                    <h3 className="team-name">{member.name}</h3>
-                    <p className="team-role">{member.role}</p>
-                    {member.bio && <p className="team-bio">{member.bio}</p>}
-                    <ul className="team-meta">
-                      {member.email && <li>{member.email}</li>}
-                    </ul>
-                    <div className="team-social">
-                      {member.linkedin && (
-                        <a
-                          className="social-link"
-                          href={member.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="LinkedIn"
-                        >
-                          <FiLinkedin />
-                        </a>
-                      )}
-                      {member.github && (
-                        <a
-                          className="social-link"
-                          href={member.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="GitHub"
-                        >
-                          <FiGithub />
-                        </a>
-                      )}
-                      {member.twitter && (
-                        <a
-                          className="social-link"
-                          href={member.twitter}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="Twitter"
-                        >
-                          <FiTwitter />
-                        </a>
-                      )}
-                      {member.email && (
-                        <a className="social-link" href={`mailto:${member.email}`} aria-label="Email">
-                          <FiMail />
-                        </a>
-                      )}
+                <div key={member.id} className={`team-card ${member.bio ? 'has-bio' : ''}`}>
+                  <div className="team-card-inner">
+                    <div className="team-card-front">
+                      <div className="team-image-wrapper">
+                        {imageUrl ? (
+                          <div className="team-image" style={cropStyle} />
+                        ) : (
+                          <div className="team-image-placeholder">{member.name?.charAt(0)}</div>
+                        )}
+                      </div>
+                      <div className="team-info">
+                        <h3 className="team-name">{member.name}</h3>
+                        <p className="team-role">{member.role}</p>
+                        <ul className="team-meta">
+                          {member.email && <li>{member.email}</li>}
+                        </ul>
+                        <div className="team-social">
+                          {member.linkedin && (
+                            <a
+                              className="social-link"
+                              href={member.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="LinkedIn"
+                            >
+                              <FiLinkedin />
+                            </a>
+                          )}
+                          {member.github && (
+                            <a
+                              className="social-link"
+                              href={member.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="GitHub"
+                            >
+                              <FiGithub />
+                            </a>
+                          )}
+                          {member.twitter && (
+                            <a
+                              className="social-link"
+                              href={member.twitter}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Twitter"
+                            >
+                              <FiTwitter />
+                            </a>
+                          )}
+                          {member.email && (
+                            <a className="social-link" href={`mailto:${member.email}`} aria-label="Email">
+                              <FiMail />
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                    {member.bio && (
+                      <div className="team-card-back">
+                        <div className="team-bio-content">
+                          <h3 className="team-name">{member.name}</h3>
+                          <p className="team-role">{member.role}</p>
+                          <p className="team-bio">{member.bio}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )})}

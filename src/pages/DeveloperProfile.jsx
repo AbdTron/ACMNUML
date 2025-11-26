@@ -14,7 +14,7 @@ const DeveloperProfile = () => {
                 alt="Abdullah Irshad"
               />
             </div>
-            <h1 className="profile-name">Abdullah Irshad</h1>
+            <h1 className="profile-name">ATRONS (Abdullah Irshad)</h1>
             <p className="profile-role">Lead Developer</p>
             <p className="profile-bio">
               Full‑stack engineer with a focus on backend systems, APIs, and deployment pipelines.

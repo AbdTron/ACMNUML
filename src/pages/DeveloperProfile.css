@@ -72,6 +72,11 @@
   font-weight: 700;
   letter-spacing: 0.2px;
   color: var(--text-dark);
+  line-height: 1.2;
+}
+
+[data-theme='dark'] .profile-name {
+  color: #fff;
 }
 
 .profile-role {
@@ -98,7 +103,11 @@
   gap: 0.75rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btn-blue {
@@ -106,32 +115,41 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: transparent;
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
-  border-radius: 12px;
+  background: rgba(0, 122, 255, 0.1);
+  color: #fff;
+  border: 1px solid #007AFF;
+  border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
   cursor: pointer;
+  min-width: 120px;
+  justify-content: center;
+}
+
+[data-theme='light'] .btn-blue {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 [data-theme='dark'] .btn-blue {
+  background: rgba(0, 122, 255, 0.1);
   color: #007AFF;
   border-color: #007AFF;
 }
 
 .btn-blue:hover {
+  background: #007AFF;
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(0, 122, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+[data-theme='light'] .btn-blue:hover {
   background: var(--primary-color);
   color: #fff;
   box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
-  transform: translateY(-3px);
-}
-
-[data-theme='dark'] .btn-blue:hover {
-  background: #007AFF;
-  color: #000;
-  box-shadow: 0 5px 15px rgba(0, 122, 255, 0.3);
 }
 
 .btn-blue svg {
@@ -182,4 +200,5 @@
     font-size: 1.5rem;
   }
 }
+
 

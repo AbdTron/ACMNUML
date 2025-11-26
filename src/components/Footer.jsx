@@ -77,7 +77,7 @@ const Footer = () => {
         <div className="footer-bottom">
           <p>&copy; {currentYear} ACM NUML. All rights reserved.</p>
           <p className="footer-domain">
-            Developed by <Link to="/developer" className="dev-link">Abdullah Irshad</Link>
+            &copy; Developed and managed by <Link to="/developer" className="dev-link">Abdullah Irshad</Link>
           </p>
         </div>
       </div>

@@ -109,11 +109,18 @@ const ImageUploader = ({
         }
 
         const uploadResult = await uploadToSupabase(originalFile, folder)
-        onChange({ url: uploadResult.url, crops: updatedCrops })
-        const previousUrl = getValueUrl(value)
-        if (previousUrl && previousUrl !== uploadResult.url) {
-          await deleteFromSupabase(previousUrl)
+        // Delete old image if it exists
+        if (value?.filePath) {
+          await deleteFromSupabase(value.filePath)
+        } else if (value?.path) {
+          await deleteFromSupabase(value.path)
+        } else {
+          const previousUrl = getValueUrl(value)
+          if (previousUrl && previousUrl !== uploadResult.url) {
+            await deleteFromSupabase(previousUrl)
+          }
         }
+        onChange({ url: uploadResult.url, filePath: uploadResult.path, crops: updatedCrops })
         resetCropper()
         return
       }
@@ -123,11 +130,18 @@ const ImageUploader = ({
         type: croppedBlob.type || originalFile.type,
       })
       const uploadResult = await uploadToSupabase(croppedFile, folder)
-      onChange(uploadResult.url)
-      const previousUrl = getValueUrl(value)
-      if (previousUrl && previousUrl !== uploadResult.url) {
-        await deleteFromSupabase(previousUrl)
+      // Delete old image if it exists
+      if (value?.filePath) {
+        await deleteFromSupabase(value.filePath)
+      } else if (value?.path) {
+        await deleteFromSupabase(value.path)
+      } else {
+        const previousUrl = getValueUrl(value)
+        if (previousUrl && previousUrl !== uploadResult.url) {
+          await deleteFromSupabase(previousUrl)
+        }
       }
+      onChange({ url: uploadResult.url, filePath: uploadResult.path })
       resetCropper()
     } catch (err) {
       console.error('Image upload failed:', err)
@@ -138,11 +152,30 @@ const ImageUploader = ({
   }
 
   const handleRemove = async () => {
-    const currentUrl = getValueUrl(value)
-    if (currentUrl) {
-      await deleteFromSupabase(currentUrl)
+    try {
+      // Delete from Supabase using filePath if available, otherwise use URL
+      if (value?.filePath) {
+        await deleteFromSupabase(value.filePath)
+      } else if (value?.path) {
+        await deleteFromSupabase(value.path)
+      } else {
+        const currentUrl = getValueUrl(value)
+        if (currentUrl) {
+          await deleteFromSupabase(currentUrl)
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting image:', err)
+      // Continue with removal even if delete fails
     }
-    onChange(hasVariants ? { url: '', crops: null } : '')
+    // Always call onChange to clear the image from the form
+    if (hasVariants) {
+      onChange({ url: '', filePath: '', crops: null })
+    } else if (typeof value === 'object') {
+      onChange({ url: '', filePath: '' })
+    } else {
+      onChange('')
+    }
   }
 
   return (
