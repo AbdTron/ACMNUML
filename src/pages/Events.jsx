@@ -111,22 +111,22 @@ const Events = () => {
                     onClick={() => window.location.href = `/events/${event.id}`}
                   >
                     <div className="event-card">
-                      {event.coverUrl && (
-                        <div className="event-cover">
-                          <img src={event.coverUrl} alt={event.title} />
-                        </div>
-                      )}
-                      <div className="event-header">
-                        {status === 'upcoming' && (
-                          <span className="event-badge upcoming">Upcoming</span>
-                        )}
-                        {status === 'today' && (
-                          <span className="event-badge today">Today</span>
-                        )}
-                        {status === 'past' && (
-                          <span className="event-badge past">Past</span>
-                        )}
+                    {event.coverUrl && (
+                      <div className="event-cover">
+                        <img src={event.coverUrl} alt={event.title} />
                       </div>
+                    )}
+                    <div className="event-header">
+                      {status === 'upcoming' && (
+                        <span className="event-badge upcoming">Upcoming</span>
+                      )}
+                      {status === 'today' && (
+                        <span className="event-badge today">Today</span>
+                      )}
+                      {status === 'past' && (
+                        <span className="event-badge past">Past</span>
+                      )}
+                    </div>
                     <div className="event-body">
                         <div className="event-date-compact">
                           <span className="event-day-compact">
@@ -136,35 +136,35 @@ const Events = () => {
                             {format(new Date(event.date), 'MMM')}
                           </span>
                         </div>
-                        <h3 className="event-title">{event.title}</h3>
+                      <h3 className="event-title">{event.title}</h3>
                         <p className="event-description">
                           {truncateText(event.description, 160)}
                         </p>
-                        <div className="event-details">
-                          {event.location && (
-                            <div className="event-detail">
-                              <FiMapPin />
-                              <span>{event.location}</span>
-                            </div>
-                          )}
+                      <div className="event-details">
+                        {event.location && (
                           <div className="event-detail">
-                            <FiCalendar />
-                            <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
-                          </div>
-                          {event.time && (
-                            <div className="event-detail">
-                              <FiClock />
-                              <span>{event.time}</span>
-                            </div>
-                          )}
-                        </div>
-                        {event.type && (
-                          <div className="event-type">
-                            <span className={`type-badge ${event.type.toLowerCase()}`}>
-                              {event.type}
-                            </span>
+                            <FiMapPin />
+                            <span>{event.location}</span>
                           </div>
                         )}
+                        <div className="event-detail">
+                          <FiCalendar />
+                          <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
+                        </div>
+                        {event.time && (
+                          <div className="event-detail">
+                            <FiClock />
+                            <span>{event.time}</span>
+                          </div>
+                        )}
+                      </div>
+                      {event.type && (
+                        <div className="event-type">
+                          <span className={`type-badge ${event.type.toLowerCase()}`}>
+                            {event.type}
+                          </span>
+                        </div>
+                      )}
                         <div className="event-card-actions">
                           {event.registerLink && (
                             <button

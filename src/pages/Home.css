@@ -894,47 +894,86 @@
   font-size: 1.125rem;
 }
 
+@media (max-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .hero-visual {
+    order: -1;
+  }
+
+  .hero-card {
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
+  .hero {
+    padding: 2.5rem 0;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
   .hero-buttons {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .hero-buttons .btn {
     width: 100%;
+    min-height: 48px;
   }
 
-  .event-card-preview-actions {
-    flex-wrap: wrap;
+  .hero-badges {
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
   }
 
-  .event-preview-register-btn,
-  .event-preview-view-btn {
-    min-width: auto;
-    flex: 1 1 auto;
+  .badge {
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
   }
 
-  .event-meta {
-    flex-direction: column;
-    gap: 0.35rem;
+  .hero-meta {
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
   }
 
-  .team-grid-landing {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .team-card-landing {
+  .hero-card {
     padding: 1.5rem;
   }
 
-  .team-avatar-landing {
-    width: 90px;
-    height: 90px;
+  .hero-card h3 {
+    font-size: 1.5rem;
   }
 
-  .join-hero {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+  .hero-card-footer {
+    font-size: 0.85rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .section {
+    padding: 2.5rem 0;
+  }
+
+  .section-title {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title h2 {
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
   }
 
   .about-grid {
@@ -942,8 +981,200 @@
     gap: 2rem;
   }
 
+  .about-content h2 {
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+
+  .about-content p {
+    font-size: 1rem;
+  }
+
   .about-cards {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .about-card {
+    padding: 1.5rem;
+  }
+
+  .team-grid-landing {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .team-card-landing {
+    padding: 1.25rem;
+  }
+
+  .team-avatar-landing {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+  }
+
+  .team-info-landing h3 {
+    font-size: 1.125rem;
+  }
+
+  .team-role-landing {
+    font-size: 0.875rem;
+  }
+
+  .team-detail-landing {
+    font-size: 0.8125rem;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .event-card-preview {
+    padding: 1.25rem;
+  }
+
+  .event-card-preview-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .event-preview-register-btn,
+  .event-preview-view-btn {
+    min-width: auto;
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  .event-meta {
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+  }
+
+  .highlights-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .highlight-card {
+    padding: 1.25rem;
+  }
+
+  .join-hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .join-content {
+    gap: 1.5rem;
+  }
+
+  .join-description {
+    font-size: 1rem;
+  }
+
+  .chip-row {
+    gap: 0.5rem;
+  }
+
+  .chip {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .benefit-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .benefit-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .notifications-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .notification-card {
+    padding: 1rem;
+  }
+
+  .cta-content h2 {
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+
+  .cta-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 2rem 0;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .hero-badges {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .badge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-card {
+    padding: 1.25rem;
+  }
+
+  .hero-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .section {
+    padding: 2rem 0;
+  }
+
+  .team-grid-landing {
+    grid-template-columns: 1fr;
+  }
+
+  .team-card-landing {
+    padding: 1.5rem;
+  }
+
+  .about-card {
+    padding: 1.25rem;
+  }
+
+  .event-card-preview {
+    padding: 1rem;
+  }
+
+  .highlight-card {
+    padding: 1rem;
+  }
+
+  .benefit-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

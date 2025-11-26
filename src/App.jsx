@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import NotificationPopup from './components/NotificationPopup'
+import InstallPrompt from './components/InstallPrompt'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Events from './pages/Events'
@@ -27,6 +28,7 @@ function App() {
         <div className="app">
           <Navbar />
           <NotificationPopup />
+          <InstallPrompt />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />

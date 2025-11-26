@@ -300,6 +300,10 @@ a:hover {
     font-size: 1.5rem;
   }
 
+  h4 {
+    font-size: 1.25rem;
+  }
+
   .section {
     padding: 2rem 0;
   }
@@ -308,8 +312,57 @@ a:hover {
     font-size: 2rem;
   }
 
+  .section-title p {
+    font-size: 1rem;
+  }
+
   .container {
     padding: 0 1rem;
+  }
+
+  .btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
+    min-height: 44px; /* Touch-friendly */
+  }
+
+  .btn-large {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  .section {
+    padding: 1.5rem 0;
+  }
+
+  .container {
+    padding: 0 0.875rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
   }
 }
 

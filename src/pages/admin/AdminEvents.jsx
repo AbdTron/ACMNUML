@@ -318,7 +318,7 @@ const AdminEvents = () => {
                       value={formData.registerLink}
                       onChange={handleInputChange}
                       placeholder="https://forms.gle/..."
-                    />
+                />
                   </div>
                   <div className="form-actions">
                     <button type="button" onClick={() => {

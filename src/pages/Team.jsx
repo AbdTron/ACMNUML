@@ -9,6 +9,7 @@ const Team = () => {
   const [teamMembers, setTeamMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [socialHovered, setSocialHovered] = useState(null)
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -91,23 +92,31 @@ const Team = () => {
                 const imageUrl = getMemberImage(member)
                 const cropStyle = getCropBackgroundStyle(imageUrl, member.imageCrops?.profile)
                 return (
-                <div key={member.id} className={`team-card ${member.bio ? 'has-bio' : ''}`}>
+                <div 
+                  key={member.id} 
+                  className={`team-card ${member.bio ? 'has-bio' : ''} ${socialHovered === member.id ? 'social-hovered' : ''}`}
+                  onMouseLeave={() => setSocialHovered(null)}
+                >
                   <div className="team-card-inner">
                     <div className="team-card-front">
-                      <div className="team-image-wrapper">
-                        {imageUrl ? (
-                          <div className="team-image" style={cropStyle} />
-                        ) : (
-                          <div className="team-image-placeholder">{member.name?.charAt(0)}</div>
-                        )}
-                      </div>
-                      <div className="team-info">
-                        <h3 className="team-name">{member.name}</h3>
-                        <p className="team-role">{member.role}</p>
-                        <ul className="team-meta">
-                          {member.email && <li>{member.email}</li>}
-                        </ul>
-                        <div className="team-social">
+                      <div className="team-flip-trigger">
+                        <div className="team-image-wrapper">
+                          {imageUrl ? (
+                            <div className="team-image" style={cropStyle} />
+                          ) : (
+                            <div className="team-image-placeholder">{member.name?.charAt(0)}</div>
+                          )}
+                        </div>
+                        <div className="team-info">
+                          <h3 className="team-name">{member.name}</h3>
+                          <p className="team-role">{member.role}</p>
+                          <ul className="team-meta">
+                            {member.email && <li>{member.email}</li>}
+                          </ul>
+                          <div 
+                            className="team-social"
+                            onMouseEnter={() => setSocialHovered(member.id)}
+                          >
                           {member.linkedin && (
                             <a
                               className="social-link"
@@ -146,6 +155,7 @@ const Team = () => {
                               <FiMail />
                             </a>
                           )}
+                          </div>
                         </div>
                       </div>
                     </div>

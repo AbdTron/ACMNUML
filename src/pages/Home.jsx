@@ -437,7 +437,8 @@ const Home = () => {
               <Link to="/join" className="btn btn-primary">
                 Apply Now
               </Link>
-              <h4>Lead. Build. Inspire. Be the force behind ACM NUML.</h4>
+              <h4>Lead. Build. Inspire. 
+                <br />  Be the force behind ACM NUML.</h4>
             </div>
             <div className="join-benefits">
               <div className="benefit-card">

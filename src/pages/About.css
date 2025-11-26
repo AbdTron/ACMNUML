@@ -125,14 +125,132 @@
 }
 
 @media (max-width: 768px) {
-  .about-intro h2,
-  .activities-section h2,
-  .join-cta h2 {
+  .page-header {
+    padding: 2.5rem 0;
+  }
+
+  .page-header h1 {
     font-size: 2rem;
+  }
+
+  .page-header p {
+    font-size: 1.125rem;
+  }
+
+  .about-intro {
+    padding: 0 1rem;
+  }
+
+  .about-intro h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .about-intro p {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .values-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .value-card {
+    padding: 1.5rem;
+  }
+
+  .value-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .value-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .value-description {
+    font-size: 0.9375rem;
+  }
+
+  .activities-section {
+    padding: 0 1rem;
+  }
+
+  .activities-section h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .activities-intro {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .activities-grid {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .activity-item {
+    padding: 0.875rem;
+  }
+
+  .activity-bullet {
+    font-size: 1.25rem;
+  }
+
+  .join-cta {
+    padding: 0 1rem;
+  }
+
+  .join-cta h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .join-cta p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 2rem 0;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .page-header p {
+    font-size: 1rem;
+  }
+
+  .about-intro h2,
+  .activities-section h2,
+  .join-cta h2 {
+    font-size: 1.5rem;
+  }
+
+  .value-card {
+    padding: 1.25rem;
+  }
+
+  .value-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .activity-item {
+    padding: 0.75rem;
+    flex-direction: column;
+    text-align: center;
   }
 }
 

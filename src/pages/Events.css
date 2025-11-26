@@ -287,20 +287,119 @@
 }
 
 @media (max-width: 768px) {
+  .page-header {
+    padding: 2.5rem 0;
+  }
+
   .page-header h1 {
     font-size: 2rem;
   }
 
-  .events-grid {
-    grid-template-columns: 1fr;
+  .page-header p {
+    font-size: 1.125rem;
   }
 
   .events-filters {
     flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
   }
 
   .filter-btn {
     width: 100%;
+    padding: 0.875rem 1.25rem;
+    min-height: 44px;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .event-card {
+    border-radius: 0.875rem;
+  }
+
+  .event-cover {
+    height: 160px;
+  }
+
+  .event-body {
+    padding: 1.25rem;
+  }
+
+  .event-date-compact {
+    width: 3rem;
+    height: 3rem;
+    top: -2rem;
+    left: 1.25rem;
+  }
+
+  .event-day-compact {
+    font-size: 1.25rem;
+  }
+
+  .event-month-compact {
+    font-size: 0.65rem;
+  }
+
+  .event-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .event-description {
+    font-size: 0.9375rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .event-detail {
+    font-size: 0.8125rem;
+  }
+
+  .event-card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .event-register-btn,
+  .event-view-btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 2rem 0;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .page-header p {
+    font-size: 1rem;
+  }
+
+  .event-body {
+    padding: 1rem;
+  }
+
+  .event-date-compact {
+    width: 2.75rem;
+    height: 2.75rem;
+    top: -1.75rem;
+    left: 1rem;
+  }
+
+  .event-title {
+    font-size: 1.125rem;
+  }
+
+  .event-cover {
+    height: 140px;
   }
 }
 
