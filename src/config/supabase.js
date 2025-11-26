@@ -10,6 +10,33 @@ const supabaseBucket = import.meta.env.VITE_SUPABASE_BUCKET || 'media'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+const getPublicPrefix = () =>
+  `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${supabaseBucket}/`
+
+export const getStoragePathFromUrl = (publicUrl) => {
+  if (!publicUrl) return null
+  const prefix = getPublicPrefix()
+  if (publicUrl.startsWith(prefix)) {
+    return publicUrl.slice(prefix.length)
+  }
+  const url = new URL(publicUrl, supabaseUrl)
+  const segments = url.pathname.split(`/${supabaseBucket}/`)
+  return segments[1] || null
+}
+
+export const deleteFromSupabase = async (pathOrUrl) => {
+  if (!pathOrUrl) return
+  const storageBucket = supabase.storage.from(supabaseBucket)
+  const path = pathOrUrl.includes('/storage/v1/object/')
+    ? getStoragePathFromUrl(pathOrUrl)
+    : pathOrUrl
+  if (!path) return
+  const { error } = await storageBucket.remove([path])
+  if (error) {
+    console.warn('Failed to delete file from Supabase:', error.message)
+  }
+}
+
 export const uploadToSupabase = async (file, folder = 'media') => {
   if (!file) return null
   const fileExt = file.name.split('.').pop()
@@ -29,7 +56,6 @@ export const uploadToSupabase = async (file, folder = 'media') => {
     data: { publicUrl },
   } = storageBucket.getPublicUrl(filePath)
 
-  return publicUrl
+  return { url: publicUrl, path: filePath }
 }
-
 

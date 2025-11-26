@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Cropper from 'react-easy-crop'
 import { FiImage, FiTrash2 } from 'react-icons/fi'
-import { uploadToSupabase } from '../config/supabase'
+import { uploadToSupabase, deleteFromSupabase } from '../config/supabase'
 import getCroppedImage from '../utils/cropImage'
 import './ImageUploader.css'
 
@@ -15,6 +15,13 @@ const normalizeCrop = (croppedArea, dimensions) => {
     width: croppedArea.width / width,
     height: croppedArea.height / height,
   }
+}
+
+const getValueUrl = (value) => {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') return value.url || ''
+  return ''
 }
 
 const ImageUploader = ({
@@ -40,7 +47,7 @@ const ImageUploader = ({
   const hasVariants = Array.isArray(variants) && variants.length > 0
   const cropSteps = hasVariants ? variants : [{ key: 'default', label: label || 'Image', aspect }]
   const activeStep = cropSteps[activeVariantIndex] || cropSteps[0]
-  const previewUrl = typeof value === 'string' || !value ? value : value?.url
+  const previewUrl = getValueUrl(value)
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0]
@@ -101,8 +108,12 @@ const ImageUploader = ({
           return
         }
 
-        const url = await uploadToSupabase(originalFile, folder)
-        onChange({ url, crops: updatedCrops })
+        const uploadResult = await uploadToSupabase(originalFile, folder)
+        onChange({ url: uploadResult.url, crops: updatedCrops })
+        const previousUrl = getValueUrl(value)
+        if (previousUrl && previousUrl !== uploadResult.url) {
+          await deleteFromSupabase(previousUrl)
+        }
         resetCropper()
         return
       }
@@ -111,8 +122,12 @@ const ImageUploader = ({
       const croppedFile = new File([croppedBlob], originalFile.name, {
         type: croppedBlob.type || originalFile.type,
       })
-      const url = await uploadToSupabase(croppedFile, folder)
-      onChange(url)
+      const uploadResult = await uploadToSupabase(croppedFile, folder)
+      onChange(uploadResult.url)
+      const previousUrl = getValueUrl(value)
+      if (previousUrl && previousUrl !== uploadResult.url) {
+        await deleteFromSupabase(previousUrl)
+      }
       resetCropper()
     } catch (err) {
       console.error('Image upload failed:', err)
@@ -122,6 +137,14 @@ const ImageUploader = ({
     }
   }
 
+  const handleRemove = async () => {
+    const currentUrl = getValueUrl(value)
+    if (currentUrl) {
+      await deleteFromSupabase(currentUrl)
+    }
+    onChange(hasVariants ? { url: '', crops: null } : '')
+  }
+
   return (
     <div className="image-uploader">
       {label && <label>{label}</label>}
@@ -129,7 +152,7 @@ const ImageUploader = ({
         {previewUrl ? (
           <div className="preview">
             <img src={previewUrl} alt="Uploaded preview" />
-            <button type="button" className="remove-btn" onClick={() => onChange('')}>
+            <button type="button" className="remove-btn" onClick={handleRemove}>
               <FiTrash2 /> Remove
             </button>
           </div>

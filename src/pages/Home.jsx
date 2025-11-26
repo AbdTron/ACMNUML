@@ -9,16 +9,18 @@ import {
   FiCamera,
   FiBell
 } from 'react-icons/fi'
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useEffect, useState } from 'react'
 import { getCropBackgroundStyle } from '../utils/cropStyles'
+import { truncateText } from '../utils/text'
 import './Home.css'
 
 const Home = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [pastEvents, setPastEvents] = useState([])
+  const [showGallery, setShowGallery] = useState(true)
   const [cabinetMembers, setCabinetMembers] = useState([])
 
   useEffect(() => {
@@ -79,6 +81,24 @@ const Home = () => {
 
     fetchUpcomingEvents()
     fetchPastEvents()
+  }, [])
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!db) return
+      try {
+        const settingsRef = doc(db, 'settings', 'general')
+        const snap = await getDoc(settingsRef)
+        if (snap.exists()) {
+          const data = snap.data()
+          setShowGallery(data.showGallery !== false)
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      }
+    }
+
+    fetchSettings()
   }, [])
 
   useEffect(() => {
@@ -236,13 +256,16 @@ const Home = () => {
           </div>
           <div className="hero-visual">
             <div className="hero-gradient"></div>
-            {upcomingEvents[0] ? (
+                {upcomingEvents[0] ? (
               <Link to={`/events/${upcomingEvents[0].id}`} className="hero-card hero-card-link">
                 <span className="hero-card-label">Next Up</span>
                 <h3>{upcomingEvents[0].title}</h3>
                 <p>
-                  {upcomingEvents[0].description ||
-                    'Prototype sprint • limited seats • collaboration focused'}
+                  {truncateText(
+                    upcomingEvents[0].description ||
+                      'Prototype sprint • limited seats • collaboration focused',
+                    120
+                  )}
                 </p>
                 {upcomingEvents[0]?.registerLink && (
                   <a
@@ -311,25 +334,36 @@ const Home = () => {
                       </div>
                       <div className="event-content-preview">
                         <h3 className="event-title-preview">{event.title}</h3>
-                        <p className="event-description-preview">{event.description}</p>
+                        <p className="event-description-preview">
+                          {truncateText(event.description, 140)}
+                        </p>
                         <div className="event-meta">
                           <span>{event.venue || 'On Campus'}</span>
                           <span>{event.time || 'TBA'}</span>
                         </div>
-                      {event.registerLink && (
-                        <a
-                          href={event.registerLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="event-register-link"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          RSVP / Register
-                        </a>
-                      )}
-                        <span className="event-link-preview">
-                          View details <FiArrowRight />
-                        </span>
+                        <div className="event-card-preview-actions">
+                          {event.registerLink && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(event.registerLink, '_blank', 'noopener,noreferrer')
+                              }}
+                              className="btn btn-primary event-preview-register-btn"
+                            >
+                              Registration
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              window.location.href = `/events/${event.id}`
+                            }}
+                            className="btn btn-secondary event-preview-view-btn"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -483,29 +517,31 @@ const Home = () => {
       </section>
 
       {/* Gallery Preview */}
-      <section className="section gallery-section">
-        <div className="container">
-          <div className="section-title">
-            <h2>Gallery Preview</h2>
-            <p>Moments from recent events and community meetups</p>
-          </div>
-          <div className="gallery-grid">
-            {galleryPreview.map((item) => (
-              <div key={item.title} className="gallery-card" style={{ backgroundImage: `url(${item.url})` }}>
-                <div className="gallery-overlay">
-                  <FiCamera />
-                  <span>{item.title}</span>
+      {showGallery && (
+        <section className="section gallery-section">
+          <div className="container">
+            <div className="section-title">
+              <h2>Gallery Preview</h2>
+              <p>Moments from recent events and community meetups</p>
+            </div>
+            <div className="gallery-grid">
+              {galleryPreview.map((item) => (
+                <div key={item.title} className="gallery-card" style={{ backgroundImage: `url(${item.url})` }}>
+                  <div className="gallery-overlay">
+                    <FiCamera />
+                    <span>{item.title}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="gallery-cta">
+              <Link to="/gallery" className="btn btn-secondary">
+                View Full Gallery
+              </Link>
+            </div>
           </div>
-          <div className="gallery-cta">
-            <Link to="/gallery" className="btn btn-secondary">
-              View Full Gallery
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Notifications */}
       <section className="section notifications-section">

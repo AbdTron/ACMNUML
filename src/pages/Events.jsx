@@ -4,6 +4,7 @@ import { collection, query, getDocs, orderBy, where } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { format } from 'date-fns'
 import { FiCalendar, FiMapPin, FiClock } from 'react-icons/fi'
+import { truncateText } from '../utils/text'
 import './Events.css'
 
 const Events = () => {
@@ -104,7 +105,11 @@ const Events = () => {
               {events.map((event) => {
                 const status = getEventStatus(event.date)
                 return (
-                  <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
+                  <div 
+                    key={event.id} 
+                    className="event-card-wrapper"
+                    onClick={() => window.location.href = `/events/${event.id}`}
+                  >
                     <div className="event-card">
                       {event.coverUrl && (
                         <div className="event-cover">
@@ -112,14 +117,6 @@ const Events = () => {
                         </div>
                       )}
                       <div className="event-header">
-                        <div className="event-date-large">
-                          <span className="event-day-large">
-                            {format(new Date(event.date), 'dd')}
-                          </span>
-                          <span className="event-month-large">
-                            {format(new Date(event.date), 'MMM')}
-                          </span>
-                        </div>
                         {status === 'upcoming' && (
                           <span className="event-badge upcoming">Upcoming</span>
                         )}
@@ -131,8 +128,18 @@ const Events = () => {
                         )}
                       </div>
                     <div className="event-body">
+                        <div className="event-date-compact">
+                          <span className="event-day-compact">
+                            {format(new Date(event.date), 'dd')}
+                          </span>
+                          <span className="event-month-compact">
+                            {format(new Date(event.date), 'MMM')}
+                          </span>
+                        </div>
                         <h3 className="event-title">{event.title}</h3>
-                        <p className="event-description">{event.description}</p>
+                        <p className="event-description">
+                          {truncateText(event.description, 160)}
+                        </p>
                         <div className="event-details">
                           {event.location && (
                             <div className="event-detail">
@@ -158,19 +165,32 @@ const Events = () => {
                             </span>
                           </div>
                         )}
-                        {event.registerLink && (
-                          <a
-                            href={event.registerLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="event-card-register"
+                        <div className="event-card-actions">
+                          {event.registerLink && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(event.registerLink, '_blank', 'noopener,noreferrer')
+                              }}
+                              className="btn btn-primary event-register-btn"
+                            >
+                              Registration
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              window.location.href = `/events/${event.id}`
+                            }}
+                            className="btn btn-secondary event-view-btn"
                           >
-                            RSVP / Register
-                          </a>
-                        )}
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 )
               })}
             </div>

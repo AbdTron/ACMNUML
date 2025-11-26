@@ -27,3 +27,9 @@ export const getCropBackgroundStyle = (imageUrl, crop) => {
 }
 
 
+
+
+
+
+
+

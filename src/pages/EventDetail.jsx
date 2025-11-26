@@ -76,7 +76,9 @@ const EventDetail = () => {
             <FiArrowLeft /> Back to events
           </Link>
           <h1>{event.title}</h1>
-          <p>{event.description}</p>
+          {event.longDescription && (
+            <p>{event.description}</p>
+          )}
           <div className="event-detail-meta">
             <div>
               <FiCalendar />

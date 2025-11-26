@@ -20,6 +20,7 @@ const AdminSettings = () => {
     googleFormUrl: '',
     contactEmail: '',
     websiteUrl: '',
+    showGallery: true,
     socialLinks: {
       facebook: '',
       instagram: '',
@@ -51,6 +52,7 @@ const AdminSettings = () => {
           googleFormUrl: data.googleFormUrl || '',
           contactEmail: data.contactEmail || '',
           websiteUrl: data.websiteUrl || '',
+          showGallery: data.showGallery !== false,
           socialLinks: data.socialLinks || {
             facebook: '',
             instagram: '',
@@ -75,7 +77,9 @@ const AdminSettings = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    if (name.startsWith('social.')) {
+    if (name === 'showGallery') {
+      setFormData({ ...formData, showGallery: e.target.checked })
+    } else if (name.startsWith('social.')) {
       const socialKey = name.split('.')[1]
       setFormData({
         ...formData,
@@ -288,6 +292,19 @@ const AdminSettings = () => {
                   rows="4"
                   placeholder="Brief description of ACM NUML..."
                 />
+              </div>
+
+              <div className="form-group toggle-group">
+                <label>Show Gallery on Landing Page</label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    name="showGallery"
+                    checked={formData.showGallery}
+                    onChange={handleInputChange}
+                  />
+                  <span className="slider" />
+                </label>
               </div>
             </div>
 
