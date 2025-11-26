@@ -12,6 +12,7 @@ import Gallery from './pages/Gallery'
 import Join from './pages/Join'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import DeveloperProfile from './pages/DeveloperProfile'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminEvents from './pages/admin/AdminEvents'
@@ -36,6 +37,7 @@ function App() {
               <Route path="/join" element={<Join />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/developer" element={<DeveloperProfile />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route
                 path="/admin"

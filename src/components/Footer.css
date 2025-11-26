@@ -126,7 +126,24 @@
 
 .footer-domain {
   font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dev-link {
   color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-weight: 600;
+}
+
+.dev-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+[data-theme='dark'] .dev-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {

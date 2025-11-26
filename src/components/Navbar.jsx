@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { FiMenu, FiX, FiShield, FiMoon, FiSun } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import acmLogo from '../assets/acmlog.png'
 import './Navbar.css'
 
 const Navbar = () => {
@@ -27,6 +28,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
+          <img src={acmLogo} alt="ACM NUML Logo" className="logo-image" />
           <span className="logo-text">ACM</span>
           <span className="logo-subtitle">NUML</span>
         </Link>

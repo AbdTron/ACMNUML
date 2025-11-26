@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
-import { FiExternalLink, FiMail, FiUsers } from 'react-icons/fi'
+import { FiExternalLink, FiMail, FiUsers, FiArrowRight } from 'react-icons/fi'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import './Join.css'
 
 const Join = () => {
-  const [formSubmitted, setFormSubmitted] = useState(false)
   const [googleFormUrl, setGoogleFormUrl] = useState('https://forms.gle/YOUR_FORM_ID')
 
   useEffect(() => {
@@ -56,13 +55,6 @@ const Join = () => {
     },
   ]
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault()
-    // You can add custom form submission logic here
-    // For now, redirecting to Google Form
-    window.open(googleFormUrl, '_blank')
-    setFormSubmitted(true)
-  }
 
   return (
     <div className="join-page">
@@ -95,112 +87,33 @@ const Join = () => {
                 ))}
               </div>
             </div>
-
+            
             <div className="join-form-section">
               <div className="form-card">
-                <h2>Apply Now</h2>
-                <p className="form-description">
-                  Fill out our application form to join ACM NUML. We're always looking
-                  for enthusiastic members who want to make a difference.
-                </p>
+                <div className="apply-header">
+                  <h2>Ready to Join?</h2>
+                  <p className="form-description">
+                    Click the button below to access our application form. We're always looking
+                    for enthusiastic members who want to make a difference in the CS community.
+                  </p>
+                </div>
 
-                {formSubmitted ? (
-                  <div className="form-success">
-                    <FiMail size={48} />
-                    <h3>Application Submitted!</h3>
-                    <p>
-                      Thank you for your interest in joining ACM NUML. We'll review
-                      your application and get back to you soon.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <form onSubmit={handleFormSubmit} className="join-form">
-                      <div className="form-group">
-                        <label htmlFor="name">Full Name *</label>
-                        <input
-                          type="text"
-                          id="name"
-                          name="name"
-                          required
-                          placeholder="Enter your full name"
-                        />
-                      </div>
+                <a
+                  href={googleFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary btn-google-form"
+                >
+                  <span>Apply via Google Form</span>
+                  <FiExternalLink />
+                </a>
 
-                      <div className="form-group">
-                        <label htmlFor="email">Email Address *</label>
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          required
-                          placeholder="Enter your email"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label htmlFor="studentId">Student ID *</label>
-                        <input
-                          type="text"
-                          id="studentId"
-                          name="studentId"
-                          required
-                          placeholder="Enter your student ID"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label htmlFor="year">Year of Study *</label>
-                        <select id="year" name="year" required>
-                          <option value="">Select year</option>
-                          <option value="1">1st Year</option>
-                          <option value="2">2nd Year</option>
-                          <option value="3">3rd Year</option>
-                          <option value="4">4th Year</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label htmlFor="interests">Areas of Interest</label>
-                        <textarea
-                          id="interests"
-                          name="interests"
-                          rows="4"
-                          placeholder="Tell us about your interests in computer science..."
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label htmlFor="whyJoin">Why do you want to join ACM NUML? *</label>
-                        <textarea
-                          id="whyJoin"
-                          name="whyJoin"
-                          rows="4"
-                          required
-                          placeholder="Share your motivation for joining..."
-                        />
-                      </div>
-
-                      <button type="submit" className="btn btn-primary btn-full">
-                        Submit Application
-                      </button>
-                    </form>
-
-                    <div className="form-divider">
-                      <span>OR</span>
-                    </div>
-
-                    <a
-                      href={googleFormUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-secondary btn-full"
-                    >
-                      <FiExternalLink />
-                      Open Google Form
-                    </a>
-                  </>
-                )}
+                <div className="form-info">
+                  <p>
+                    <strong>Note:</strong> The application form will open in a new tab. 
+                    Please complete all required fields to submit your application.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

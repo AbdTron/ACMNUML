@@ -202,10 +202,8 @@ const Home = () => {
   ]
 
   const notifications = [
-    'Recruitment Opens — Feb 12, 2025',
-    'Results: Tech Quiz posted on Discord',
-    'Workshop certificates uploaded to portal',
-    'Event registration deadline extended to Jan 30',
+    'Recruitment Opens — 1 - Dec, 2025',
+
   ]
 
   return (
@@ -216,19 +214,19 @@ const Home = () => {
           <div className="hero-content">
             <p className="hero-eyebrow">Computer Science Department • NUML Lahore</p>
             <h1 className="hero-title">
-              ACM Society – <span className="hero-highlight">NUML Lahore</span> | Computer Science Department
+              ACM Chapter – <span className="hero-highlight">NUML Lahore</span> | Computer Science Department
             </h1>
             <p className="hero-subtitle">
-              Empowering students through technology, innovation, and community while building lifelong collaborators.
+              NUML CS Society — Code. Collaborate. Conquer.
             </p>
             <div className="hero-badges">
               <div className="badge glow">
                 <span className="badge-dot"></span>
-                Student chapter since 2016
+                Student chapter since 2025
               </div>
               <div className="badge outline">
                 <FiZap />
-                Workshops • Competitions • Industry Visits
+                Workshops • Events • Industry Visits
               </div>
             </div>
             <div className="hero-buttons">
@@ -242,11 +240,11 @@ const Home = () => {
             <div className="hero-meta">
               <div>
                 <FiMapPin />
-                <span>Innovation Lab • NUML Lahore Campus</span>
+                <span>Uni Lab • NUML Lahore Campus</span>
               </div>
               <div>
                 <FiBookOpen />
-                <span>Tracks: Cloud, AI, DevOps, Product</span>
+                <span></span>
               </div>
             </div>
             <div className="hero-ticker">
@@ -388,7 +386,7 @@ const Home = () => {
       <section className="section team-section">
         <div className="container">
           <div className="section-title">
-            <h2>Current Cabinet</h2>
+            <h2>Our Team</h2>
             <p>Meet the students orchestrating ACM NUML</p>
           </div>
           <div className="team-grid-landing">
@@ -423,12 +421,11 @@ const Home = () => {
           <div className="join-hero">
             <div className="join-content">
               <p className="section-label">Join Us</p>
-              <h2>Recruitment for Spring 2025 starts soon.</h2>
+              <h2>Recruiting for Spring 2025.</h2>
               <p className="join-description">
-                If you love building products, telling stories, designing visuals, or running events,
-                ACM NUML has a lane for you. Collaborate with peers, meet alumni mentors, and ship
-                projects that matter.
+                Join our core organizing team and take charge of shaping the CS community at NUML. From planning hackathons and workshops to managing projects and events, you’ll collaborate with motivated peers, work closely with alumni mentors, and make a real impact on campus. This is your chance to develop leadership skills, execute large-scale initiatives, and create experiences that leave a lasting mark on the NUML CS community.
               </p>
+
               <div className="chip-row">
                 {departments.map((dept) => (
                   <span key={dept} className="chip">
@@ -436,21 +433,22 @@ const Home = () => {
                   </span>
                 ))}
               </div>
+
               <Link to="/join" className="btn btn-primary">
                 Apply Now
               </Link>
+              <h4>Lead. Build. Inspire. Be the force behind ACM NUML.</h4>
             </div>
             <div className="join-benefits">
               <div className="benefit-card">
                 <FiUserPlus />
-                <h3>Why join?</h3>
-                <ul>
-                  <li>Hands-on mentorship from alumni</li>
-                  <li>Priority access to closed workshops</li>
-                  <li>Opportunity to lead flagship events</li>
-                  <li>Build your portfolio with real projects</li>
-                  <li>Network with industry professionals</li>
-                </ul>
+                <h3>Why join?</h3><ul>
+                <li>Take ownership of planning and executing ACM NUML events</li>
+                <li>Collaborate closely with a motivated team of peers and alumni mentors</li>
+                <li>Develop leadership, project management, and organizational skills</li>
+                <li>Shape the NUML CS community and leave a lasting impact</li>
+                <li>Gain real-world experience managing hackathons, workshops, and tech projects</li>
+              </ul>
               </div>
             </div>
           </div>

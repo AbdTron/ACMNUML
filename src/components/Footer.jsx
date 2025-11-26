@@ -6,12 +6,11 @@ const Footer = () => {
   const currentYear = new Date().getFullYear()
 
   const socialLinks = [
-    { icon: FiMail, href: 'mailto:acm@numl.edu.pk', label: 'Email' },
-    { icon: FiGithub, href: 'https://github.com/acmnuml', label: 'GitHub' },
-    { icon: FiLinkedin, href: 'https://linkedin.com/company/acmnuml', label: 'LinkedIn' },
-    { icon: FiTwitter, href: 'https://twitter.com/acmnuml', label: 'Twitter' },
-    { icon: FiFacebook, href: 'https://facebook.com/acmnuml', label: 'Facebook' },
-    { icon: FiInstagram, href: 'https://instagram.com/acmnuml', label: 'Instagram' },
+    { icon: FiMail, href: 'mailto:acm.numl@atrons.net', label: 'Email' },
+
+ 
+ 
+    { icon: FiInstagram, href: 'https://www.instagram.com/acm.numllhr/', label: 'Instagram' },
   ]
 
   return (
@@ -21,8 +20,7 @@ const Footer = () => {
           <div className="footer-section">
             <h3 className="footer-title">ACM NUML</h3>
             <p className="footer-description">
-              The Association for Computing Machinery at National University of Modern Languages.
-              Empowering students through technology, innovation, and community.
+            ACM NUML — Building community, creating opportunities, and shaping the future of CS at NUML.
             </p>
             <div className="footer-social">
               {socialLinks.map((social) => {
@@ -67,7 +65,7 @@ const Footer = () => {
             <ul className="footer-contact">
               <li>
                 <FiMail />
-                <a href="mailto:acm@numl.edu.pk">acm@numl.edu.pk</a>
+                <a href="mailto:acm.numl@atrons.net">acm.numl@atrons.net</a>
               </li>
               <li>
                 <span>National University of Modern Languages</span>
@@ -78,7 +76,9 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <p>&copy; {currentYear} ACM NUML. All rights reserved.</p>
-          <p className="footer-domain">acm.atrons.net</p>
+          <p className="footer-domain">
+            Developed by <Link to="/developer" className="dev-link">Abdullah Irshad</Link>
+          </p>
         </div>
       </div>
     </footer>

@@ -53,8 +53,8 @@ const Contact = () => {
     {
       icon: FiMail,
       label: 'Email',
-      value: 'acm@numl.edu.pk',
-      link: 'mailto:acm@numl.edu.pk',
+      value: 'acm.numl@atrons.net',
+      link: 'mailto:acm.numl@atrons.net',
     },
     {
       icon: FiMapPin,
@@ -65,8 +65,8 @@ const Contact = () => {
     {
       icon: FiPhone,
       label: 'Phone',
-      value: '+92 XXX XXXXXXX',
-      link: 'tel:+92XXXXXXXXX',
+      value: '',
+      link: 'tel:',
     },
   ]
 
@@ -121,18 +121,11 @@ const Contact = () => {
                 <h3>Follow Us</h3>
                 <p>Stay connected with us on social media</p>
                 <div className="social-links">
-                  <a href="https://facebook.com/acmnuml" target="_blank" rel="noopener noreferrer">
-                    Facebook
-                  </a>
-                  <a href="https://instagram.com/acmnuml" target="_blank" rel="noopener noreferrer">
+ 
+                  <a href="https://www.instagram.com/acm.numllhr/" target="_blank" rel="noopener noreferrer">
                     Instagram
                   </a>
-                  <a href="https://linkedin.com/company/acmnuml" target="_blank" rel="noopener noreferrer">
-                    LinkedIn
-                  </a>
-                  <a href="https://twitter.com/acmnuml" target="_blank" rel="noopener noreferrer">
-                    Twitter
-                  </a>
+
                 </div>
               </div>
             </div>

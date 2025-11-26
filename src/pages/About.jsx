@@ -6,34 +6,33 @@ const About = () => {
     {
       icon: FiTarget,
       title: 'Our Mission',
-      description: 'To foster innovation, collaboration, and excellence in computer science education and practice.',
+      description: 'To create opportunities, foster innovation, and build a vibrant CS community at NUML.',
     },
     {
       icon: FiUsers,
-      title: 'Community',
-      description: 'Building a strong network of students, alumni, and industry professionals.',
+      title: 'Collaboration',
+      description: 'Connecting students, alumni, and industry to work together on impactful initiatives.',
     },
     {
       icon: FiAward,
-      title: 'Excellence',
-      description: 'Striving for excellence in all our activities, events, and initiatives.',
+      title: 'Impact',
+      description: 'Delivering meaningful events, projects, and experiences that leave a lasting mark.',
     },
     {
       icon: FiTrendingUp,
       title: 'Growth',
-      description: 'Empowering members to grow their skills and advance their careers.',
+      description: 'Empowering members to develop leadership, technical, and professional skills.',
     },
   ]
 
   const activities = [
-    'Technical Workshops',
-    'Hackathons & Coding Competitions',
-    'Industry Visits',
-    'Tech Talks & Seminars',
-    'Networking Events',
-    'Project Collaborations',
+    'Organizing Hackathons & Coding Competitions',
+    'Technical Workshops & Skill Sessions',
+    'Industry Visits & Guest Talks',
+    'Project Collaboration & Team Challenges',
+    'Networking Events & Alumni Mentorship',
     'Career Development Sessions',
-    'Community Service Projects',
+    'Community & Social Initiatives',
   ]
 
   return (
@@ -41,7 +40,7 @@ const About = () => {
       <div className="page-header">
         <div className="container">
           <h1>About ACM NUML</h1>
-          <p>Empowering the next generation of computer scientists</p>
+          <p>Connecting CS students through events, innovation, and collaboration.</p>
         </div>
       </div>
 
@@ -50,16 +49,13 @@ const About = () => {
           <div className="about-intro">
             <h2>Who We Are</h2>
             <p>
-              ACM NUML is the official student chapter of the Association for Computing
-              Machinery at the National University of Modern Languages. We are a vibrant
-              community of computer science students passionate about technology,
-              innovation, and making a positive impact.
+              ACM NUML is the official student chapter of National University of Modern Languages. We are a dynamic
+              community of CS students passionate about technology, innovation, and making a tangible impact.
             </p>
             <p>
-              Our society serves as a platform for students to enhance their technical
-              skills, network with industry professionals, and participate in various
-              tech-related activities. We organize workshops, hackathons, industrial visits,
-              tech talks, and many other events throughout the academic year.
+              Our society provides a platform for students to enhance their skills, network
+              with peers and industry mentors, and actively participate in workshops,
+              hackathons, and other high-impact events throughout the academic year.
             </p>
           </div>
         </div>
@@ -93,8 +89,8 @@ const About = () => {
           <div className="activities-section">
             <h2>What We Do</h2>
             <p className="activities-intro">
-              ACM NUML organizes a wide range of activities to help students grow
-              professionally and personally:
+              ACM NUML organizes impactful activities to help students grow, collaborate,
+              and contribute to the CS community:
             </p>
             <div className="activities-grid">
               {activities.map((activity, index) => (
@@ -111,14 +107,14 @@ const About = () => {
       <section className="section section-alt">
         <div className="container">
           <div className="join-cta">
-            <h2>Join Our Community</h2>
+            <h2>Join Our Team</h2>
             <p>
-              Whether you're a beginner or an experienced developer, there's a place
-              for you in ACM NUML. Join us to be part of an amazing community that's
-              shaping the future of technology.
+              ACM NUML is looking for dedicated students to help run our society. Take
+              ownership of events, collaborate with peers, and make a real impact on the
+              CS community at NUML.
             </p>
             <a href="/join" className="btn btn-primary btn-large">
-              Become a Member
+              Apply to Join the Core Team
             </a>
           </div>
         </div>
@@ -128,4 +124,3 @@ const About = () => {
 }
 
 export default About
-
