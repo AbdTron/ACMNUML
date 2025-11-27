@@ -22,6 +22,7 @@ const Home = () => {
   const [pastEvents, setPastEvents] = useState([])
   const [showGallery, setShowGallery] = useState(true)
   const [cabinetMembers, setCabinetMembers] = useState([])
+  const [teamImagesLoading, setTeamImagesLoading] = useState({})
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -110,6 +111,23 @@ const Home = () => {
         const snapshot = await getDocs(teamQuery)
         const members = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
         setCabinetMembers(members)
+        
+        // Preload team member images
+        const loadingStates = {}
+        members.forEach((member) => {
+          if (member.image) {
+            loadingStates[member.id] = true
+            const img = new Image()
+            img.onload = () => {
+              setTeamImagesLoading(prev => ({ ...prev, [member.id]: false }))
+            }
+            img.onerror = () => {
+              setTeamImagesLoading(prev => ({ ...prev, [member.id]: false }))
+            }
+            img.src = member.image
+          }
+        })
+        setTeamImagesLoading(loadingStates)
       } catch (error) {
         console.error('Error fetching cabinet:', error)
       }
@@ -254,10 +272,23 @@ const Home = () => {
           </div>
           <div className="hero-visual">
             <div className="hero-gradient"></div>
-                {upcomingEvents[0] ? (
-              <Link to={`/events/${upcomingEvents[0].id}`} className="hero-card hero-card-link">
-                <span className="hero-card-label">Next Up</span>
-                <h3>{upcomingEvents[0].title}</h3>
+                {upcomingEvents[0] ? (() => {
+                  const event = upcomingEvents[0]
+                  const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                  let cropData = event.coverCrop
+                  if (cropData && typeof cropData === 'object' && cropData.cover) {
+                    cropData = cropData.cover
+                  }
+                  const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
+                  return (
+                    <Link to={`/events/${event.id}`} className="hero-card hero-card-link">
+                      <span className="hero-card-label">Next Up</span>
+                      <h3 
+                        className="hero-card-title-with-bg"
+                        style={titleBgStyle}
+                      >
+                        <span className="hero-card-title-text">{event.title}</span>
+                      </h3>
                 <p>
                   {truncateText(
                     upcomingEvents[0].description ||
@@ -292,7 +323,8 @@ const Home = () => {
                   <FiArrowRight />
                 </div>
               </Link>
-            ) : (
+                  )
+                })() : (
               <div className="hero-card">
                 <span className="hero-card-label">Next Up</span>
                 <h3>Founders Bootcamp</h3>
@@ -321,6 +353,12 @@ const Home = () => {
               <div className="events-grid">
                 {upcomingEvents.map((event) => {
                   const eventDate = event.date?.toDate ? event.date.toDate() : new Date(event.date)
+                  const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                  let cropData = event.coverCrop
+                  if (cropData && typeof cropData === 'object' && cropData.cover) {
+                    cropData = cropData.cover
+                  }
+                  const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
                 return (
                   <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
                     <div className="event-card-preview">
@@ -331,7 +369,12 @@ const Home = () => {
                         </span>
                       </div>
                       <div className="event-content-preview">
-                        <h3 className="event-title-preview">{event.title}</h3>
+                        <h3 
+                          className="event-title-preview event-title-with-bg"
+                          style={titleBgStyle}
+                        >
+                          <span className="event-title-text">{event.title}</span>
+                        </h3>
                         <p className="event-description-preview">
                           {truncateText(event.description, 140)}
                         </p>
@@ -393,9 +436,21 @@ const Home = () => {
             {displayCabinet.map((member, index) => {
               const avatarUrl = member.image || getMemberImage(member)
               const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
+              const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
+              const isLoading = teamImagesLoading[member.id] && !isPlaceholder
               return (
                 <div key={member.id || `member-${index}-${member.name}`} className="team-card-landing">
-                  <div className="team-avatar-landing" style={cropStyle} />
+                  <div className="team-avatar-wrapper-landing">
+                    {isLoading && (
+                      <div className="team-avatar-loading">
+                        <div className="loading-spinner"></div>
+                      </div>
+                    )}
+                    <div 
+                      className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
+                      style={cropStyle} 
+                    />
+                  </div>
                   <div className="team-info-landing">
                     <h3>{member.name}</h3>
                     <p className="team-role-landing">{member.role}</p>

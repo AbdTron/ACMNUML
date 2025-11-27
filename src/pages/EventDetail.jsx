@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { format } from 'date-fns'
-import { FiArrowLeft, FiCalendar, FiClock, FiMapPin } from 'react-icons/fi'
+import { FiArrowLeft, FiCalendar, FiClock, FiMapPin, FiX } from 'react-icons/fi'
 import './EventDetail.css'
 
 const EventDetail = () => {
@@ -11,6 +11,9 @@ const EventDetail = () => {
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [lightboxImage, setLightboxImage] = useState(null)
+  const [imageLoading, setImageLoading] = useState(true)
+  const [galleryImagesLoading, setGalleryImagesLoading] = useState({})
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -32,6 +35,14 @@ const EventDetail = () => {
           ...data,
           date: data.date?.toDate ? data.date.toDate() : new Date(data.date),
         })
+        // Initialize loading states for gallery images
+        if (data.additionalImages && Array.isArray(data.additionalImages)) {
+          const initialLoading = {}
+          data.additionalImages.forEach((_, idx) => {
+            initialLoading[idx] = true
+          })
+          setGalleryImagesLoading(initialLoading)
+        }
       } catch (err) {
         console.error('Error loading event:', err)
         setError('Unable to load this event.')
@@ -146,21 +157,60 @@ const EventDetail = () => {
                   </ul>
                 </div>
               )}
+
+              {event.additionalImages && Array.isArray(event.additionalImages) && event.additionalImages.length > 0 && (
+                <div className="event-gallery">
+                  <h3>Event Gallery</h3>
+                  <div className="event-gallery-grid">
+                    {event.additionalImages.map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="event-gallery-item"
+                        onClick={() => setLightboxImage(imgUrl)}
+                      >
+                        {galleryImagesLoading[idx] && (
+                          <div className="gallery-image-loading">
+                            <div className="loading-spinner"></div>
+                          </div>
+                        )}
+                        <img 
+                          src={imgUrl} 
+                          alt={`Event image ${idx + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                          style={{ display: galleryImagesLoading[idx] ? 'none' : 'block' }}
+                          onLoad={() => setGalleryImagesLoading(prev => ({ ...prev, [idx]: false }))}
+                          onError={() => setGalleryImagesLoading(prev => ({ ...prev, [idx]: false }))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {event.coverUrl && (
               <div className="event-detail-poster">
+                {imageLoading && (
+                  <div className="image-loading-placeholder">
+                    <div className="loading-spinner"></div>
+                  </div>
+                )}
                 <img 
                   src={typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')} 
                   alt={event.title}
+                  loading="eager"
+                  decoding="async"
                   style={{
                     width: '100%',
                     height: 'auto',
-                    display: 'block',
+                    display: imageLoading ? 'none' : 'block',
                     objectFit: 'contain'
                   }}
+                  onLoad={() => setImageLoading(false)}
                   onError={(e) => {
                     console.error('EventDetail: Image failed to load:', e.target.src)
+                    setImageLoading(false)
                     e.target.style.display = 'none'
                   }}
                 />
@@ -169,6 +219,22 @@ const EventDetail = () => {
           </div>
         </div>
       </section>
+
+      {lightboxImage && (
+        <div className="lightbox-overlay" onClick={() => setLightboxImage(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setLightboxImage(null)}>
+              <FiX />
+            </button>
+            <img 
+              src={lightboxImage} 
+              alt="Event gallery"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

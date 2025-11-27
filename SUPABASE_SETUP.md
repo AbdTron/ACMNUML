@@ -149,3 +149,4 @@ If you're still having issues:
 3. Check the Supabase project settings for any restrictions
 
 
+

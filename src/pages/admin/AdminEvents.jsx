@@ -26,6 +26,7 @@ import { format } from 'date-fns'
 import './AdminEvents.css'
 import ImageUploader from '../../components/ImageUploader'
 import { getCropBackgroundStyle } from '../../utils/cropStyles'
+import { uploadToSupabase } from '../../config/supabase'
 
 const AdminEvents = () => {
   const { currentUser } = useAuth()
@@ -45,7 +46,8 @@ const AdminEvents = () => {
     coverUrl: '',
     coverFilePath: '',
     coverCrop: null,
-    registerLink: ''
+    registerLink: '',
+    additionalImages: [] // Array of image URLs
   })
 
   const createEventId = (title) => {
@@ -153,7 +155,8 @@ const AdminEvents = () => {
         coverUrl: '',
         coverFilePath: '',
         coverCrop: null,
-        registerLink: ''
+        registerLink: '',
+        additionalImages: []
       })
       fetchEvents()
     } catch (error) {
@@ -175,7 +178,8 @@ const AdminEvents = () => {
       coverUrl: event.coverUrl || '',
       coverFilePath: event.coverFilePath || '',
       coverCrop: event.coverCrop || null,
-      registerLink: event.registerLink || ''
+      registerLink: event.registerLink || '',
+      additionalImages: Array.isArray(event.additionalImages) ? event.additionalImages : []
     })
     setShowForm(true)
   }
@@ -191,6 +195,35 @@ const AdminEvents = () => {
       console.error('Error deleting event:', error)
       alert('Error deleting event')
     }
+  }
+
+  const handleAddAdditionalImage = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const result = await uploadToSupabase(file, 'events')
+      if (result?.url) {
+        setFormData({
+          ...formData,
+          additionalImages: [...(formData.additionalImages || []), result.url]
+        })
+      }
+    } catch (error) {
+      console.error('Error uploading additional image:', error)
+      alert('Error uploading image')
+    }
+    // Reset input
+    e.target.value = ''
+  }
+
+  const handleRemoveAdditionalImage = (index) => {
+    const newImages = [...(formData.additionalImages || [])]
+    newImages.splice(index, 1)
+    setFormData({
+      ...formData,
+      additionalImages: newImages
+    })
   }
 
   const handleMoveToPast = async (event) => {
@@ -379,6 +412,39 @@ const AdminEvents = () => {
                   }}
                   aspect={16 / 9}
                 />
+                  <div className="form-group">
+                    <label>Additional Images (Displayed on event detail page)</label>
+                    <div className="additional-images-manager">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAddAdditionalImage}
+                        style={{ display: 'none' }}
+                        id="additional-image-upload"
+                      />
+                      <label htmlFor="additional-image-upload" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '1rem' }}>
+                        <FiPlus /> Add Image
+                      </label>
+                      {formData.additionalImages && formData.additionalImages.length > 0 && (
+                        <div className="additional-images-preview">
+                          {formData.additionalImages.map((imgUrl, idx) => (
+                            <div key={idx} className="additional-image-item">
+                              <img src={imgUrl} alt={`Additional ${idx + 1}`} />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAdditionalImage(idx)}
+                                className="remove-image-btn"
+                                title="Remove image"
+                              >
+                                <FiX />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <small>Upload additional images to display in a gallery on the event detail page</small>
+                  </div>
                   <div className="form-group">
                     <label>Registration / RSVP Link</label>
                     <input

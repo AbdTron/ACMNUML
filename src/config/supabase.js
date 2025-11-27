@@ -48,7 +48,7 @@ export const uploadToSupabase = async (file, folder = 'media') => {
   const storageBucket = supabase.storage.from(supabaseBucket)
 
   const { error } = await storageBucket.upload(filePath, file, {
-    cacheControl: '3600',
+    cacheControl: '31536000', // 1 year cache for better performance
     upsert: false,
   })
 

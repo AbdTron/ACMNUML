@@ -10,6 +10,7 @@ const Team = () => {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [socialHovered, setSocialHovered] = useState(null)
+  const [imagesLoading, setImagesLoading] = useState({})
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -23,10 +24,26 @@ const Team = () => {
         
         const querySnapshot = await getDocs(q)
         const members = []
+        const loadingStates = {}
         querySnapshot.forEach((doc) => {
-          members.push({ id: doc.id, ...doc.data() })
+          const member = { id: doc.id, ...doc.data() }
+          members.push(member)
+          // Initialize loading state for each member with an image
+          if (member.image) {
+            loadingStates[member.id] = true
+            // Preload image
+            const img = new Image()
+            img.onload = () => {
+              setImagesLoading(prev => ({ ...prev, [member.id]: false }))
+            }
+            img.onerror = () => {
+              setImagesLoading(prev => ({ ...prev, [member.id]: false }))
+            }
+            img.src = member.image
+          }
         })
         setTeamMembers(members)
+        setImagesLoading(loadingStates)
       } catch (error) {
         console.error('Error fetching team:', error)
       } finally {
@@ -101,8 +118,18 @@ const Team = () => {
                     <div className="team-card-front">
                       <div className="team-flip-trigger">
                         <div className="team-image-wrapper">
-                          {imageUrl ? (
-                            <div className="team-image" style={cropStyle} />
+                          {imageUrl && imageUrl !== `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'ACM')}&background=2563eb&color=fff` ? (
+                            <>
+                              {imagesLoading[member.id] && (
+                                <div className="team-image-loading">
+                                  <div className="loading-spinner"></div>
+                                </div>
+                              )}
+                              <div 
+                                className={`team-image ${imagesLoading[member.id] ? 'loading' : ''}`} 
+                                style={cropStyle} 
+                              />
+                            </>
                           ) : (
                             <div className="team-image-placeholder">{member.name?.charAt(0)}</div>
                           )}

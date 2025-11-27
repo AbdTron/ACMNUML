@@ -87,6 +87,25 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  /* Optimize image loading */
+  will-change: background-image;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* Add loading state */
+  transition: opacity 0.3s ease;
+}
+
+.event-cover-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-light);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
 }
 
 
