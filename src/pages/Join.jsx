@@ -128,9 +128,9 @@ const Join = () => {
               If you have any questions about joining ACM NUML, feel free to reach out to us.
             </p>
             <div className="contact-options">
-              <a href="mailto:acm@numl.edu.pk" className="contact-option">
+              <a href="mailto:acm.numl@atrons.net" className="contact-option">
                 <FiMail />
-                <span>acm@numl.edu.pk</span>
+                <span>acm.numl@atrons.net</span>
               </a>
               <a href="/contact" className="contact-option">
                 <FiUsers />

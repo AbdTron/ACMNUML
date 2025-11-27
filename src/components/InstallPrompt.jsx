@@ -85,3 +85,4 @@ const InstallPrompt = () => {
 
 export default InstallPrompt
 
+

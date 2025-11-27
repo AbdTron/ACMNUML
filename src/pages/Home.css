@@ -901,7 +901,7 @@
   }
 
   .hero-visual {
-    order: -1;
+    order: 0;
   }
 
   .hero-card {
@@ -912,6 +912,19 @@
 @media (max-width: 768px) {
   .hero {
     padding: 2.5rem 0;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .hero-content {
+    order: 1;
+  }
+
+  .hero-visual {
+    order: 2;
   }
 
   .hero-title {
@@ -951,6 +964,7 @@
 
   .hero-card {
     padding: 1.5rem;
+    margin-top: 1rem;
   }
 
   .hero-card h3 {

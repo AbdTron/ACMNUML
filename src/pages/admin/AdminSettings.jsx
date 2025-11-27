@@ -180,7 +180,7 @@ const AdminSettings = () => {
                   name="contactEmail"
                   value={formData.contactEmail}
                   onChange={handleInputChange}
-                  placeholder="acm@numl.edu.pk"
+                  placeholder="acm.numl@atrons.net"
                 />
               </div>
               <div className="form-group">

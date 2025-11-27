@@ -122,6 +122,20 @@ const EventDetail = () => {
             <h2>About this event</h2>
             <p>{event.longDescription || event.description}</p>
           </div>
+          {event.sessions && (
+            <div className="event-sessions">
+              <h3>Sessions</h3>
+              <div className="sessions-content">
+                {event.sessions.split('\n').map((session, idx) => (
+                  session.trim() && (
+                    <div key={idx} className="session-item">
+                      {session.trim()}
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
           {event.agenda && Array.isArray(event.agenda) && (
             <div className="event-agenda">
               <h3>Agenda</h3>

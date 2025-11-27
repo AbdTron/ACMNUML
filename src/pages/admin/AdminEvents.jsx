@@ -40,6 +40,7 @@ const AdminEvents = () => {
     time: '',
     location: '',
     type: 'Workshop',
+    sessions: '',
     coverUrl: '',
     registerLink: ''
   })
@@ -117,6 +118,7 @@ const AdminEvents = () => {
         time: '',
         location: '',
         type: 'Workshop',
+        sessions: '',
         coverUrl: '',
         registerLink: ''
       })
@@ -136,6 +138,7 @@ const AdminEvents = () => {
       time: event.time || '',
       location: event.location || '',
       type: event.type || 'Workshop',
+      sessions: event.sessions || '',
       coverUrl: event.coverUrl || '',
       registerLink: event.registerLink || ''
     })
@@ -215,7 +218,8 @@ const AdminEvents = () => {
                 date: '',
                 time: '',
                 location: '',
-                type: 'Workshop'
+                type: 'Workshop',
+                sessions: ''
               })
             }}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -302,6 +306,17 @@ const AdminEvents = () => {
                         <option value="Other">Other</option>
                       </select>
                     </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Sessions</label>
+                    <textarea
+                      name="sessions"
+                      value={formData.sessions}
+                      onChange={handleInputChange}
+                      rows="3"
+                      placeholder="e.g., Session 1: 10:00 AM - 11:30 AM&#10;Session 2: 2:00 PM - 3:30 PM"
+                    />
+                    <small>Enter session details, one per line or separated by commas</small>
                   </div>
                 <ImageUploader
                   label="Event Cover"

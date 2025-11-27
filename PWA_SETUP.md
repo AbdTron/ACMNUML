@@ -83,3 +83,4 @@ To test the PWA:
 - The app works offline with cached resources
 - Updates are handled automatically by the service worker
 
+
