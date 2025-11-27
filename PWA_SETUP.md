@@ -84,3 +84,4 @@ To test the PWA:
 - Updates are handled automatically by the service worker
 
 
+

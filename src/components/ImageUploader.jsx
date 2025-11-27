@@ -53,10 +53,15 @@ const ImageUploader = ({
     const file = event.target.files?.[0]
     if (!file) return
 
+    // IMPORTANT: Store the original file immediately before any processing
+    // This ensures we always have the full original file to upload
+    // Create a copy/clone of the file to ensure we don't modify the original
+    const originalFileClone = new File([file], file.name, { type: file.type })
+    setOriginalFile(originalFileClone)
+
     const reader = new FileReader()
     reader.onload = () => {
       setSelectedImage(reader.result)
-      setOriginalFile(file)
       setIsCropping(true)
       setError('')
       setVariantCrops({})
@@ -70,8 +75,10 @@ const ImageUploader = ({
     reader.readAsDataURL(file)
   }
 
-  const handleCropComplete = (_, croppedArea) => {
-    setCroppedAreaPixels(croppedArea)
+  const handleCropComplete = (croppedArea, croppedAreaPixels) => {
+    // croppedAreaPixels is already in pixels relative to the original image
+    // This is what we need for normalization
+    setCroppedAreaPixels(croppedAreaPixels)
   }
 
   const resetCropper = () => {
@@ -125,11 +132,22 @@ const ImageUploader = ({
         return
       }
 
-      const croppedBlob = await getCroppedImage(selectedImage, croppedAreaPixels, originalFile.type)
-      const croppedFile = new File([croppedBlob], originalFile.name, {
-        type: croppedBlob.type || originalFile.type,
-      })
-      const uploadResult = await uploadToSupabase(croppedFile, folder)
+      // Upload original file (not cropped) and store crop data
+      // This allows displaying full image on detail page and cropped version in cards
+      const normalizedCrop = normalizeCrop(croppedAreaPixels, imageDimensions)
+      
+      // IMPORTANT: Verify we're using the original file, not a cropped one
+      if (!originalFile) {
+        throw new Error('Original file is missing')
+      }
+      
+      // Verify file size is reasonable (not suspiciously small which might indicate cropping)
+      if (originalFile.size < 1000) {
+        console.warn('Warning: File size is very small, might be an issue')
+      }
+      
+      const uploadResult = await uploadToSupabase(originalFile, folder)
+      
       // Delete old image if it exists
       if (value?.filePath) {
         await deleteFromSupabase(value.filePath)
@@ -141,11 +159,25 @@ const ImageUploader = ({
           await deleteFromSupabase(previousUrl)
         }
       }
-      onChange({ url: uploadResult.url, filePath: uploadResult.path })
+      
+      // Return original image URL with crop data
+      const cropPayload = normalizedCrop ? { cover: normalizedCrop } : null
+      onChange({ 
+        url: uploadResult.url, 
+        filePath: uploadResult.path,
+        crops: cropPayload
+      })
       resetCropper()
     } catch (err) {
       console.error('Image upload failed:', err)
-      setError(err.message || 'Upload failed. Please try again.')
+      let errorMessage = err.message || 'Upload failed. Please try again.'
+      
+      // Provide helpful error message for bucket not found
+      if (errorMessage.includes('Bucket not found') || errorMessage.includes('not found')) {
+        errorMessage = 'Storage bucket not found. Please create a public bucket named "media" in your Supabase project. See SUPABASE_SETUP.md for instructions.'
+      }
+      
+      setError(errorMessage)
     } finally {
       setUploading(false)
     }

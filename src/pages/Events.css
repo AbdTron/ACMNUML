@@ -78,13 +78,15 @@
 .event-cover {
   height: 180px;
   overflow: hidden;
+  position: relative;
 }
 
-.event-cover img {
+.event-cover-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 

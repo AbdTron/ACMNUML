@@ -6,7 +6,10 @@ const defaultAnonKey =
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || defaultUrl
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || defaultAnonKey
-const supabaseBucket = import.meta.env.VITE_SUPABASE_BUCKET || 'media'
+// Try to read from env, fallback to 'acmnumlDB' if not set (your actual bucket name)
+// IMPORTANT: This must be 'acmnumlDB' to match your Supabase bucket name
+const supabaseBucket = import.meta.env.VITE_SUPABASE_BUCKET || 'acmnumlDB'
+
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -43,6 +46,7 @@ export const uploadToSupabase = async (file, folder = 'media') => {
   const filePath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
 
   const storageBucket = supabase.storage.from(supabaseBucket)
+
   const { error } = await storageBucket.upload(filePath, file, {
     cacheControl: '3600',
     upsert: false,
@@ -52,6 +56,7 @@ export const uploadToSupabase = async (file, folder = 'media') => {
     throw new Error(error.message || 'Upload failed')
   }
 
+  // Get public URL - Supabase format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[path]
   const {
     data: { publicUrl },
   } = storageBucket.getPublicUrl(filePath)

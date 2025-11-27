@@ -390,11 +390,11 @@ const Home = () => {
             <p>Meet the students orchestrating ACM NUML</p>
           </div>
           <div className="team-grid-landing">
-            {displayCabinet.map((member) => {
+            {displayCabinet.map((member, index) => {
               const avatarUrl = member.image || getMemberImage(member)
               const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
               return (
-                <div key={member.role || member.id} className="team-card-landing">
+                <div key={member.id || `member-${index}-${member.name}`} className="team-card-landing">
                   <div className="team-avatar-landing" style={cropStyle} />
                   <div className="team-info-landing">
                     <h3>{member.name}</h3>
@@ -437,8 +437,7 @@ const Home = () => {
               <Link to="/join" className="btn btn-primary">
                 Apply Now
               </Link>
-              <h4>Lead. Build. Inspire. 
-                <br />  Be the force behind ACM NUML.</h4>
+              <h4>Lead. Build. Inspire. Be the force behind ACM NUML.</h4>
             </div>
             <div className="join-benefits">
               <div className="benefit-card">

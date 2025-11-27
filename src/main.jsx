@@ -84,8 +84,11 @@ if ('serviceWorker' in navigator) {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New service worker available
-                console.log('New service worker available. Refresh to update.')
+                // New service worker available - unregister and reload
+                console.log('New service worker available. Updating...')
+                registration.unregister().then(() => {
+                  window.location.reload()
+                })
               }
             })
           }
@@ -95,6 +98,16 @@ if ('serviceWorker' in navigator) {
         console.log('Service Worker registration failed:', error)
       })
   })
+  
+  // Unregister old service workers on page load (for development)
+  if (import.meta.env.DEV) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister()
+        console.log('Old service worker unregistered')
+      })
+    })
+  }
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

@@ -70,82 +70,103 @@ const EventDetail = () => {
 
   return (
     <div className="event-detail-page">
-      <div className="event-detail-hero">
+      <div className="event-detail-header">
         <div className="container">
           <Link to="/events" className="back-link">
             <FiArrowLeft /> Back to events
           </Link>
-          <h1>{event.title}</h1>
-          {event.longDescription && (
-            <p>{event.description}</p>
-          )}
-          <div className="event-detail-meta">
-            <div>
-              <FiCalendar />
-              <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
-            </div>
-            {event.time && (
-              <div>
-                <FiClock />
-                <span>{event.time}</span>
-              </div>
-            )}
-            {event.location && (
-              <div>
-                <FiMapPin />
-                <span>{event.location}</span>
-              </div>
-            )}
-          </div>
-          {event.registerLink && (
-            <a
-              href={event.registerLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="event-detail-cta"
-            >
-              Register for Event
-            </a>
-          )}
         </div>
       </div>
 
-      {event.coverUrl && (
-        <div className="event-detail-cover">
-          <img src={event.coverUrl} alt={event.title} />
-        </div>
-      )}
-
-      <section className="section">
-        <div className="container event-detail-body">
-          <div>
-            <h2>About this event</h2>
-            <p>{event.longDescription || event.description}</p>
-          </div>
-          {event.sessions && (
-            <div className="event-sessions">
-              <h3>Sessions</h3>
-              <div className="sessions-content">
-                {event.sessions.split('\n').map((session, idx) => (
-                  session.trim() && (
-                    <div key={idx} className="session-item">
-                      {session.trim()}
-                    </div>
-                  )
-                ))}
+      <section className="section event-detail-section">
+        <div className="container">
+          <div className="event-detail-layout">
+            <div className="event-detail-content">
+              <h1>{event.title}</h1>
+              
+              <div className="event-detail-meta">
+                <div>
+                  <FiCalendar />
+                  <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
+                </div>
+                {event.time && (
+                  <div>
+                    <FiClock />
+                    <span>{event.time}</span>
+                  </div>
+                )}
+                {event.location && (
+                  <div>
+                    <FiMapPin />
+                    <span>{event.location}</span>
+                  </div>
+                )}
               </div>
+
+              {event.registerLink && (
+                <a
+                  href={event.registerLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="event-detail-cta"
+                >
+                  Register for Event
+                </a>
+              )}
+
+              <div className="event-detail-description">
+                <h2>About this event</h2>
+                <div className="event-description-text">
+                  {event.longDescription || event.description}
+                </div>
+              </div>
+
+              {event.sessions && (
+                <div className="event-sessions">
+                  <h3>Sessions</h3>
+                  <div className="sessions-content">
+                    {event.sessions.split('\n').map((session, idx) => (
+                      session.trim() && (
+                        <div key={idx} className="session-item">
+                          {session.trim()}
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {event.agenda && Array.isArray(event.agenda) && (
+                <div className="event-agenda">
+                  <h3>Agenda</h3>
+                  <ul>
+                    {event.agenda.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
-          {event.agenda && Array.isArray(event.agenda) && (
-            <div className="event-agenda">
-              <h3>Agenda</h3>
-              <ul>
-                {event.agenda.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+
+            {event.coverUrl && (
+              <div className="event-detail-poster">
+                <img 
+                  src={typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')} 
+                  alt={event.title}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    objectFit: 'contain'
+                  }}
+                  onError={(e) => {
+                    console.error('EventDetail: Image failed to load:', e.target.src)
+                    e.target.style.display = 'none'
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>

@@ -25,6 +25,7 @@ import {
 import { format } from 'date-fns'
 import './AdminEvents.css'
 import ImageUploader from '../../components/ImageUploader'
+import { getCropBackgroundStyle } from '../../utils/cropStyles'
 
 const AdminEvents = () => {
   const { currentUser } = useAuth()
@@ -42,6 +43,8 @@ const AdminEvents = () => {
     type: 'Workshop',
     sessions: '',
     coverUrl: '',
+    coverFilePath: '',
+    coverCrop: null,
     registerLink: ''
   })
 
@@ -70,11 +73,12 @@ const AdminEvents = () => {
       const eventsData = []
       querySnapshot.forEach((doc) => {
         const data = doc.data()
-        eventsData.push({
+        const eventData = {
           id: doc.id,
           ...data,
           date: data.date?.toDate ? data.date.toDate() : new Date(data.date)
-        })
+        }
+        eventsData.push(eventData)
       })
       setEvents(eventsData)
     } catch (error) {
@@ -95,10 +99,37 @@ const AdminEvents = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      // Ensure coverUrl is a string, and include crop data
+      const coverUrl = typeof formData.coverUrl === 'string'
+        ? formData.coverUrl
+        : (formData.coverUrl?.url || formData.coverUrl || '')
+
+      // Ensure coverCrop is properly structured
+      let coverCropToSave = null
+      if (formData.coverCrop) {
+        // If it's already an object with x, y, width, height, use it directly
+        if (typeof formData.coverCrop === 'object' && 'x' in formData.coverCrop && 'y' in formData.coverCrop) {
+          coverCropToSave = formData.coverCrop
+        } else if (formData.coverCrop.cover) {
+          // If it's wrapped in { cover: ... }, extract it
+          coverCropToSave = formData.coverCrop.cover
+        }
+      }
+
       const eventData = {
         ...formData,
+        coverUrl: coverUrl,
+        coverFilePath: formData.coverFilePath || '',
+        coverCrop: coverCropToSave,
         date: Timestamp.fromDate(new Date(formData.date))
       }
+      
+      // Remove undefined values to avoid Firestore issues
+      Object.keys(eventData).forEach(key => {
+        if (eventData[key] === undefined) {
+          delete eventData[key]
+        }
+      })
 
       if (editingEvent) {
         await updateDoc(doc(db, 'events', editingEvent.id), eventData)
@@ -120,6 +151,8 @@ const AdminEvents = () => {
         type: 'Workshop',
         sessions: '',
         coverUrl: '',
+        coverFilePath: '',
+        coverCrop: null,
         registerLink: ''
       })
       fetchEvents()
@@ -140,6 +173,8 @@ const AdminEvents = () => {
       type: event.type || 'Workshop',
       sessions: event.sessions || '',
       coverUrl: event.coverUrl || '',
+      coverFilePath: event.coverFilePath || '',
+      coverCrop: event.coverCrop || null,
       registerLink: event.registerLink || ''
     })
     setShowForm(true)
@@ -319,10 +354,29 @@ const AdminEvents = () => {
                     <small>Enter session details, one per line or separated by commas</small>
                   </div>
                 <ImageUploader
-                  label="Event Cover"
+                  label="Event Cover (Crop for card preview)"
                   folder="events"
-                  value={formData.coverUrl}
-                  onChange={(url) => setFormData({ ...formData, coverUrl: url })}
+                  value={{ url: formData.coverUrl, filePath: formData.coverFilePath, crops: formData.coverCrop ? { cover: formData.coverCrop } : null }}
+                  onChange={(payload) => {
+                    // Same pattern as AdminTeam - store original image URL and crop data
+                    if (!payload || payload === '' || (typeof payload === 'object' && (!payload.url || payload.url === ''))) {
+                      setFormData({ ...formData, coverUrl: '', coverFilePath: '', coverCrop: null })
+                      return
+                    }
+                    if (typeof payload === 'string') {
+                      setFormData({ ...formData, coverUrl: payload, coverFilePath: '', coverCrop: null })
+                      return
+                    }
+                    if (typeof payload === 'object' && payload.url) {
+                      const cropData = payload.crops?.cover || null
+                      setFormData({ 
+                        ...formData, 
+                        coverUrl: payload.url,
+                        coverFilePath: payload.filePath || payload.path || '',
+                        coverCrop: cropData
+                      })
+                    }
+                  }}
                   aspect={16 / 9}
                 />
                   <div className="form-group">
@@ -374,7 +428,13 @@ const AdminEvents = () => {
                       <tr key={event.id}>
                         <td>
                           {event.coverUrl ? (
-                            <img src={event.coverUrl} alt={event.title} className="cover-thumb" />
+                            <div 
+                              className="cover-thumb"
+                              style={getCropBackgroundStyle(
+                                typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || ''),
+                                event.coverCrop
+                              )}
+                            />
                           ) : (
                             <span className="no-cover">No cover</span>
                           )}

@@ -5,6 +5,7 @@ import { db } from '../config/firebase'
 import { format } from 'date-fns'
 import { FiCalendar, FiMapPin, FiClock } from 'react-icons/fi'
 import { truncateText } from '../utils/text'
+import { getCropBackgroundStyle } from '../utils/cropStyles'
 import './Events.css'
 
 const Events = () => {
@@ -38,11 +39,12 @@ const Events = () => {
         const eventsData = []
         querySnapshot.forEach((doc) => {
           const data = doc.data()
-          eventsData.push({
+          const eventData = {
             id: doc.id,
             ...data,
             date: data.date?.toDate ? data.date.toDate() : data.date,
-          })
+          }
+          eventsData.push(eventData)
         })
         setEvents(eventsData)
       } catch (error) {
@@ -111,11 +113,24 @@ const Events = () => {
                     onClick={() => window.location.href = `/events/${event.id}`}
                   >
                     <div className="event-card">
-                    {event.coverUrl && (
-                      <div className="event-cover">
-                        <img src={event.coverUrl} alt={event.title} />
-                      </div>
-                    )}
+                    {event.coverUrl && (() => {
+                      const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                      // Handle crop data - it should be an object with x, y, width, height
+                      let cropData = event.coverCrop
+                      if (cropData && typeof cropData === 'object' && cropData.cover) {
+                        // If it's wrapped, unwrap it
+                        cropData = cropData.cover
+                      }
+                      const cropStyle = getCropBackgroundStyle(imageUrl, cropData)
+                      return (
+                        <div className="event-cover">
+                          <div 
+                            className="event-cover-image"
+                            style={cropStyle}
+                          />
+                        </div>
+                      )
+                    })()}
                     <div className="event-header">
                       {status === 'upcoming' && (
                         <span className="event-badge upcoming">Upcoming</span>
