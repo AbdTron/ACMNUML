@@ -2,7 +2,6 @@ import { useState } from 'react'
 import Cropper from 'react-easy-crop'
 import { FiImage, FiTrash2 } from 'react-icons/fi'
 import { uploadToSupabase, deleteFromSupabase } from '../config/supabase'
-import getCroppedImage from '../utils/cropImage'
 import './ImageUploader.css'
 
 const normalizeCrop = (croppedArea, dimensions) => {
