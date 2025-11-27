@@ -274,17 +274,22 @@ const Home = () => {
             <div className="hero-gradient"></div>
                 {upcomingEvents[0] ? (() => {
                   const event = upcomingEvents[0]
-                  const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                  let imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                  // Only use Supabase URLs, filter out Unsplash or other external URLs
+                  if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
+                    imageUrl = ''
+                  }
                   let cropData = event.coverCrop
                   if (cropData && typeof cropData === 'object' && cropData.cover) {
                     cropData = cropData.cover
                   }
                   const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
+                  const hasValidImage = imageUrl && titleBgStyle.backgroundImage
                   return (
                     <Link to={`/events/${event.id}`} className="hero-card hero-card-link">
                       <span className="hero-card-label">Next Up</span>
                       <h3 
-                        className="hero-card-title-with-bg"
+                        className={hasValidImage ? "hero-card-title-with-bg" : ""}
                         style={titleBgStyle}
                       >
                         <span className="hero-card-title-text">{event.title}</span>
@@ -353,12 +358,17 @@ const Home = () => {
               <div className="events-grid">
                 {upcomingEvents.map((event) => {
                   const eventDate = event.date?.toDate ? event.date.toDate() : new Date(event.date)
-                  const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                  let imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                  // Only use Supabase URLs, filter out Unsplash or other external URLs
+                  if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
+                    imageUrl = ''
+                  }
                   let cropData = event.coverCrop
                   if (cropData && typeof cropData === 'object' && cropData.cover) {
                     cropData = cropData.cover
                   }
                   const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
+                  const hasValidImage = imageUrl && titleBgStyle.backgroundImage
                 return (
                   <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
                     <div className="event-card-preview">
@@ -370,7 +380,7 @@ const Home = () => {
                       </div>
                       <div className="event-content-preview">
                         <h3 
-                          className="event-title-preview event-title-with-bg"
+                          className={`event-title-preview ${hasValidImage ? 'event-title-with-bg' : ''}`}
                           style={titleBgStyle}
                         >
                           <span className="event-title-text">{event.title}</span>

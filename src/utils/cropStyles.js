@@ -3,6 +3,15 @@ const clampPercent = (value) => Math.min(100, Math.max(0, value))
 export const getCropBackgroundStyle = (imageUrl, crop) => {
   if (!imageUrl) return {}
   
+  // Validate URL - only allow Supabase URLs or valid image URLs
+  // Reject Unsplash, placeholder services, etc.
+  if (typeof imageUrl === 'string' && 
+      (imageUrl.includes('unsplash.com') || 
+       imageUrl.includes('ui-avatars.com') ||
+       imageUrl.includes('placeholder'))) {
+    return {}
+  }
+  
   // Handle wrapped crop data (e.g., { cover: { x, y, width, height } })
   let actualCrop = crop
   if (crop && typeof crop === 'object' && crop.cover && !('x' in crop)) {
