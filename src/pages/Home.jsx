@@ -240,7 +240,7 @@ const Home = () => {
             <div className="hero-badges">
               <div className="badge glow">
                 <span className="badge-dot"></span>
-                Student chapter since 2025
+                Student chapter since 2023
               </div>
               <div className="badge outline">
                 <FiZap />
