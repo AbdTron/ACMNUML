@@ -18,6 +18,7 @@ import './AdminTeam.css'
 const defaultForm = {
   name: '',
   role: 'Member',
+  memberType: 'student', // 'student' or 'head' or 'faculty'
   bio: '',
   email: '',
   linkedin: '',
@@ -110,6 +111,7 @@ const AdminTeam = () => {
     setFormData({
       name: member.name || '',
       role: member.role || 'Member',
+      memberType: member.memberType || 'student',
       bio: member.bio || '',
       email: member.email || '',
       linkedin: member.linkedin || '',
@@ -185,6 +187,18 @@ const AdminTeam = () => {
                         placeholder="e.g., Director Partnerships"
                         required
                       />
+                    </div>
+                    <div className="form-group">
+                      <label>Member Type *</label>
+                      <select
+                        value={formData.memberType}
+                        onChange={(e) => setFormData({ ...formData, memberType: e.target.value })}
+                        required
+                      >
+                        <option value="student">Student</option>
+                        <option value="head">Head / Faculty</option>
+                        <option value="faculty">Faculty Advisor</option>
+                      </select>
                     </div>
                   </div>
 

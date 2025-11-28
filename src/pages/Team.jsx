@@ -7,6 +7,7 @@ import './Team.css'
 
 const Team = () => {
   const [teamMembers, setTeamMembers] = useState([])
+  const [teamHead, setTeamHead] = useState(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [socialHovered, setSocialHovered] = useState(null)
@@ -25,9 +26,24 @@ const Team = () => {
         const querySnapshot = await getDocs(q)
         const members = []
         const loadingStates = {}
+        let headMember = null
+        
         querySnapshot.forEach((doc) => {
           const member = { id: doc.id, ...doc.data() }
-          members.push(member)
+          
+          // Check if this is the head/faculty
+          const isHead = member.memberType === 'head' || 
+                        member.memberType === 'faculty' ||
+                        member.role?.toLowerCase().includes('head') ||
+                        member.role?.toLowerCase().includes('faculty') ||
+                        member.role?.toLowerCase().includes('advisor')
+          
+          if (isHead) {
+            headMember = member
+          } else {
+            members.push(member)
+          }
+          
           // Initialize loading state for each member with an image
           if (member.image) {
             loadingStates[member.id] = true
@@ -43,6 +59,7 @@ const Team = () => {
           }
         })
         setTeamMembers(members)
+        setTeamHead(headMember)
         setImagesLoading(loadingStates)
       } catch (error) {
         console.error('Error fetching team:', error)
@@ -58,13 +75,13 @@ const Team = () => {
     ? teamMembers 
     : teamMembers.filter(member => member.role?.toLowerCase() === filter.toLowerCase())
 
-  const roles = ['all', 'president', 'vice president', 'secretary', 'treasurer', 'member']
-
   const getMemberImage = (member) => {
     if (member.image) return member.image
     const initials = encodeURIComponent(member.name || 'ACM')
     return `https://ui-avatars.com/api/?name=${initials}&background=2563eb&color=fff`
   }
+
+  const roles = ['all', 'president', 'vice president', 'secretary', 'treasurer', 'member']
 
   return (
     <div className="team-page">
@@ -77,7 +94,112 @@ const Team = () => {
 
       <section className="section">
         <div className="container">
-          <div className="team-filters">
+          {/* Head Section */}
+          {teamHead && (
+            <div className="team-head-section">
+              <div className="team-grid team-head-grid">
+                {(() => {
+                  const imageUrl = getMemberImage(teamHead)
+                  const cropStyle = getCropBackgroundStyle(imageUrl, teamHead.imageCrops?.profile)
+                  const isLoading = imagesLoading[teamHead.id]
+                  return (
+                    <div 
+                      key={teamHead.id} 
+                      className={`team-card ${teamHead.bio ? 'has-bio' : ''} ${socialHovered === teamHead.id ? 'social-hovered' : ''}`}
+                      onMouseLeave={() => setSocialHovered(null)}
+                    >
+                      <div className="team-card-inner">
+                        <div className="team-card-front">
+                          <div className="team-flip-trigger">
+                            <div className="team-image-wrapper">
+                              {imageUrl && imageUrl !== `https://ui-avatars.com/api/?name=${encodeURIComponent(teamHead.name || 'ACM')}&background=2563eb&color=fff` ? (
+                                <>
+                                  {isLoading && (
+                                    <div className="team-image-loading">
+                                      <div className="loading-spinner"></div>
+                                    </div>
+                                  )}
+                                  <div 
+                                    className={`team-image ${isLoading ? 'loading' : ''}`} 
+                                    style={cropStyle} 
+                                  />
+                                </>
+                              ) : (
+                                <div className="team-image-placeholder">{teamHead.name?.charAt(0)}</div>
+                              )}
+                            </div>
+                            <div className="team-info">
+                              <h3 className="team-name">{teamHead.name}</h3>
+                              <p className="team-role">{teamHead.role}</p>
+                              <ul className="team-meta">
+                                {teamHead.email && <li>{teamHead.email}</li>}
+                              </ul>
+                              <div 
+                                className="team-social"
+                                onMouseEnter={() => setSocialHovered(teamHead.id)}
+                              >
+                              {teamHead.linkedin && (
+                                <a
+                                  className="social-link"
+                                  href={teamHead.linkedin}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label="LinkedIn"
+                                >
+                                  <FiLinkedin />
+                                </a>
+                              )}
+                              {teamHead.github && (
+                                <a
+                                  className="social-link"
+                                  href={teamHead.github}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label="GitHub"
+                                >
+                                  <FiGithub />
+                                </a>
+                              )}
+                              {teamHead.twitter && (
+                                <a
+                                  className="social-link"
+                                  href={teamHead.twitter}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label="Twitter"
+                                >
+                                  <FiTwitter />
+                                </a>
+                              )}
+                              {teamHead.email && (
+                                <a className="social-link" href={`mailto:${teamHead.email}`} aria-label="Email">
+                                  <FiMail />
+                                </a>
+                              )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {teamHead.bio && (
+                          <div className="team-card-back">
+                            <div className="team-bio-content">
+                              <h3 className="team-name">{teamHead.name}</h3>
+                              <p className="team-role">{teamHead.role}</p>
+                              <p className="team-bio">{teamHead.bio}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* Team Members Section */}
+          <div className="team-members-section">
+            <div className="team-filters">
             <button
               className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
@@ -204,6 +326,7 @@ const Team = () => {
               <p>No team members found.</p>
             </div>
           )}
+          </div>
         </div>
       </section>
     </div>

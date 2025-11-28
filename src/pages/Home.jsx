@@ -22,6 +22,7 @@ const Home = () => {
   const [pastEvents, setPastEvents] = useState([])
   const [showGallery, setShowGallery] = useState(true)
   const [cabinetMembers, setCabinetMembers] = useState([])
+  const [teamHead, setTeamHead] = useState(null)
   const [teamImagesLoading, setTeamImagesLoading] = useState({})
 
   useEffect(() => {
@@ -107,14 +108,34 @@ const Home = () => {
       if (!db) return
       try {
         const teamRef = collection(db, 'team')
-        const teamQuery = query(teamRef, orderBy('order', 'asc'), limit(4))
+        const teamQuery = query(teamRef, orderBy('order', 'asc'))
         const snapshot = await getDocs(teamQuery)
-        const members = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        setCabinetMembers(members)
+        const allMembers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
         
-        // Preload team member images
+        // Separate head/faculty from students
+        const head = allMembers.find(m => 
+          m.memberType === 'head' || 
+          m.memberType === 'faculty' ||
+          m.role?.toLowerCase().includes('head') ||
+          m.role?.toLowerCase().includes('faculty') ||
+          m.role?.toLowerCase().includes('advisor')
+        )
+        
+        const students = allMembers.filter(m => 
+          !m.memberType || 
+          (m.memberType !== 'head' && m.memberType !== 'faculty') ||
+          (!m.role?.toLowerCase().includes('head') && 
+           !m.role?.toLowerCase().includes('faculty') && 
+           !m.role?.toLowerCase().includes('advisor'))
+        ).slice(0, 4) // Limit to 4 students for landing page
+        
+        setTeamHead(head || null)
+        setCabinetMembers(students)
+        
+        // Preload team member images (head + students)
         const loadingStates = {}
-        members.forEach((member) => {
+        const membersToPreload = head ? [head, ...students] : students
+        membersToPreload.forEach((member) => {
           if (member.image) {
             loadingStates[member.id] = true
             const img = new Image()
@@ -442,36 +463,77 @@ const Home = () => {
             <h2>Our Team</h2>
             <p>Meet the students orchestrating ACM NUML</p>
           </div>
-          <div className="team-grid-landing">
-            {displayCabinet.map((member, index) => {
-              const avatarUrl = member.image || getMemberImage(member)
-              const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
-              const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
-              const isLoading = teamImagesLoading[member.id] && !isPlaceholder
-              return (
-                <div key={member.id || `member-${index}-${member.name}`} className="team-card-landing">
-                  <div className="team-avatar-wrapper-landing">
-                    {isLoading && (
-                      <div className="team-avatar-loading">
-                        <div className="loading-spinner"></div>
+          
+          {/* Head Section */}
+          {teamHead && (
+            <div className="team-head-section">
+              <div className="team-grid-landing team-head-grid">
+                {(() => {
+                  const avatarUrl = teamHead.image || getMemberImage(teamHead)
+                  const cropStyle = getCropBackgroundStyle(avatarUrl, teamHead.imageCrops?.landing)
+                  const isPlaceholder = !teamHead.image || avatarUrl.includes('ui-avatars.com')
+                  const isLoading = teamImagesLoading[teamHead.id] && !isPlaceholder
+                  return (
+                    <div className="team-card-landing">
+                      <div className="team-avatar-wrapper-landing">
+                        {isLoading && (
+                          <div className="team-avatar-loading">
+                            <div className="loading-spinner"></div>
+                          </div>
+                        )}
+                        <div 
+                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
+                          style={cropStyle} 
+                        />
                       </div>
-                    )}
-                    <div 
-                      className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
-                      style={cropStyle} 
-                    />
+                      <div className="team-info-landing">
+                        <h3>{teamHead.name}</h3>
+                        <p className="team-role-landing">{teamHead.role}</p>
+                        {teamHead.detail || teamHead.program ? (
+                          <span className="team-detail-landing">{teamHead.detail || teamHead.program}</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* Student Members Section */}
+          <div className="team-members-section">
+            <div className="team-grid-landing">
+              {displayCabinet.map((member, index) => {
+                const avatarUrl = member.image || getMemberImage(member)
+                const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
+                const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
+                const isLoading = teamImagesLoading[member.id] && !isPlaceholder
+                return (
+                  <div key={member.id || `member-${index}-${member.name}`} className="team-card-landing">
+                    <div className="team-avatar-wrapper-landing">
+                      {isLoading && (
+                        <div className="team-avatar-loading">
+                          <div className="loading-spinner"></div>
+                        </div>
+                      )}
+                      <div 
+                        className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
+                        style={cropStyle} 
+                      />
+                    </div>
+                    <div className="team-info-landing">
+                      <h3>{member.name}</h3>
+                      <p className="team-role-landing">{member.role}</p>
+                      {member.detail || member.program ? (
+                        <span className="team-detail-landing">{member.detail || member.program}</span>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="team-info-landing">
-                    <h3>{member.name}</h3>
-                    <p className="team-role-landing">{member.role}</p>
-                    {member.detail || member.program ? (
-                      <span className="team-detail-landing">{member.detail || member.program}</span>
-                    ) : null}
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
+          
           <div className="team-cta">
             <Link to="/team" className="btn btn-outline">
               View full team
