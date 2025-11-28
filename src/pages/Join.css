@@ -63,6 +63,17 @@
   margin-top: 12rem;
 }
 
+/* PWA-specific styling: form section at top, no sticky positioning */
+.join-form-section-pwa-top {
+  margin-top: 0 !important;
+  margin-bottom: 2.5rem;
+}
+
+.join-form-section-pwa-top .form-card {
+  position: static !important;
+  margin-top: 0 !important;
+}
+
 .apply-header h2 {
   font-size: 2rem;
   margin-bottom: 1rem;

@@ -8,9 +8,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999;
   opacity: 1;
   transition: opacity 0.3s ease-out;
+  /* Ensure it covers everything including native PWA splash */
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 .splash-screen.fade-out {
@@ -23,7 +28,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .splash-logo {
@@ -34,13 +39,23 @@
   animation: fadeInScale 0.6s ease-out;
 }
 
+.splash-title {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-transform: uppercase;
+  animation: fadeInUp 0.8s ease-out 0.15s both;
+}
+
 .splash-credit {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
   font-weight: 400;
   letter-spacing: 0.05em;
   margin: 0;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
 }
 
 @keyframes fadeInScale {

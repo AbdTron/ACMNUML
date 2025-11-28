@@ -19,6 +19,26 @@
   flex: 0 0 auto;
 }
 
+.team-head-grid .team-info {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.team-head-grid .team-name {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: var(--text-dark) !important;
+}
+
+.team-head-grid .team-role {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: var(--primary-color) !important;
+}
+
 /* Team Members Section */
 .team-members-section {
   margin-top: 3rem;

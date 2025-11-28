@@ -36,6 +36,7 @@ const SplashScreen = ({ onFinish }) => {
           alt="ACM NUML Logo" 
           className="splash-logo"
         />
+        <h2 className="splash-title">ACM NUML</h2>
         <p className="splash-credit">by Abdullah Irshad</p>
       </div>
     </div>
