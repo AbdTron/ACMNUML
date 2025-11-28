@@ -27,6 +27,8 @@ const Home = () => {
   const [teamHead, setTeamHead] = useState(null)
   const [teamImagesLoading, setTeamImagesLoading] = useState({})
   const [teamScrollIndex, setTeamScrollIndex] = useState(0)
+  const [isScrolling, setIsScrolling] = useState(false)
+  const [scrollDirection, setScrollDirection] = useState('next')
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -203,13 +205,19 @@ const Home = () => {
 
   // Team scroll functions
   const handleTeamNext = () => {
-    if (displayCabinet.length <= 4) return
+    if (displayCabinet.length <= 4 || isScrolling) return
+    setIsScrolling(true)
+    setScrollDirection('next')
     setTeamScrollIndex((prev) => (prev + 1) % displayCabinet.length)
+    setTimeout(() => setIsScrolling(false), 600)
   }
 
   const handleTeamPrev = () => {
-    if (displayCabinet.length <= 4) return
+    if (displayCabinet.length <= 4 || isScrolling) return
+    setIsScrolling(true)
+    setScrollDirection('prev')
     setTeamScrollIndex((prev) => (prev - 1 + displayCabinet.length) % displayCabinet.length)
+    setTimeout(() => setIsScrolling(false), 600)
   }
 
   // Get visible team members (4 at a time, wrapping around)
@@ -537,14 +545,14 @@ const Home = () => {
                   <FiChevronLeft />
                 </button>
               )}
-              <div className="team-grid-landing team-grid-scrollable">
+              <div className={`team-grid-landing team-grid-scrollable ${isScrolling ? `scrolling scrolling-${scrollDirection}` : ''}`}>
                 {getVisibleTeamMembers().map((member, index) => {
                   const avatarUrl = member.image || getMemberImage(member)
                   const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
                   const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
                   const isLoading = teamImagesLoading[member.id] && !isPlaceholder
                   return (
-                    <div key={member.id || `member-${teamScrollIndex + index}-${member.name}`} className="team-card-landing">
+                    <div key={member.id || `member-${member.name}-${index}`} className="team-card-landing">
                       <div className="team-avatar-wrapper-landing">
                         {isLoading && (
                           <div className="team-avatar-loading">

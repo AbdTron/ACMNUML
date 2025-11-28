@@ -451,7 +451,19 @@
 }
 
 .team-section {
-  background: radial-gradient(circle at top, rgba(99, 102, 241, 0.08), transparent);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.03) 0%, rgba(59, 130, 246, 0.02) 50%, transparent 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.team-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
 }
 
 .team-grid-landing {
@@ -470,37 +482,60 @@
   align-items: center;
   text-align: center;
   box-shadow: var(--shadow-md);
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
-  /* Prevent layout shifts */
-  contain: layout style paint;
-  transform: translateZ(0);
+  overflow: visible;
+  z-index: 1;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  opacity: 1;
+  animation: none;
+  transform: translateY(0) scale(1);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
+/* Glow effect behind card on hover */
 .team-card-landing::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
+  inset: -8px;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.15));
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: -1;
+  filter: blur(12px);
+}
+
+/* Top border starting from middle */
+.team-card-landing::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%;
+  height: 3px;
   background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.35s ease;
+  border-radius: 0 0 8px 8px;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 2;
 }
 
 .team-card-landing:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px) scale(1.02) !important;
   box-shadow: var(--shadow-xl);
   border-color: rgba(37, 99, 235, 0.3);
+  z-index: 10;
 }
 
 .team-card-landing:hover::before {
-  transform: scaleX(1);
+  opacity: 0.6;
+}
+
+.team-card-landing:hover::after {
+  transform: translateX(-50%) scaleX(1);
 }
 
 .team-avatar-wrapper-landing {
@@ -515,6 +550,23 @@
   margin-right: auto;
 }
 
+/* Glow effect around avatar */
+.team-avatar-wrapper-landing::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.2));
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: -1;
+  filter: blur(8px);
+}
+
+.team-card-landing:hover .team-avatar-wrapper-landing::before {
+  opacity: 0.6;
+}
+
 .team-avatar-landing {
   width: 100px;
   height: 100px;
@@ -527,10 +579,8 @@
   background-position: center center;
   background-repeat: no-repeat;
   transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, opacity 0.3s ease;
-  /* Optimize image rendering - removed will-change to reduce jitter */
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
-  /* Improve loading performance */
   contain: layout style paint;
 }
 
@@ -572,7 +622,6 @@
   border-color: rgba(37, 99, 235, 0.4);
   transform: scale(1.05);
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
-  /* Ensure background stays centered on hover */
   background-position: center center;
 }
 
@@ -593,6 +642,7 @@
   opacity: 1;
 }
 
+/* Neon light under role */
 .team-role-landing {
   color: var(--primary-color);
   font-weight: 600;
@@ -602,6 +652,26 @@
   display: block;
   visibility: visible;
   opacity: 1;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.team-role-landing::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 2px;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6), 0 0 12px rgba(124, 58, 237, 0.4);
+}
+
+.team-card-landing:hover .team-role-landing::after {
+  transform: translateX(-50%) scaleX(1);
 }
 
 .team-detail-landing {
@@ -694,7 +764,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  /* Prevent layout shifts that cause jitter */
   min-height: 400px;
   contain: layout style;
 }
@@ -705,50 +774,125 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   overflow: hidden;
-  /* Smooth scroll without jitter */
-  will-change: contents;
+  position: relative;
+  will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.team-grid-scrollable > * {
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+.team-grid-scrollable.scrolling.scrolling-next > * {
+  animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 1 !important;
+}
+
+.team-grid-scrollable.scrolling.scrolling-prev > * {
+  animation: slideInFromLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 1 !important;
+}
+
 .team-scroll-btn {
   background: var(--bg-white);
-  border: 2px solid var(--border-color);
+  border: 2px solid rgba(37, 99, 235, 0.15);
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   flex-shrink: 0;
-  color: var(--text-primary);
+  color: var(--primary-color);
   font-size: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.team-scroll-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: -1;
+}
+
+.team-scroll-btn::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3));
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: -2;
+  filter: blur(8px);
 }
 
 .team-scroll-btn:hover {
-  background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
-  transform: scale(1.1);
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+}
+
+.team-scroll-btn:hover::before {
+  opacity: 1;
+}
+
+.team-scroll-btn:hover::after {
+  opacity: 0.6;
 }
 
 .team-scroll-btn:active {
-  transform: scale(0.95);
+  transform: scale(1.05) translateY(0);
 }
 
 .team-scroll-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .team-scroll-btn:disabled:hover {
   transform: none;
   background: var(--bg-white);
-  color: var(--text-primary);
-  border-color: var(--border-color);
+  color: var(--primary-color);
+  border-color: rgba(37, 99, 235, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.team-scroll-btn:disabled::before,
+.team-scroll-btn:disabled::after {
+  opacity: 0;
 }
 
 @media (max-width: 768px) {
@@ -1354,46 +1498,52 @@
   }
 
   .team-grid-landing {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
   }
   
   .team-grid-scrollable {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 1.5rem;
   }
   
   .team-scroll-btn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     font-size: 1.25rem;
   }
   
   .team-head-grid {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .team-card-landing {
-    padding: 1.25rem;
+    padding: 1.75rem 1.5rem;
+    border-radius: 1.5rem;
+  }
+
+  .team-avatar-wrapper-landing {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.25rem;
   }
 
   .team-avatar-landing {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 1rem;
+    width: 100px;
+    height: 100px;
   }
 
   .team-info-landing h3 {
-    font-size: 1.125rem;
+    font-size: 1.2rem;
   }
 
   .team-role-landing {
-    font-size: 0.875rem;
+    font-size: 0.95rem;
   }
 
   .team-detail-landing {
-    font-size: 0.8125rem;
+    font-size: 0.85rem;
   }
 
   .events-grid {
@@ -1527,20 +1677,23 @@
 
   .team-grid-landing {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
   
   .team-grid-scrollable {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
   
   .team-scroll-container {
-    gap: 0.5rem;
+    gap: 0.75rem;
+    min-height: 380px;
   }
   
   .team-scroll-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
   }
   
   .team-head-grid {
@@ -1549,6 +1702,17 @@
 
   .team-card-landing {
     padding: 1.5rem;
+    border-radius: 1.5rem;
+  }
+
+  .team-avatar-wrapper-landing {
+    width: 90px;
+    height: 90px;
+  }
+
+  .team-avatar-landing {
+    width: 90px;
+    height: 90px;
   }
 
   .about-card {
