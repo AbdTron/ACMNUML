@@ -94,13 +94,13 @@ const ImageUploader = ({
 
   const handleCropConfirm = async () => {
     if (!selectedImage || !croppedAreaPixels || !originalFile) return
-    const normalizedCrop = hasVariants ? normalizeCrop(croppedAreaPixels, imageDimensions) : null
     const currentStep = cropSteps[activeVariantIndex] || cropSteps[0]
 
     try {
       setUploading(true)
 
       if (hasVariants) {
+        const normalizedCrop = normalizeCrop(croppedAreaPixels, imageDimensions)
         const updatedCrops = {
           ...variantCrops,
           [currentStep.key]: normalizedCrop,
