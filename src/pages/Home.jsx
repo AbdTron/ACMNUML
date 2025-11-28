@@ -341,31 +341,32 @@ const Home = () => {
                   const hasValidImage = imageUrl && titleBgStyle.backgroundImage
                   return (
                     <Link to={`/events/${event.id}`} className="hero-card hero-card-link">
-                      <span className="hero-card-label">Next Up</span>
-                      <h3 
-                        className={hasValidImage ? "hero-card-title-with-bg" : ""}
-                        style={titleBgStyle}
-                      >
-                        <span className="hero-card-title-text">{event.title}</span>
-                      </h3>
-                <p>
-                  {truncateText(
-                    upcomingEvents[0].description ||
-                      'Prototype sprint • limited seats • collaboration focused',
-                    120
-                  )}
-                </p>
-                {upcomingEvents[0]?.registerLink && (
-                  <a
-                    href={upcomingEvents[0].registerLink}
-                    className="btn hero-register-btn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Register
-                  </a>
-                )}
+                      <div className={`hero-card-header ${hasValidImage ? 'hero-card-header-with-bg' : ''}`} style={hasValidImage ? titleBgStyle : {}}>
+                        <span className="hero-card-label">Next Up</span>
+                        <h3>
+                          <span className="hero-card-title-text">{event.title}</span>
+                        </h3>
+                      </div>
+                      <div className="hero-card-content">
+                        <p>
+                          {truncateText(
+                            upcomingEvents[0].description ||
+                              'Prototype sprint • limited seats • collaboration focused',
+                            120
+                          )}
+                        </p>
+                        {upcomingEvents[0]?.registerLink && (
+                          <a
+                            href={upcomingEvents[0].registerLink}
+                            className="btn hero-register-btn"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Register
+                          </a>
+                        )}
+                      </div>
                 <div className="hero-card-footer">
                   <span>
                     {new Date(
@@ -423,22 +424,22 @@ const Home = () => {
                   }
                   const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
                   const hasValidImage = imageUrl && titleBgStyle.backgroundImage
+                  const cardBgStyle = hasValidImage ? titleBgStyle : {}
                 return (
                   <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
                     <div className="event-card-preview">
-                      <div className="event-date-preview">
-                        <span className="event-day">{eventDate.getDate()}</span>
-                        <span className="event-month">
-                          {eventDate.toLocaleString('default', { month: 'short' })}
-                        </span>
-                      </div>
-                      <div className="event-content-preview">
-                        <h3 
-                          className={`event-title-preview ${hasValidImage ? 'event-title-with-bg' : ''}`}
-                          style={titleBgStyle}
-                        >
+                      <div className={`event-header-preview ${hasValidImage ? 'event-header-with-bg' : ''}`} style={cardBgStyle}>
+                        <div className="event-date-preview">
+                          <span className="event-day">{eventDate.getDate()}</span>
+                          <span className="event-month">
+                            {eventDate.toLocaleString('default', { month: 'short' })}
+                          </span>
+                        </div>
+                        <h3 className="event-title-preview">
                           <span className="event-title-text">{event.title}</span>
                         </h3>
+                      </div>
+                      <div className="event-content-preview">
                         <p className="event-description-preview">
                           {truncateText(event.description, 140)}
                         </p>
