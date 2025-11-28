@@ -75,31 +75,55 @@ setFavicon(acmlogSplash)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      // Register Firebase Messaging service worker FIRST (required for FCM)
-      try {
-        const fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/',
-          updateViaCache: 'none' // Always check for updates on page load
-        })
-        console.log('Firebase Messaging Service Worker registered:', fcmRegistration.scope)
-        
-        // Service workers automatically check for updates when files change (on new deploys)
-        // No need for periodic checks - browser handles this automatically
-      } catch (fcmError) {
-        console.error('Firebase Messaging Service Worker registration failed:', fcmError)
+      // Only register FCM service worker in PWA mode, not in browser
+      // Check if running as PWA
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true ||
+                    window.matchMedia('(display-mode: fullscreen)').matches
+
+      if (isPWA) {
+        // Register Firebase Messaging service worker (PWA only)
+        try {
+          const fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+            scope: '/',
+            updateViaCache: 'none' // Always check for updates on page load
+          })
+          console.log('Firebase Messaging Service Worker registered (PWA mode):', fcmRegistration.scope)
+          
+          // Service workers automatically check for updates when files change (on new deploys)
+          // No need for periodic checks - browser handles this automatically
+        } catch (fcmError) {
+          console.error('Firebase Messaging Service Worker registration failed:', fcmError)
+        }
+      } else {
+        console.log('FCM Service Worker not registered (browser mode - notifications disabled)')
       }
 
-      // Register main service worker for PWA
+      // Register main service worker (works for both browser and installed PWA)
       const registration = await navigator.serviceWorker.register('/sw.js', {
-        updateViaCache: 'none' // Always check for updates on page load
+        updateViaCache: 'none' // Always check for updates on page load/app open
       })
       console.log('Service Worker registered successfully:', registration.scope)
       
-      // Check for updates on page load (service workers auto-check when files change on deploy)
-      // No periodic checks needed - browser automatically detects file changes
+      // Check for updates immediately (works when app opens - browser or installed PWA)
+      // Service workers automatically detect file changes when you deploy new version
       await registration.update()
       
+      // Also check for updates when app becomes visible (important for installed PWAs)
+      // This ensures updates are detected even if app was in background
+      document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden) {
+          // App became visible - check for updates
+          try {
+            await registration.update()
+          } catch (error) {
+            console.error('Error checking for service worker updates:', error)
+          }
+        }
+      })
+      
       // Listen for service worker updates (only fires when new version is deployed)
+      // This works the same for browser tabs and installed PWA apps
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing
         if (newWorker) {
@@ -107,10 +131,12 @@ if ('serviceWorker' in navigator) {
             if (newWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
                 // New service worker available (new deploy detected) - automatically activate it
+                // This works for both browser and installed PWA
                 console.log('New service worker version detected. Activating and reloading...')
                 // Tell the new worker to skip waiting and activate immediately
                 newWorker.postMessage({ type: 'SKIP_WAITING' })
                 // Reload to use the new service worker and clear old cache
+                // Works in both browser tabs and installed PWA windows
                 window.location.reload()
               } else {
                 // First time installation

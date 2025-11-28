@@ -8,9 +8,27 @@ const VAPID_KEY = 'BJft1ENmeDXCnbDH01zf7irWqPS1ZqUtGW8s_SQfNmcZxyu3kdh8tegKSjwS6
 
 let messaging = null
 
-// Initialize messaging (only in browser, not in Node.js)
+// Check if running as PWA (not browser)
+const isPWA = () => {
+  if (typeof window === 'undefined') return false
+  // Check for standalone display mode (most browsers)
+  if (window.matchMedia('(display-mode: standalone)').matches) return true
+  // Check for iOS Safari standalone mode
+  if (window.navigator.standalone === true) return true
+  // Check for fullscreen mode
+  if (window.matchMedia('(display-mode: fullscreen)').matches) return true
+  return false
+}
+
+// Initialize messaging (only in PWA, not in browser)
 const initMessaging = async () => {
   if (typeof window === 'undefined') return null
+  
+  // Only initialize in PWA mode, not in browser
+  if (!isPWA()) {
+    console.log('Firebase Messaging only available in PWA mode')
+    return null
+  }
   
   try {
     const isSupportedBrowser = await isSupported()
@@ -27,8 +45,14 @@ const initMessaging = async () => {
   }
 }
 
-// Request notification permission and get FCM token
+// Request notification permission and get FCM token (PWA only)
 export const requestNotificationPermission = async () => {
+  // Only work in PWA mode, not in browser
+  if (!isPWA()) {
+    console.log('Notifications only available in PWA mode')
+    return null
+  }
+
   try {
     if (!messaging) {
       messaging = await initMessaging()
@@ -131,8 +155,13 @@ const saveTokenToFirestore = async (token) => {
   }
 }
 
-// Listen for foreground messages (when app is open)
+// Listen for foreground messages (when app is open) - PWA only
 export const onMessageListener = () => {
+  // Only work in PWA mode, not in browser
+  if (!isPWA()) {
+    return Promise.resolve(null)
+  }
+
   return new Promise((resolve) => {
     if (!messaging) {
       initMessaging().then((msg) => {
@@ -141,6 +170,8 @@ export const onMessageListener = () => {
             console.log('Message received in foreground:', payload)
             resolve(payload)
           })
+        } else {
+          resolve(null)
         }
       })
     } else {
@@ -152,8 +183,13 @@ export const onMessageListener = () => {
   })
 }
 
-// Get current FCM token (without requesting permission)
+// Get current FCM token (without requesting permission) - PWA only
 export const getCurrentToken = async () => {
+  // Only work in PWA mode, not in browser
+  if (!isPWA()) {
+    return null
+  }
+
   try {
     if (!messaging) {
       messaging = await initMessaging()
@@ -199,9 +235,7 @@ export const getNotificationPermission = () => {
   return Notification.permission
 }
 
-// Initialize messaging on import
-if (typeof window !== 'undefined') {
-  initMessaging()
-}
+// Don't initialize messaging on import - only initialize when explicitly requested in PWA mode
+// This prevents any notification-related code from running in browser mode
 
 export default messaging
