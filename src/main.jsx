@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { ThemeProvider } from './context/ThemeContext'
-import acmLogo from './assets/acmlog.png'
+import acmlogSplash from './assets/acmlogSplash.png'
 import './styles/index.css'
 
 // Set favicon dynamically with larger, more visible size
@@ -69,11 +69,12 @@ const setFavicon = (src) => {
   img.src = src
 }
 
-setFavicon(acmLogo)
+setFavicon(acmlogSplash)
 
-// Register Service Worker for PWA
+// Register Service Workers for PWA and FCM
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    // Register main service worker for PWA
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('Service Worker registered successfully:', registration.scope)
@@ -96,6 +97,15 @@ if ('serviceWorker' in navigator) {
       })
       .catch((error) => {
         console.log('Service Worker registration failed:', error)
+      })
+
+    // Register Firebase Messaging service worker
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then((registration) => {
+        console.log('Firebase Messaging Service Worker registered:', registration.scope)
+      })
+      .catch((error) => {
+        console.log('Firebase Messaging Service Worker registration failed:', error)
       })
   })
   

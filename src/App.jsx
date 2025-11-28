@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/Navbar'
@@ -5,6 +6,9 @@ import Footer from './components/Footer'
 import NotificationPopup from './components/NotificationPopup'
 import InstallPrompt from './components/InstallPrompt'
 import ProtectedRoute from './components/ProtectedRoute'
+import ScrollToTop from './components/ScrollToTop'
+import SplashScreen from './components/SplashScreen'
+import NotificationService from './components/NotificationService'
 import Home from './pages/Home'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
@@ -22,13 +26,32 @@ import AdminSettings from './pages/admin/AdminSettings'
 import AdminTeam from './pages/admin/AdminTeam'
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
+  useEffect(() => {
+    // Check if splash was already shown in this session
+    const splashShown = sessionStorage.getItem('splash-shown')
+    if (splashShown) {
+      setShowSplash(false)
+    } else {
+      sessionStorage.setItem('splash-shown', 'true')
+    }
+  }, [])
+
+  const handleSplashFinish = () => {
+    setShowSplash(false)
+  }
+
   return (
     <AuthProvider>
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <div className="app">
           <Navbar />
           <NotificationPopup />
           <InstallPrompt />
+          <NotificationService />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />

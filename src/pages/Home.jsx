@@ -7,7 +7,9 @@ import {
   FiBookOpen,
   FiUserPlus,
   FiCamera,
-  FiBell
+  FiBell,
+  FiChevronLeft,
+  FiChevronRight
 } from 'react-icons/fi'
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
@@ -24,6 +26,7 @@ const Home = () => {
   const [cabinetMembers, setCabinetMembers] = useState([])
   const [teamHead, setTeamHead] = useState(null)
   const [teamImagesLoading, setTeamImagesLoading] = useState({})
+  const [teamScrollIndex, setTeamScrollIndex] = useState(0)
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -127,7 +130,7 @@ const Home = () => {
           (!m.role?.toLowerCase().includes('head') && 
            !m.role?.toLowerCase().includes('faculty') && 
            !m.role?.toLowerCase().includes('advisor'))
-        ).slice(0, 4) // Limit to 4 students for landing page
+        ) // Get all students for scrollable view
         
         setTeamHead(head || null)
         setCabinetMembers(students)
@@ -196,6 +199,28 @@ const Home = () => {
     if (member?.image) return member.image
     const initials = encodeURIComponent(member?.name || 'ACM')
     return `https://ui-avatars.com/api/?name=${initials}&background=111827&color=fff`
+  }
+
+  // Team scroll functions
+  const handleTeamNext = () => {
+    if (displayCabinet.length <= 4) return
+    setTeamScrollIndex((prev) => (prev + 1) % displayCabinet.length)
+  }
+
+  const handleTeamPrev = () => {
+    if (displayCabinet.length <= 4) return
+    setTeamScrollIndex((prev) => (prev - 1 + displayCabinet.length) % displayCabinet.length)
+  }
+
+  // Get visible team members (4 at a time, wrapping around)
+  const getVisibleTeamMembers = () => {
+    if (displayCabinet.length <= 4) return displayCabinet
+    const visible = []
+    for (let i = 0; i < 4; i++) {
+      const index = (teamScrollIndex + i) % displayCabinet.length
+      visible.push(displayCabinet[index])
+    }
+    return visible
   }
 
   const highlightCards = [
@@ -502,35 +527,55 @@ const Home = () => {
 
           {/* Student Members Section */}
           <div className="team-members-section">
-            <div className="team-grid-landing">
-              {displayCabinet.map((member, index) => {
-                const avatarUrl = member.image || getMemberImage(member)
-                const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
-                const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
-                const isLoading = teamImagesLoading[member.id] && !isPlaceholder
-                return (
-                  <div key={member.id || `member-${index}-${member.name}`} className="team-card-landing">
-                    <div className="team-avatar-wrapper-landing">
-                      {isLoading && (
-                        <div className="team-avatar-loading">
-                          <div className="loading-spinner"></div>
-                        </div>
-                      )}
-                      <div 
-                        className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
-                        style={cropStyle} 
-                      />
+            <div className="team-scroll-container">
+              {displayCabinet.length > 4 && (
+                <button 
+                  className="team-scroll-btn team-scroll-btn-prev" 
+                  onClick={handleTeamPrev}
+                  aria-label="Previous team member"
+                >
+                  <FiChevronLeft />
+                </button>
+              )}
+              <div className="team-grid-landing team-grid-scrollable">
+                {getVisibleTeamMembers().map((member, index) => {
+                  const avatarUrl = member.image || getMemberImage(member)
+                  const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
+                  const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
+                  const isLoading = teamImagesLoading[member.id] && !isPlaceholder
+                  return (
+                    <div key={member.id || `member-${teamScrollIndex + index}-${member.name}`} className="team-card-landing">
+                      <div className="team-avatar-wrapper-landing">
+                        {isLoading && (
+                          <div className="team-avatar-loading">
+                            <div className="loading-spinner"></div>
+                          </div>
+                        )}
+                        <div 
+                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
+                          style={cropStyle} 
+                        />
+                      </div>
+                      <div className="team-info-landing">
+                        <h3>{member.name}</h3>
+                        <p className="team-role-landing">{member.role}</p>
+                        {member.detail || member.program ? (
+                          <span className="team-detail-landing">{member.detail || member.program}</span>
+                        ) : null}
+                      </div>
                     </div>
-                    <div className="team-info-landing">
-                      <h3>{member.name}</h3>
-                      <p className="team-role-landing">{member.role}</p>
-                      {member.detail || member.program ? (
-                        <span className="team-detail-landing">{member.detail || member.program}</span>
-                      ) : null}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+              {displayCabinet.length > 4 && (
+                <button 
+                  className="team-scroll-btn team-scroll-btn-next" 
+                  onClick={handleTeamNext}
+                  aria-label="Next team member"
+                >
+                  <FiChevronRight />
+                </button>
+              )}
             </div>
           </div>
           
