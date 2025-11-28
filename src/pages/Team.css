@@ -19,24 +19,42 @@
   flex: 0 0 auto;
 }
 
-.team-head-grid .team-info {
+/* Team Head - Ensure info is visible */
+.team-head-grid .team-card-front {
+  position: relative !important;
+}
+
+.team-head-grid .team-card-front .team-info {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  position: relative !important;
+  z-index: 2 !important;
 }
 
-.team-head-grid .team-name {
+.team-head-grid .team-card-front .team-name {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
   color: var(--text-dark) !important;
+  font-size: 1.35rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
-.team-head-grid .team-role {
+.team-head-grid .team-card-front .team-role {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
   color: var(--primary-color) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.team-head-grid .team-card-front .team-meta {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Team Members Section */
@@ -109,6 +127,13 @@
   flex-direction: column;
   top: 0;
   left: 0;
+}
+
+/* Override for head section - ensure front card is visible */
+.team-head-grid .team-card-front {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .team-flip-trigger {

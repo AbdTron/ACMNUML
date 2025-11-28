@@ -29,7 +29,22 @@ const SplashScreen = ({ onFinish }) => {
   if (!isPWA() || !isVisible) return null
 
   return (
-    <div className={`splash-screen ${!isVisible ? 'fade-out' : ''}`}>
+    <div 
+      className={`splash-screen ${!isVisible ? 'fade-out' : ''}`}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 999999,
+        background: 'linear-gradient(135deg, #0b1120, #1e1b4b)',
+        width: '100vw',
+        height: '100vh',
+        margin: 0,
+        padding: 0
+      }}
+    >
       <div className="splash-content">
         <img 
           src={acmlogSplash} 
