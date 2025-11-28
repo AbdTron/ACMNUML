@@ -40,6 +40,14 @@ body {
   /* Prevent scroll jitter */
   overflow-x: hidden;
   position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: var(--bg-white);
+  transition: background-color 0.3s ease;
 }
 
 :root[data-theme='dark'] {
