@@ -17,29 +17,50 @@ const firebaseConfig = {
 }
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig)
+try {
+  firebase.initializeApp(firebaseConfig)
+  console.log('[FCM SW] Firebase initialized successfully')
+} catch (error) {
+  console.error('[FCM SW] Firebase initialization error:', error)
+}
 
 // Retrieve an instance of Firebase Messaging
-const messaging = firebase.messaging()
+let messaging = null
+try {
+  messaging = firebase.messaging()
+  console.log('[FCM SW] Firebase Messaging initialized')
+} catch (error) {
+  console.error('[FCM SW] Firebase Messaging initialization error:', error)
+}
 
 // Handle background messages
-messaging.onBackgroundMessage((payload) => {
-  console.log('Background message received:', payload)
+if (messaging) {
+  messaging.onBackgroundMessage((payload) => {
+  console.log('[FCM SW] Background message received:', payload)
 
-  const notificationTitle = payload.notification?.title || 'ACM NUML'
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
+  const notificationBody = payload.notification?.body || payload.data?.body || 'You have a new notification'
+  
   const notificationOptions = {
-    body: payload.notification?.body || 'You have a new notification',
-    icon: payload.notification?.icon || '/icon-192.png',
+    body: notificationBody,
+    icon: payload.notification?.icon || payload.data?.icon || '/icon-192.png',
     badge: '/icon-192.png',
-    image: payload.notification?.image,
-    data: payload.data,
+    image: payload.notification?.image || payload.data?.image,
+    data: {
+      ...payload.data,
+      url: payload.data?.url || payload.fcmOptions?.link || '/',
+    },
     tag: payload.data?.tag || 'acmnuml-notification',
     requireInteraction: false,
     silent: false,
   }
 
+  console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
   return self.registration.showNotification(notificationTitle, notificationOptions)
-})
+  })
+} else {
+  console.error('[FCM SW] Messaging not initialized, cannot handle background messages')
+}
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {

@@ -41,9 +41,28 @@ export const requestNotificationPermission = async () => {
     if (permission === 'granted') {
       console.log('Notification permission granted')
       
-      // Get FCM token
+      // Get service worker registration for FCM
+      let registration = null
+      try {
+        registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+        if (!registration) {
+          // Register if not already registered
+          registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+            scope: '/'
+          })
+          console.log('FCM Service Worker registered:', registration.scope)
+        }
+      } catch (swError) {
+        console.error('Service Worker registration error:', swError)
+        // Try to get any existing registration
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        registration = registrations.find(reg => reg.scope.includes('/'))
+      }
+      
+      // Get FCM token with service worker registration
       const token = await getToken(messaging, {
-        vapidKey: VAPID_KEY
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration
       })
       
       if (token) {
@@ -52,7 +71,7 @@ export const requestNotificationPermission = async () => {
         await saveTokenToFirestore(token)
         return token
       } else {
-        console.log('No registration token available')
+        console.log('No registration token available. Request permission to generate one.')
         return null
       }
     } else {
@@ -118,8 +137,21 @@ export const getCurrentToken = async () => {
       if (!messaging) return null
     }
     
+    // Get service worker registration
+    let registration = null
+    try {
+      registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+      if (!registration) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        registration = registrations.find(reg => reg.scope.includes('/'))
+      }
+    } catch (swError) {
+      console.error('Service Worker registration error:', swError)
+    }
+    
     const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration
     })
     return token
   } catch (error) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'acm-numl-v2'
+const CACHE_NAME = 'acm-numl-v3'
 const urlsToCache = [
   '/',
   '/index.html',
@@ -35,9 +35,11 @@ self.addEventListener('activate', (event) => {
           }
         })
       )
+    }).then(() => {
+      // Force claim all clients to use new service worker immediately
+      return self.clients.claim()
     })
   )
-  return self.clients.claim()
 })
 
 // Fetch event - serve from cache, fallback to network

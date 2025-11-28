@@ -73,49 +73,78 @@ setFavicon(acmlogSplash)
 
 // Register Service Workers for PWA and FCM
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Register main service worker for PWA
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('Service Worker registered successfully:', registration.scope)
+  window.addEventListener('load', async () => {
+    try {
+      // First, clear all old caches to force refresh
+      const cacheNames = await caches.keys()
+      await Promise.all(
+        cacheNames.map(cacheName => {
+          console.log('Clearing old cache:', cacheName)
+          return caches.delete(cacheName)
+        })
+      )
+      
+      // Register Firebase Messaging service worker FIRST (required for FCM)
+      try {
+        const fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/'
+        })
+        console.log('Firebase Messaging Service Worker registered:', fcmRegistration.scope)
         
-        // Check for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New service worker available - unregister and reload
-                console.log('New service worker available. Updating...')
-                registration.unregister().then(() => {
-                  window.location.reload()
-                })
+        // Wait for it to be ready
+        if (fcmRegistration.installing) {
+          await new Promise((resolve) => {
+            fcmRegistration.installing.addEventListener('statechange', () => {
+              if (fcmRegistration.installing.state === 'activated') {
+                resolve()
               }
             })
-          }
-        })
-      })
-      .catch((error) => {
-        console.log('Service Worker registration failed:', error)
-      })
+          })
+        }
+      } catch (fcmError) {
+        console.error('Firebase Messaging Service Worker registration failed:', fcmError)
+      }
 
-    // Register Firebase Messaging service worker
-    navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      .then((registration) => {
-        console.log('Firebase Messaging Service Worker registered:', registration.scope)
+      // Register main service worker for PWA
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      console.log('Service Worker registered successfully:', registration.scope)
+      
+      // Check for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New service worker available - prompt user to reload
+              console.log('New service worker available. Reloading...')
+              window.location.reload()
+            }
+          })
+        }
       })
-      .catch((error) => {
-        console.log('Firebase Messaging Service Worker registration failed:', error)
-      })
+      
+      // Force update check
+      await registration.update()
+    } catch (error) {
+      console.error('Service Worker registration error:', error)
+    }
   })
   
-  // Unregister old service workers on page load (for development)
+  // Clear old service workers and caches on page load (for development)
   if (import.meta.env.DEV) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        registration.unregister()
-        console.log('Old service worker unregistered')
-      })
+    window.addEventListener('load', async () => {
+      try {
+        // Clear all caches
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map(name => caches.delete(name)))
+        
+        // Unregister all service workers
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(registrations.map(reg => reg.unregister()))
+        console.log('Cleared all caches and unregistered service workers (dev mode)')
+      } catch (error) {
+        console.error('Error clearing caches:', error)
+      }
     })
   }
 }

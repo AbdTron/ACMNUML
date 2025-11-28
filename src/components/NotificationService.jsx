@@ -32,21 +32,37 @@ const NotificationService = () => {
 
     // If permission is granted, request token and listen for messages
     if (currentPermission === 'granted') {
-      requestNotificationPermission()
+      // Request token (will get existing token if already granted)
+      requestNotificationPermission().then((token) => {
+        if (token) {
+          console.log('FCM token obtained:', token)
+        }
+      })
+      // Set up continuous message listener
       setupMessageListener()
     }
   }, [])
 
   const setupMessageListener = () => {
-    onMessageListener()
-      .then((payload) => {
-        console.log('Foreground message received:', payload)
-        // Show notification in app
-        showInAppNotification(payload)
-      })
-      .catch((err) => {
-        console.error('Error in message listener:', err)
-      })
+    // Set up a continuous listener (not just one-time)
+    const listenForMessages = () => {
+      onMessageListener()
+        .then((payload) => {
+          console.log('Foreground message received:', payload)
+          // Show notification in app
+          showInAppNotification(payload)
+          // Continue listening for more messages
+          listenForMessages()
+        })
+        .catch((err) => {
+          console.error('Error in message listener:', err)
+          // Retry after a delay
+          setTimeout(listenForMessages, 5000)
+        })
+    }
+    
+    // Start listening
+    listenForMessages()
   }
 
   const showInAppNotification = (payload) => {
@@ -114,4 +130,5 @@ const NotificationService = () => {
 }
 
 export default NotificationService
+
 
