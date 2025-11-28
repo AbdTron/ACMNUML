@@ -1,86 +1,115 @@
-const CACHE_NAME = 'acm-numl-v3'
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/apple-touch-icon.png',
-  '/manifest.json'
-]
+// Service Worker for ACM NUML PWA
+// Network-first caching strategy with automatic updates
 
-// Install event - cache resources
+// ✅ 2. Cache versioning - UPDATE THIS ON EACH DEPLOY
+const CACHE_VERSION = 'v1' // Increment manually: v2, v3, v4...
+const CACHE_NAME = `app-cache-${CACHE_VERSION}`
+
+// ✅ 1. Install event - cache essential resources
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker with cache:', CACHE_NAME)
+  
+  // ✅ 4. Skip waiting to activate immediately
+  self.skipWaiting()
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache')
-        return cache.addAll(urlsToCache)
+        console.log('[SW] Opened cache:', CACHE_NAME)
+        // Cache only essential offline resources
+        return cache.addAll([
+          '/',
+          '/index.html',
+          '/manifest.json',
+          '/icon-192.png',
+          '/icon-512.png',
+          '/apple-touch-icon.png'
+        ])
       })
       .catch((error) => {
-        console.error('Cache install failed:', error)
+        console.error('[SW] Cache install failed:', error)
       })
   )
-  // Skip waiting to activate immediately
-  self.skipWaiting()
 })
 
 // Listen for skip waiting message from main thread
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message')
     self.skipWaiting()
   }
 })
 
-// Activate event - clean up old caches (only runs when new service worker version is installed)
+// ✅ 3. Activate event - clear ALL old caches
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating service worker, clearing old caches...')
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
-      // Only delete caches that don't match current version
-      // This ensures cache is only cleared when service worker is updated (new deploy)
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache (new service worker version detected):', cacheName)
-            return caches.delete(cacheName)
-          }
+      // Delete ALL caches except current CACHE_NAME
+      const deletePromises = cacheNames
+        .filter((cacheName) => cacheName !== CACHE_NAME)
+        .map((cacheName) => {
+          console.log('[SW] Deleting old cache:', cacheName)
+          return caches.delete(cacheName)
         })
-      )
+      
+      return Promise.all(deletePromises)
     }).then(() => {
-      // Force claim all clients to use new service worker immediately
+      // ✅ 4. Force claim all clients to use new service worker immediately
+      console.log('[SW] Service worker activated, claiming clients...')
       return self.clients.claim()
     })
   )
 })
 
-// Fetch event - serve from cache, fallback to network
+// ✅ 1. Fetch event - Network-first strategy for all resources
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return
+  }
+
+  // Skip service worker and FCM worker files (they should never be cached)
+  const url = new URL(event.request.url)
+  if (url.pathname === '/sw.js' || url.pathname === '/firebase-messaging-sw.js') {
+    return
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    // ✅ Network-first: Try network first
+    fetch(event.request, {
+      cache: 'no-store', // Always fetch fresh from network
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    })
       .then((response) => {
-        // Cache hit - return response
-        if (response) {
+        // Check if valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response
         }
 
-        // Clone the request
-        const fetchRequest = event.request.clone()
+        // Clone the response for caching
+        const responseToCache = response.clone()
 
-        return fetch(fetchRequest).then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response
+        // Update cache with fresh content (background update)
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache)
+        }).catch((error) => {
+          console.warn('[SW] Failed to cache response:', error)
+        })
+
+        return response
+      })
+      .catch(() => {
+        // ✅ Network failed - fallback to cache
+        console.log('[SW] Network failed, using cache for:', event.request.url)
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse
           }
-
-          // Clone the response
-          const responseToCache = response.clone()
-
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache)
-          })
-
-          return response
-        }).catch(() => {
-          // If fetch fails, return offline page if available
+          // If no cache and it's a document request, return index.html
           if (event.request.destination === 'document') {
             return caches.match('/index.html')
           }
@@ -88,4 +117,3 @@ self.addEventListener('fetch', (event) => {
       })
   )
 })
-

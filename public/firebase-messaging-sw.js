@@ -1,5 +1,5 @@
 // Firebase Cloud Messaging Service Worker
-// This handles background notifications when the app is closed
+// Compatible with main service worker - handles background notifications
 
 // Use the version that matches your package.json (10.7.1)
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js')
@@ -33,30 +33,44 @@ try {
   console.error('[FCM SW] Firebase Messaging initialization error:', error)
 }
 
+// ✅ 8. Same cache strategy - Network-first for FCM worker
+// This ensures FCM worker doesn't conflict with main service worker
+self.addEventListener('install', (event) => {
+  console.log('[FCM SW] Installing FCM service worker')
+  // Skip waiting to activate immediately
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  console.log('[FCM SW] Activating FCM service worker')
+  // Claim clients immediately
+  event.waitUntil(self.clients.claim())
+})
+
 // Handle background messages
 if (messaging) {
   messaging.onBackgroundMessage((payload) => {
-  console.log('[FCM SW] Background message received:', payload)
+    console.log('[FCM SW] Background message received:', payload)
 
-  const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
-  const notificationBody = payload.notification?.body || payload.data?.body || 'You have a new notification'
-  
-  const notificationOptions = {
-    body: notificationBody,
-    icon: payload.notification?.icon || payload.data?.icon || '/icon-192.png',
-    badge: '/icon-192.png',
-    image: payload.notification?.image || payload.data?.image,
-    data: {
-      ...payload.data,
-      url: payload.data?.url || payload.fcmOptions?.link || '/',
-    },
-    tag: payload.data?.tag || 'acmnuml-notification',
-    requireInteraction: false,
-    silent: false,
-  }
+    const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
+    const notificationBody = payload.notification?.body || payload.data?.body || 'You have a new notification'
+    
+    const notificationOptions = {
+      body: notificationBody,
+      icon: payload.notification?.icon || payload.data?.icon || '/icon-192.png',
+      badge: '/icon-192.png',
+      image: payload.notification?.image || payload.data?.image,
+      data: {
+        ...payload.data,
+        url: payload.data?.url || payload.fcmOptions?.link || '/',
+      },
+      tag: payload.data?.tag || 'acmnuml-notification',
+      requireInteraction: false,
+      silent: false,
+    }
 
-  console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
-  return self.registration.showNotification(notificationTitle, notificationOptions)
+    console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
+    return self.registration.showNotification(notificationTitle, notificationOptions)
   })
 } else {
   console.error('[FCM SW] Messaging not initialized, cannot handle background messages')
@@ -64,7 +78,7 @@ if (messaging) {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event)
+  console.log('[FCM SW] Notification clicked:', event)
   
   event.notification.close()
 
@@ -87,4 +101,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   )
 })
-
