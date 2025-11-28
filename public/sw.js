@@ -20,17 +20,27 @@ self.addEventListener('install', (event) => {
         console.error('Cache install failed:', error)
       })
   )
+  // Skip waiting to activate immediately
   self.skipWaiting()
 })
 
-// Activate event - clean up old caches
+// Listen for skip waiting message from main thread
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
+
+// Activate event - clean up old caches (only runs when new service worker version is installed)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
+      // Only delete caches that don't match current version
+      // This ensures cache is only cleared when service worker is updated (new deploy)
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName)
+            console.log('Deleting old cache (new service worker version detected):', cacheName)
             return caches.delete(cacheName)
           }
         })

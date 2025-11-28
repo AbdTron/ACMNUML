@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react'
 import acmlogSplash from '../assets/acmlogSplash.png'
+import { isPWA } from '../utils/isPWA'
 import './SplashScreen.css'
 
 const SplashScreen = ({ onFinish }) => {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
+    // Only show splash screen in PWA mode, not in browser
+    if (!isPWA()) {
+      onFinish()
+      return
+    }
+
     // Show splash screen for 1 second
     const timer = setTimeout(() => {
       setIsVisible(false)
@@ -18,7 +25,8 @@ const SplashScreen = ({ onFinish }) => {
     return () => clearTimeout(timer)
   }, [onFinish])
 
-  if (!isVisible) return null
+  // Don't render if not in PWA mode
+  if (!isPWA() || !isVisible) return null
 
   return (
     <div className={`splash-screen ${!isVisible ? 'fade-out' : ''}`}>

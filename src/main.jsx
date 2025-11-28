@@ -75,62 +75,57 @@ setFavicon(acmlogSplash)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      // First, clear all old caches to force refresh
-      const cacheNames = await caches.keys()
-      await Promise.all(
-        cacheNames.map(cacheName => {
-          console.log('Clearing old cache:', cacheName)
-          return caches.delete(cacheName)
-        })
-      )
-      
       // Register Firebase Messaging service worker FIRST (required for FCM)
       try {
         const fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/'
+          scope: '/',
+          updateViaCache: 'none' // Always check for updates on page load
         })
         console.log('Firebase Messaging Service Worker registered:', fcmRegistration.scope)
         
-        // Wait for it to be ready
-        if (fcmRegistration.installing) {
-          await new Promise((resolve) => {
-            fcmRegistration.installing.addEventListener('statechange', () => {
-              if (fcmRegistration.installing.state === 'activated') {
-                resolve()
-              }
-            })
-          })
-        }
+        // Service workers automatically check for updates when files change (on new deploys)
+        // No need for periodic checks - browser handles this automatically
       } catch (fcmError) {
         console.error('Firebase Messaging Service Worker registration failed:', fcmError)
       }
 
       // Register main service worker for PWA
-      const registration = await navigator.serviceWorker.register('/sw.js')
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        updateViaCache: 'none' // Always check for updates on page load
+      })
       console.log('Service Worker registered successfully:', registration.scope)
       
-      // Check for updates
+      // Check for updates on page load (service workers auto-check when files change on deploy)
+      // No periodic checks needed - browser automatically detects file changes
+      await registration.update()
+      
+      // Listen for service worker updates (only fires when new version is deployed)
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker available - prompt user to reload
-              console.log('New service worker available. Reloading...')
-              window.location.reload()
+            if (newWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                // New service worker available (new deploy detected) - automatically activate it
+                console.log('New service worker version detected. Activating and reloading...')
+                // Tell the new worker to skip waiting and activate immediately
+                newWorker.postMessage({ type: 'SKIP_WAITING' })
+                // Reload to use the new service worker and clear old cache
+                window.location.reload()
+              } else {
+                // First time installation
+                console.log('Service Worker installed for the first time')
+              }
             }
           })
         }
       })
-      
-      // Force update check
-      await registration.update()
     } catch (error) {
       console.error('Service Worker registration error:', error)
     }
   })
   
-  // Clear old service workers and caches on page load (for development)
+  // Clear old service workers and caches on page load (for development only)
   if (import.meta.env.DEV) {
     window.addEventListener('load', async () => {
       try {

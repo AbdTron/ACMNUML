@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 import SplashScreen from './components/SplashScreen'
 import NotificationService from './components/NotificationService'
+import { isPWA } from './utils/isPWA'
 import Home from './pages/Home'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
@@ -26,14 +27,21 @@ import AdminSettings from './pages/admin/AdminSettings'
 import AdminTeam from './pages/admin/AdminTeam'
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true)
+  const [showSplash, setShowSplash] = useState(false)
 
   useEffect(() => {
+    // Only show splash screen in PWA mode, not in browser
+    if (!isPWA()) {
+      setShowSplash(false)
+      return
+    }
+
     // Check if splash was already shown in this session
     const splashShown = sessionStorage.getItem('splash-shown')
     if (splashShown) {
       setShowSplash(false)
     } else {
+      setShowSplash(true)
       sessionStorage.setItem('splash-shown', 'true')
     }
   }, [])

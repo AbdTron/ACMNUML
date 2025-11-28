@@ -35,51 +35,74 @@ export const requestNotificationPermission = async () => {
       if (!messaging) return null
     }
 
-    // Request permission
+    // Check current permission first
+    const currentPermission = Notification.permission
+    
+    // If permission is already granted, just get the token
+    if (currentPermission === 'granted') {
+      return await getFCMToken()
+    }
+    
+    // If permission is denied, can't proceed
+    if (currentPermission === 'denied') {
+      console.log('Notification permission was previously denied')
+      return null
+    }
+
+    // Request permission (browser will show native dialog)
     const permission = await Notification.requestPermission()
     
     if (permission === 'granted') {
       console.log('Notification permission granted')
-      
-      // Get service worker registration for FCM
-      let registration = null
-      try {
-        registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
-        if (!registration) {
-          // Register if not already registered
-          registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-            scope: '/'
-          })
-          console.log('FCM Service Worker registered:', registration.scope)
-        }
-      } catch (swError) {
-        console.error('Service Worker registration error:', swError)
-        // Try to get any existing registration
-        const registrations = await navigator.serviceWorker.getRegistrations()
-        registration = registrations.find(reg => reg.scope.includes('/'))
-      }
-      
-      // Get FCM token with service worker registration
-      const token = await getToken(messaging, {
-        vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: registration
-      })
-      
-      if (token) {
-        console.log('FCM Token:', token)
-        // Save token to Firestore (optional - for sending targeted notifications)
-        await saveTokenToFirestore(token)
-        return token
-      } else {
-        console.log('No registration token available. Request permission to generate one.')
-        return null
-      }
+      return await getFCMToken()
     } else {
       console.log('Notification permission denied')
       return null
     }
   } catch (error) {
     console.error('Error requesting notification permission:', error)
+    return null
+  }
+}
+
+// Get FCM token (assumes permission is already granted)
+const getFCMToken = async () => {
+  try {
+    // Get service worker registration for FCM
+    let registration = null
+    try {
+      registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+      if (!registration) {
+        // Register if not already registered
+        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/'
+        })
+        console.log('FCM Service Worker registered:', registration.scope)
+      }
+    } catch (swError) {
+      console.error('Service Worker registration error:', swError)
+      // Try to get any existing registration
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      registration = registrations.find(reg => reg.scope.includes('/'))
+    }
+    
+    // Get FCM token with service worker registration
+    const token = await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration
+    })
+    
+    if (token) {
+      console.log('FCM Token:', token)
+      // Save token to Firestore
+      await saveTokenToFirestore(token)
+      return token
+    } else {
+      console.log('No registration token available')
+      return null
+    }
+  } catch (error) {
+    console.error('Error getting FCM token:', error)
     return null
   }
 }
@@ -129,12 +152,17 @@ export const onMessageListener = () => {
   })
 }
 
-// Get current FCM token
+// Get current FCM token (without requesting permission)
 export const getCurrentToken = async () => {
   try {
     if (!messaging) {
       messaging = await initMessaging()
       if (!messaging) return null
+    }
+    
+    // Only get token if permission is already granted
+    if (Notification.permission !== 'granted') {
+      return null
     }
     
     // Get service worker registration
@@ -177,4 +205,3 @@ if (typeof window !== 'undefined') {
 }
 
 export default messaging
-

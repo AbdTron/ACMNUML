@@ -1,44 +1,45 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
   requestNotificationPermission,
   onMessageListener,
   getNotificationPermission,
   isNotificationSupported,
 } from '../config/firebaseMessaging'
-import './NotificationService.css'
+import { isPWA } from '../utils/isPWA'
 
 const NotificationService = () => {
-  const [permission, setPermission] = useState('default')
-  const [showPrompt, setShowPrompt] = useState(false)
-
   useEffect(() => {
-    // Check notification support and permission
+    // Only enable notifications in PWA mode, not in browser
+    if (!isPWA()) {
+      return
+    }
+
+    // Check notification support
     if (!isNotificationSupported()) {
       console.log('Notifications not supported')
       return
     }
 
     const currentPermission = getNotificationPermission()
-    setPermission(currentPermission)
 
-    // If permission is default (not asked yet), show prompt after delay
+    // Automatically request permission if not yet asked
     if (currentPermission === 'default') {
-      // Show prompt after 3 seconds of app usage
-      const timer = setTimeout(() => {
-        setShowPrompt(true)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-
-    // If permission is granted, request token and listen for messages
-    if (currentPermission === 'granted') {
-      // Request token (will get existing token if already granted)
+      // Automatically request permission (browser will show native dialog)
+      // No custom prompt UI - just request directly
+      requestNotificationPermission().then((token) => {
+        if (token) {
+          console.log('FCM token obtained:', token)
+          // Set up message listener if permission was granted
+          setupMessageListener()
+        }
+      })
+    } else if (currentPermission === 'granted') {
+      // Permission already granted, just get token and listen
       requestNotificationPermission().then((token) => {
         if (token) {
           console.log('FCM token obtained:', token)
         }
       })
-      // Set up continuous message listener
       setupMessageListener()
     }
   }, [])
@@ -81,7 +82,9 @@ const NotificationService = () => {
     setTimeout(() => {
       notification.classList.add('fade-out')
       setTimeout(() => {
-        document.body.removeChild(notification)
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification)
+        }
       }, 300)
     }, 5000)
 
@@ -93,40 +96,8 @@ const NotificationService = () => {
     }
   }
 
-  const handleEnableNotifications = async () => {
-    setShowPrompt(false)
-    const token = await requestNotificationPermission()
-    if (token) {
-      setPermission('granted')
-      setupMessageListener()
-    } else {
-      setPermission('denied')
-    }
-  }
-
-  const handleDismiss = () => {
-    setShowPrompt(false)
-    setPermission('denied')
-  }
-
-  if (!showPrompt || permission !== 'default') return null
-
-  return (
-    <div className="notification-prompt-overlay">
-      <div className="notification-prompt">
-        <h3>Enable Notifications</h3>
-        <p>Stay updated with the latest events, announcements, and news from ACM NUML.</p>
-        <div className="notification-prompt-actions">
-          <button className="btn btn-primary" onClick={handleEnableNotifications}>
-            Enable Notifications
-          </button>
-          <button className="btn btn-secondary" onClick={handleDismiss}>
-            Maybe Later
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+  // This component doesn't render anything - it just handles notifications in the background
+  return null
 }
 
 export default NotificationService
