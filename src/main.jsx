@@ -81,14 +81,35 @@ if ('serviceWorker' in navigator) {
                     window.matchMedia('(display-mode: fullscreen)').matches
 
       // ✅ 8. Register FCM service worker FIRST (before main SW) in PWA mode
+      // IMPORTANT: In PWA mode, FCM service worker must be the controlling one
       let fcmRegistration = null
       if (isPWA) {
         try {
+          // Unregister main service worker first if it exists (to avoid conflicts)
+          const existingRegistrations = await navigator.serviceWorker.getRegistrations()
+          for (const reg of existingRegistrations) {
+            if (reg.active?.scriptURL?.includes('/sw.js')) {
+              console.log('[SW] Unregistering main service worker to allow FCM SW control')
+              await reg.unregister()
+            }
+          }
+          
           fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
             scope: '/',
             updateViaCache: 'none' // Always check for updates
           })
           console.log('[SW] Firebase Messaging Service Worker registered (PWA mode):', fcmRegistration.scope)
+          
+          // Wait for FCM service worker to activate and take control
+          if (fcmRegistration.installing) {
+            await new Promise((resolve) => {
+              fcmRegistration.installing.addEventListener('statechange', () => {
+                if (fcmRegistration.installing.state === 'activated') {
+                  resolve()
+                }
+              })
+            })
+          }
           
           // Check for FCM updates
           await fcmRegistration.update()
@@ -99,22 +120,44 @@ if ('serviceWorker' in navigator) {
         console.log('[SW] FCM Service Worker not registered (browser mode)')
       }
 
-      // Register main service worker (works for both browser and installed PWA)
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        updateViaCache: 'none' // Always check for updates on page load/app open
-      })
-      console.log('[SW] Main Service Worker registered successfully:', registration.scope)
-      
-      // Check for updates immediately
-      await registration.update()
+      // Register main service worker ONLY if not in PWA mode (to avoid conflicts)
+      if (!isPWA) {
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          updateViaCache: 'none' // Always check for updates on page load/app open
+        })
+        console.log('[SW] Main Service Worker registered successfully:', registration.scope)
+        
+        // Check for updates immediately
+        await registration.update()
+        
+        // Set up update listeners for main SW (browser mode only)
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[SW] New service worker version detected. Activating...')
+                newWorker.postMessage({ type: 'SKIP_WAITING' })
+              } else if (newWorker.state === 'activated') {
+                console.log('[SW] New service worker activated')
+              }
+            })
+          }
+        })
+      }
       
       // Check for updates when app becomes visible (important for installed PWAs)
       document.addEventListener('visibilitychange', async () => {
         if (!document.hidden) {
           try {
-            await registration.update()
             if (fcmRegistration) {
               await fcmRegistration.update()
+            } else if (!isPWA) {
+              const registrations = await navigator.serviceWorker.getRegistrations()
+              const mainSW = registrations.find(reg => reg.active?.scriptURL?.includes('/sw.js'))
+              if (mainSW) {
+                await mainSW.update()
+              }
             }
           } catch (error) {
             console.error('[SW] Error checking for service worker updates:', error)
@@ -122,22 +165,22 @@ if ('serviceWorker' in navigator) {
         }
       })
       
-      // Listen for service worker updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker available - automatically activate it
-              console.log('[SW] New service worker version detected. Activating...')
-              newWorker.postMessage({ type: 'SKIP_WAITING' })
-            } else if (newWorker.state === 'activated') {
-              // Worker activated, reload will happen via controllerchange
-              console.log('[SW] New service worker activated')
-            }
-          })
-        }
-      })
+      // Listen for FCM service worker updates (PWA mode)
+      if (fcmRegistration) {
+        fcmRegistration.addEventListener('updatefound', () => {
+          const newWorker = fcmRegistration.installing
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[SW] New FCM service worker version detected. Activating...')
+                newWorker.postMessage({ type: 'SKIP_WAITING' })
+              } else if (newWorker.state === 'activated') {
+                console.log('[SW] New FCM service worker activated')
+              }
+            })
+          }
+        })
+      }
       
       // ✅ 5. Auto-refresh when new SW takes control
       navigator.serviceWorker.addEventListener('controllerchange', () => {

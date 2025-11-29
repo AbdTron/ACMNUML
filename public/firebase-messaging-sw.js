@@ -33,18 +33,30 @@ try {
   console.error('[FCM SW] Firebase Messaging initialization error:', error)
 }
 
-// ✅ 8. Same cache strategy - Network-first for FCM worker
-// This ensures FCM worker doesn't conflict with main service worker
+// ✅ 8. Install and activate - FCM service worker must take control
 self.addEventListener('install', (event) => {
   console.log('[FCM SW] Installing FCM service worker')
-  // Skip waiting to activate immediately
+  // Skip waiting to activate immediately and take control
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
-  console.log('[FCM SW] Activating FCM service worker')
-  // Claim clients immediately
-  event.waitUntil(self.clients.claim())
+  console.log('[FCM SW] Activating FCM service worker - taking control')
+  // Claim all clients immediately to ensure FCM SW controls the page
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Clear any old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            console.log('[FCM SW] Deleting cache:', cacheName)
+            return caches.delete(cacheName)
+          })
+        )
+      })
+    ])
+  )
 })
 
 // Handle background messages
