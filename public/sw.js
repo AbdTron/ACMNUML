@@ -2,7 +2,7 @@
 // Network-first caching strategy with automatic updates
 
 // ✅ 2. Cache versioning - UPDATE THIS ON EACH DEPLOY
-const CACHE_VERSION = 'v3' // Increment manually: v2, v3, v4...
+const CACHE_VERSION = 'v4' // Increment manually: v2, v3, v4...
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`
 
 // ✅ 1. Install event - cache essential resources
@@ -76,13 +76,14 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Check if this is an external request (cross-origin)
+  const isExternalRequest = url.origin !== self.location.origin
+
   event.respondWith(
     // ✅ Network-first: Try network first
     fetch(event.request, {
-      cache: 'no-store', // Always fetch fresh from network
-      headers: {
-        'Cache-Control': 'no-cache'
-      }
+      // Only add cache-control for same-origin requests to avoid CORS issues
+      ...(isExternalRequest ? {} : { cache: 'no-store' })
     })
       .then((response) => {
         // Check if valid response
@@ -90,15 +91,18 @@ self.addEventListener('fetch', (event) => {
           return response
         }
 
-        // Clone the response for caching
-        const responseToCache = response.clone()
+        // Only cache same-origin requests
+        if (!isExternalRequest) {
+          // Clone the response for caching
+          const responseToCache = response.clone()
 
-        // Update cache with fresh content (background update)
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache)
-        }).catch((error) => {
-          console.warn('[SW] Failed to cache response:', error)
-        })
+          // Update cache with fresh content (background update)
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache)
+          }).catch((error) => {
+            console.warn('[SW] Failed to cache response:', error)
+          })
+        }
 
         return response
       })
