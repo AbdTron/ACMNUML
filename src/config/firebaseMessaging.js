@@ -200,7 +200,54 @@ const saveTokenToFirestore = async (token) => {
   }
 }
 
+// Set up persistent foreground message listener - PWA only
+let unsubscribeForegroundMessage = null
+
+export const setupForegroundMessageListener = (callback) => {
+  // Only work in PWA mode, not in browser
+  if (!isPWA()) {
+    return () => {} // Return cleanup function
+  }
+
+  const setupListener = async () => {
+    try {
+      if (!messaging) {
+        messaging = await initMessaging()
+        if (!messaging) {
+          console.log('[FCM] Messaging not available')
+          return
+        }
+      }
+
+      // Set up persistent listener - onMessage returns an unsubscribe function
+      if (!unsubscribeForegroundMessage) {
+        unsubscribeForegroundMessage = onMessage(messaging, (payload) => {
+          console.log('[FCM] ✅ Foreground message received:', payload)
+          if (callback) {
+            callback(payload)
+          }
+        })
+        console.log('[FCM] ✅ Foreground message listener set up successfully')
+      }
+    } catch (error) {
+      console.error('[FCM] Error setting up foreground listener:', error)
+    }
+  }
+
+  setupListener()
+
+  // Return cleanup function
+  return () => {
+    if (unsubscribeForegroundMessage) {
+      unsubscribeForegroundMessage()
+      unsubscribeForegroundMessage = null
+      console.log('[FCM] Foreground message listener cleaned up')
+    }
+  }
+}
+
 // Listen for foreground messages (when app is open) - PWA only
+// This is a one-time listener for compatibility
 export const onMessageListener = () => {
   // Only work in PWA mode, not in browser
   if (!isPWA()) {
@@ -212,7 +259,7 @@ export const onMessageListener = () => {
       initMessaging().then((msg) => {
         if (msg) {
           onMessage(msg, (payload) => {
-            console.log('Message received in foreground:', payload)
+            console.log('[FCM] Message received in foreground (one-time):', payload)
             resolve(payload)
           })
         } else {
@@ -221,7 +268,7 @@ export const onMessageListener = () => {
       })
     } else {
       onMessage(messaging, (payload) => {
-        console.log('Message received in foreground:', payload)
+        console.log('[FCM] Message received in foreground (one-time):', payload)
         resolve(payload)
       })
     }

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import {
   requestNotificationPermission,
-  onMessageListener,
+  setupForegroundMessageListener,
   getNotificationPermission,
   isNotificationSupported,
 } from '../config/firebaseMessaging'
@@ -28,47 +28,42 @@ const NotificationService = () => {
       // No custom prompt UI - just request directly
       requestNotificationPermission().then((token) => {
         if (token) {
-          console.log('FCM token obtained:', token)
-          // Set up message listener if permission was granted
-          setupMessageListener()
+          console.log('[FCM] Token obtained:', token)
+          // Set up persistent message listener if permission was granted
+          setupPersistentListener()
         }
       })
     } else if (currentPermission === 'granted') {
       // Permission already granted, just get token and listen
       requestNotificationPermission().then((token) => {
         if (token) {
-          console.log('FCM token obtained:', token)
+          console.log('[FCM] Token obtained:', token)
         }
       })
-      setupMessageListener()
+      setupPersistentListener()
+    }
+
+    // Cleanup on unmount
+    return () => {
+      // Cleanup is handled by setupForegroundMessageListener
     }
   }, [])
 
-  const setupMessageListener = () => {
-    // Set up a continuous listener (not just one-time)
-    const listenForMessages = () => {
-      onMessageListener()
-        .then((payload) => {
-          if (payload) {
-            console.log('Foreground message received:', payload)
-            // Show system notification when app is open (foreground)
-            // This ensures notifications are shown even when app is open
-            showSystemNotification(payload)
-            // Also show in-app notification for better UX
-            showInAppNotification(payload)
-          }
-          // Continue listening for more messages
-          listenForMessages()
-        })
-        .catch((err) => {
-          console.error('Error in message listener:', err)
-          // Retry after a delay
-          setTimeout(listenForMessages, 5000)
-        })
-    }
-    
-    // Start listening
-    listenForMessages()
+  const setupPersistentListener = () => {
+    // Set up persistent foreground message listener
+    const cleanup = setupForegroundMessageListener((payload) => {
+      if (payload) {
+        console.log('[FCM] Foreground message received:', payload)
+        // Show system notification when app is open (foreground)
+        // This ensures notifications are shown even when app is open
+        showSystemNotification(payload)
+        // Also show in-app notification for better UX
+        showInAppNotification(payload)
+      }
+    })
+
+    // Store cleanup function for later if needed
+    return cleanup
   }
 
   const showSystemNotification = async (payload) => {
@@ -88,7 +83,7 @@ const NotificationService = () => {
 
     const notificationOptions = {
       body: notificationBody,
-      icon: payload.notification?.icon || payload.data?.icon || '/icon-512.png',
+      icon: '/badge.png', // Main notification icon in dropdown panel
       badge: '/badge.png',
       image: payload.notification?.image || payload.data?.image,
       data: {
@@ -102,17 +97,42 @@ const NotificationService = () => {
       renotify: true,
     }
 
-    // Close existing notifications with same tag first
-    const existingNotifications = await navigator.serviceWorker.getRegistration()
-      .then(registration => registration?.getNotifications({ tag: notificationTag }) || [])
-    
-    existingNotifications.forEach(notification => notification.close())
+    // Close ALL existing notifications first (not just same tag) to prevent duplicates
+    const registration = await navigator.serviceWorker.getRegistration()
+    if (registration) {
+      const allNotifications = await registration.getNotifications()
+      console.log(`[FCM] Found ${allNotifications.length} existing notification(s) for foreground`)
+      
+      // Close ALL existing notifications to prevent duplicates
+      allNotifications.forEach(notification => {
+        console.log('[FCM] Closing existing notification:', notification.tag || 'no-tag')
+        notification.close()
+      })
+      
+      // Delay to ensure old notifications are closed
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
 
-    // Small delay to ensure old notifications are closed
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    // Show system notification
-    const notification = new Notification(notificationTitle, notificationOptions)
+    // Show system notification using service worker registration (more reliable)
+    if (registration) {
+      // Use service worker to show notification (works better than new Notification())
+      // The service worker's notificationclick handler will handle clicks
+      await registration.showNotification(notificationTitle, notificationOptions)
+      console.log('[FCM] ✅ Foreground notification shown via service worker')
+    } else {
+      // Fallback to direct Notification API
+      const notification = new Notification(notificationTitle, notificationOptions)
+      console.log('[FCM] ✅ Foreground notification shown via Notification API')
+      
+      // Handle click
+      notification.onclick = (event) => {
+        event.preventDefault()
+        const url = payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/'
+        window.focus()
+        window.location.href = url
+        notification.close()
+      }
+    }
     
     // Handle click
     notification.onclick = (event) => {

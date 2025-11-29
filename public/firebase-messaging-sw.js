@@ -91,7 +91,7 @@ if (messaging) {
     
     const notificationOptions = {
       body: notificationBody,
-      icon: payload.notification?.icon || payload.data?.icon || '/icon-512.png', // Main notification icon (larger for dropdown)
+      icon: '/badge.png', // Main notification icon in dropdown panel
       badge: '/badge.png', // Badge for status bar
       image: payload.notification?.image || payload.data?.image,
       data: {
@@ -109,6 +109,7 @@ if (messaging) {
     console.log('[FCM SW] Notification tag:', notificationTag)
     
     // Close ALL existing notifications first to prevent duplicates (Firebase auto-shows one, we show one)
+    // This is especially important when sending to "all" users
     return self.registration.getNotifications()
       .then(allNotifications => {
         console.log(`[FCM SW] Found ${allNotifications.length} total existing notification(s)`)
@@ -116,12 +117,12 @@ if (messaging) {
         // Close ALL existing notifications to prevent duplicates
         // This ensures Firebase's auto-notification is closed before we show ours
         allNotifications.forEach(notification => {
-          console.log('[FCM SW] Closing existing notification:', notification.tag || 'no-tag')
+          console.log('[FCM SW] Closing existing notification:', notification.tag || 'no-tag', notification.title)
           notification.close()
         })
         
-        // Small delay to ensure old notifications are closed
-        return new Promise(resolve => setTimeout(resolve, 150))
+        // Longer delay to ensure old notifications (including Firebase auto-notifications) are closed
+        return new Promise(resolve => setTimeout(resolve, 300))
       })
       .then(() => {
         // Show new notification (this will be the only one visible)
