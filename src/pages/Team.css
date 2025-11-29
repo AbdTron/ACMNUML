@@ -3,21 +3,29 @@
   margin-bottom: 3rem;
   padding-bottom: 3rem;
   border-bottom: 2px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .team-head-grid {
   display: flex !important;
-  justify-content: center;
-  align-items: center;
+  justify-content: center !important;
+  align-items: center !important;
   gap: 2rem;
   max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .team-head-grid .team-card {
   max-width: 280px;
-  width: 100%;
-  flex: 0 0 auto;
+  width: 280px;
+  flex: 0 0 280px;
   min-height: auto !important;
+  margin: 0 auto;
 }
 
 /* Team Head - Ensure info is visible */
@@ -108,6 +116,12 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 2rem;
   width: 100%;
+}
+
+/* Override grid display for head grid - must come after .team-grid */
+.team-grid.team-head-grid {
+  display: flex !important;
+  grid-template-columns: none !important;
 }
 
 .team-card {

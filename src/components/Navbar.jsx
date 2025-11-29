@@ -18,7 +18,7 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path
 
-  // Close menu when clicking outside
+  // Close menu when clicking outside and prevent body scroll
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isOpen && navbarRef.current && !navbarRef.current.contains(event.target)) {
@@ -29,11 +29,16 @@ const Navbar = () => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
       document.addEventListener('touchstart', handleClickOutside)
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('touchstart', handleClickOutside)
+      document.body.style.overflow = ''
     }
   }, [isOpen])
 
@@ -56,6 +61,14 @@ const Navbar = () => {
           <span className="logo-text">ACM</span>
           <span className="logo-subtitle">NUML</span>
         </Link>
+
+        {isOpen && (
+          <div 
+            className="navbar-backdrop" 
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
         <ul className={`navbar-menu ${isOpen ? 'active' : ''}`}>
           {navLinks.map((link) => (
