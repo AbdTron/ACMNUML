@@ -49,12 +49,9 @@ const NotificationService = () => {
     const listenForMessages = () => {
       onMessageListener()
         .then((payload) => {
-          if (payload) {
-            console.log('Foreground message received:', payload)
-            // Only show in-app notification (not system notification)
-            // System notifications are handled by service worker when app is in background
-            showInAppNotification(payload)
-          }
+          console.log('Foreground message received:', payload)
+          // Show notification in app
+          showInAppNotification(payload)
           // Continue listening for more messages
           listenForMessages()
         })

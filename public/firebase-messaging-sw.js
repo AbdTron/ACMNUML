@@ -59,7 +59,7 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// Handle background messages (only fires when app is in background/closed)
+// Handle background messages
 if (messaging) {
   messaging.onBackgroundMessage((payload) => {
     console.log('[FCM SW] Background message received:', payload)
@@ -69,20 +69,16 @@ if (messaging) {
     const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
     const notificationBody = payload.notification?.body || payload.data?.body || payload.data?.message || 'You have a new notification'
     
-    // Create unique tag to prevent duplicates (use message ID or timestamp)
-    const messageId = payload.messageId || payload.data?.messageId || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    
     const notificationOptions = {
       body: notificationBody,
       icon: payload.notification?.icon || payload.data?.icon || '/icon-192.png',
-      badge: '/icon-512.png', // Use larger icon for badge (status bar) - should be at least 96x96
+      badge: '/icon-192.png',
       image: payload.notification?.image || payload.data?.image,
       data: {
         ...payload.data,
-        messageId: messageId,
         url: payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/',
       },
-      tag: messageId, // Use unique tag to prevent duplicate notifications
+      tag: payload.data?.tag || 'acmnuml-notification',
       requireInteraction: false,
       silent: false,
       vibrate: [200, 100, 200],
@@ -90,7 +86,6 @@ if (messaging) {
 
     console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
     
-    // Show notification - the tag will replace any existing notification with the same tag
     return self.registration.showNotification(notificationTitle, notificationOptions)
       .catch((error) => {
         console.error('[FCM SW] Error showing notification:', error)

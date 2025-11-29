@@ -201,50 +201,30 @@ const saveTokenToFirestore = async (token) => {
 }
 
 // Listen for foreground messages (when app is open) - PWA only
-// Note: This only fires when app is in foreground. Background messages are handled by service worker.
-let messageListenerCallback = null
-let isListenerSetup = false
-
 export const onMessageListener = () => {
   // Only work in PWA mode, not in browser
   if (!isPWA()) {
     return Promise.resolve(null)
   }
 
-  // Set up listener once
-  if (!isListenerSetup) {
-    isListenerSetup = true
-    
+  return new Promise((resolve) => {
     if (!messaging) {
       initMessaging().then((msg) => {
         if (msg) {
           onMessage(msg, (payload) => {
-            console.log('[FCM] Message received in foreground:', payload)
-            // Call the callback if one is waiting
-            if (messageListenerCallback) {
-              const callback = messageListenerCallback
-              messageListenerCallback = null
-              callback(payload)
-            }
+            console.log('Message received in foreground:', payload)
+            resolve(payload)
           })
+        } else {
+          resolve(null)
         }
       })
     } else {
       onMessage(messaging, (payload) => {
-        console.log('[FCM] Message received in foreground:', payload)
-        // Call the callback if one is waiting
-        if (messageListenerCallback) {
-          const callback = messageListenerCallback
-          messageListenerCallback = null
-          callback(payload)
-        }
+        console.log('Message received in foreground:', payload)
+        resolve(payload)
       })
     }
-  }
-
-  return new Promise((resolve) => {
-    // Set callback for this promise
-    messageListenerCallback = resolve
   })
 }
 
