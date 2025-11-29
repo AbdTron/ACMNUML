@@ -201,6 +201,8 @@ const saveTokenToFirestore = async (token) => {
 }
 
 // Listen for foreground messages (when app is open) - PWA only
+// Note: This only fires when app is in foreground. Background messages are handled by service worker.
+let messageListenerSetup = false
 export const onMessageListener = () => {
   // Only work in PWA mode, not in browser
   if (!isPWA()) {
@@ -208,22 +210,38 @@ export const onMessageListener = () => {
   }
 
   return new Promise((resolve) => {
-    if (!messaging) {
-      initMessaging().then((msg) => {
-        if (msg) {
-          onMessage(msg, (payload) => {
-            console.log('Message received in foreground:', payload)
-            resolve(payload)
-          })
-        } else {
-          resolve(null)
-        }
-      })
+    // Only set up listener once
+    if (!messageListenerSetup) {
+      messageListenerSetup = true
+      
+      if (!messaging) {
+        initMessaging().then((msg) => {
+          if (msg) {
+            onMessage(msg, (payload) => {
+              console.log('[FCM] Message received in foreground:', payload)
+              // Don't show system notification - only return payload for in-app display
+              resolve(payload)
+            })
+          } else {
+            resolve(null)
+          }
+        })
+      } else {
+        onMessage(messaging, (payload) => {
+          console.log('[FCM] Message received in foreground:', payload)
+          // Don't show system notification - only return payload for in-app display
+          resolve(payload)
+        })
+      }
     } else {
-      onMessage(messaging, (payload) => {
-        console.log('Message received in foreground:', payload)
-        resolve(payload)
-      })
+      // Listener already set up, just wait for next message
+      // This promise will resolve when next message arrives
+      if (messaging) {
+        onMessage(messaging, (payload) => {
+          console.log('[FCM] Message received in foreground:', payload)
+          resolve(payload)
+        })
+      }
     }
   })
 }
