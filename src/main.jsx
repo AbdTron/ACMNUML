@@ -85,13 +85,22 @@ if ('serviceWorker' in navigator) {
       let fcmRegistration = null
       if (isPWA) {
         try {
-          // Unregister main service worker first if it exists (to avoid conflicts)
+          // Unregister ALL existing service workers first (to avoid conflicts)
           const existingRegistrations = await navigator.serviceWorker.getRegistrations()
+          console.log(`[SW] Found ${existingRegistrations.length} existing service worker(s)`)
           for (const reg of existingRegistrations) {
-            if (reg.active?.scriptURL?.includes('/sw.js')) {
+            const scriptURL = reg.active?.scriptURL || reg.installing?.scriptURL || reg.waiting?.scriptURL || ''
+            if (scriptURL.includes('/sw.js')) {
               console.log('[SW] Unregistering main service worker to allow FCM SW control')
               await reg.unregister()
+              // Wait for unregistration to complete
+              await new Promise(resolve => setTimeout(resolve, 200))
             }
+          }
+          
+          // Double-check: if main SW is still controlling, we need to reload
+          if (navigator.serviceWorker.controller?.scriptURL?.includes('/sw.js')) {
+            console.warn('[SW] Main service worker is still controlling. Will reload after FCM SW registration.')
           }
           
           fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
@@ -102,13 +111,26 @@ if ('serviceWorker' in navigator) {
           
           // Wait for FCM service worker to activate and take control
           if (fcmRegistration.installing) {
+            const installing = fcmRegistration.installing
             await new Promise((resolve) => {
-              fcmRegistration.installing.addEventListener('statechange', () => {
-                if (fcmRegistration.installing.state === 'activated') {
+              if (installing) {
+                installing.addEventListener('statechange', () => {
+                  if (installing.state === 'activated') {
+                    resolve()
+                  }
+                })
+                // If already activated, resolve immediately
+                if (installing.state === 'activated') {
                   resolve()
                 }
-              })
+              } else {
+                resolve()
+              }
             })
+          } else if (fcmRegistration.waiting) {
+            console.log('[SW] FCM Service Worker is waiting (ready)')
+          } else if (fcmRegistration.active) {
+            console.log('[SW] FCM Service Worker is already active')
           }
           
           // Check for FCM updates
@@ -170,11 +192,12 @@ if ('serviceWorker' in navigator) {
         fcmRegistration.addEventListener('updatefound', () => {
           const newWorker = fcmRegistration.installing
           if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            const worker = newWorker
+            worker.addEventListener('statechange', () => {
+              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
                 console.log('[SW] New FCM service worker version detected. Activating...')
-                newWorker.postMessage({ type: 'SKIP_WAITING' })
-              } else if (newWorker.state === 'activated') {
+                worker.postMessage({ type: 'SKIP_WAITING' })
+              } else if (worker.state === 'activated') {
                 console.log('[SW] New FCM service worker activated')
               }
             })
