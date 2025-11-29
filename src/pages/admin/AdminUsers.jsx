@@ -36,7 +36,8 @@ const AdminUsers = () => {
     name: '',
     email: '',
     role: ROLES.USER,
-    acmRole: ''
+    acmRole: '',
+    showInDirectory: true
   })
 
   useEffect(() => {
@@ -76,15 +77,17 @@ const AdminUsers = () => {
       name: user.name || '',
       email: user.email || '',
       role: user.role || ROLES.USER,
-      acmRole: user.acmRole || ''
+      acmRole: user.acmRole || '',
+      showInDirectory: user.showInDirectory !== false // Default to true if not set
     })
     setShowEditModal(true)
   }
 
   const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     })
   }
 
@@ -100,6 +103,7 @@ const AdminUsers = () => {
         email: formData.email,
         role: formData.role,
         acmRole: formData.acmRole.trim() || null,
+        showInDirectory: formData.showInDirectory,
         updatedAt: new Date().toISOString()
       }
 
@@ -265,6 +269,19 @@ const AdminUsers = () => {
                     />
                     <small>This will be displayed on the member directory</small>
                   </div>
+                  <div className="form-group">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        name="showInDirectory"
+                        checked={formData.showInDirectory}
+                        onChange={handleInputChange}
+                        style={{ width: 'auto', cursor: 'pointer' }}
+                      />
+                      <span>Show in Member Directory</span>
+                    </label>
+                    <small>When enabled, this user's profile will be visible in the public member directory</small>
+                  </div>
                   <div className="form-actions">
                     <button 
                       type="button" 
@@ -296,6 +313,7 @@ const AdminUsers = () => {
                     <th>Email</th>
                     <th>Role</th>
                     <th>ACM Role</th>
+                    <th>In Directory</th>
                     <th>Join Date</th>
                     <th>Actions</th>
                   </tr>
@@ -303,7 +321,7 @@ const AdminUsers = () => {
                 <tbody>
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="no-data">
+                      <td colSpan="7" className="no-data">
                         No users found
                       </td>
                     </tr>
@@ -336,6 +354,11 @@ const AdminUsers = () => {
                         </td>
                         <td>
                           <span className="text-muted">{user.acmRole || 'N/A'}</span>
+                        </td>
+                        <td>
+                          <span className={user.showInDirectory !== false ? 'status-badge status-active' : 'status-badge status-inactive'}>
+                            {user.showInDirectory !== false ? 'Visible' : 'Hidden'}
+                          </span>
                         </td>
                         <td>
                           {user.joinDate ? (

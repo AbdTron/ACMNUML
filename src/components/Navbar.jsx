@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FiMenu, FiX, FiShield, FiMoon, FiSun, FiUser } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
@@ -14,8 +14,28 @@ const Navbar = () => {
   const memberAuth = useMemberAuth()
   const memberUser = memberAuth?.currentUser || null
   const { theme, toggleTheme } = useTheme()
+  const navbarRef = useRef(null)
 
   const isActive = (path) => location.pathname === path
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && navbarRef.current && !navbarRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [isOpen])
 
   const navLinks = [
     { path: '/', label: 'Home' },
@@ -29,7 +49,7 @@ const Navbar = () => {
   ]
 
   return (
-    <nav className="navbar">
+    <nav className="navbar" ref={navbarRef}>
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
           <img src={acmLogo} alt="ACM NUML Logo" className="logo-image" />

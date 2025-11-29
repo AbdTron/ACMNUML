@@ -538,17 +538,20 @@
   }
   
   .team-head-grid {
-    flex-direction: row;
-    justify-content: center;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.75rem !important;
     width: 100%;
+    justify-items: center;
   }
 
   .team-head-grid .team-card {
-    max-width: calc(50% - 0.375rem) !important;
-    width: calc(50% - 0.375rem) !important;
+    max-width: 100% !important;
+    width: 100% !important;
     margin: 0;
-    flex: 0 0 calc(50% - 0.375rem);
+    grid-column: 1 / -1; /* Span full width of grid */
+    max-width: calc(50% - 0.375rem) !important;
+    justify-self: center; /* Center the card */
   }
 
   .team-card {
@@ -689,17 +692,20 @@
   }
 
   .team-head-grid {
-    flex-direction: row;
-    justify-content: center;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.5rem !important;
     width: 100%;
+    justify-items: center;
   }
 
   .team-head-grid .team-card {
-    max-width: calc(50% - 0.25rem) !important;
-    width: calc(50% - 0.25rem) !important;
+    max-width: 100% !important;
+    width: 100% !important;
     margin: 0;
-    flex: 0 0 calc(50% - 0.25rem);
+    grid-column: 1 / -1; /* Span full width of grid */
+    max-width: calc(50% - 0.25rem) !important;
+    justify-self: center; /* Center the card */
   }
 
   .team-card {
