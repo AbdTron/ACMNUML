@@ -83,40 +83,55 @@ if (messaging) {
     const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
     const notificationBody = payload.notification?.body || payload.data?.body || payload.data?.message || 'You have a new notification'
     
-    // Use a unique tag to prevent duplicate notifications
-    // Include timestamp to ensure each notification is unique
-    const notificationTag = payload.data?.tag || `acmnuml-${Date.now()}`
+    // Use a consistent tag based on message content to prevent duplicates
+    // This ensures if Firebase auto-shows a notification, ours will replace it
+    const messageId = payload.data?.messageId || payload.messageId || payload.fcmMessageId || 
+                      `${notificationTitle}-${notificationBody}`.substring(0, 50)
+    const notificationTag = `acmnuml-${messageId}`
     
     const notificationOptions = {
       body: notificationBody,
       icon: payload.notification?.icon || payload.data?.icon || '/icon-512.png', // Main notification icon (larger for dropdown)
-      badge: '/icon-512.png', // Badge for status bar - use larger icon for better visibility
+      badge: '/acmlogSplash.png', // Badge for status bar - use splash logo for better visibility
       image: payload.notification?.image || payload.data?.image,
       data: {
         ...payload.data,
         url: payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/',
       },
-      tag: notificationTag, // Unique tag prevents duplicates
+      tag: notificationTag, // Consistent tag prevents duplicates
       requireInteraction: false,
       silent: false,
       vibrate: [200, 100, 200],
-      // Add renotify to replace existing notifications with same tag
-      renotify: false,
+      renotify: true, // Replace existing notifications with same tag
     }
 
     console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
+    console.log('[FCM SW] Notification tag:', notificationTag)
     
-    // Check if notification with same tag already exists and close it first
-    return self.registration.getNotifications({ tag: notificationTag })
-      .then(existingNotifications => {
-        // Close existing notifications with the same tag to prevent duplicates
-        existingNotifications.forEach(notification => notification.close())
+    // Close ALL existing notifications first to prevent duplicates (Firebase auto-shows one, we show one)
+    return self.registration.getNotifications()
+      .then(allNotifications => {
+        console.log(`[FCM SW] Found ${allNotifications.length} total existing notification(s)`)
         
-        // Show new notification
+        // Close ALL existing notifications to prevent duplicates
+        // This ensures Firebase's auto-notification is closed before we show ours
+        allNotifications.forEach(notification => {
+          console.log('[FCM SW] Closing existing notification:', notification.tag || 'no-tag')
+          notification.close()
+        })
+        
+        // Small delay to ensure old notifications are closed
+        return new Promise(resolve => setTimeout(resolve, 150))
+      })
+      .then(() => {
+        // Show new notification (this will be the only one visible)
         return self.registration.showNotification(notificationTitle, notificationOptions)
       })
+      .then(() => {
+        console.log('[FCM SW] ✅ Notification shown successfully')
+      })
       .catch((error) => {
-        console.error('[FCM SW] Error showing notification:', error)
+        console.error('[FCM SW] ❌ Error showing notification:', error)
       })
   })
 } else {
