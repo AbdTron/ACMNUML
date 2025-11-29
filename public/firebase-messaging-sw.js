@@ -83,24 +83,38 @@ if (messaging) {
     const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
     const notificationBody = payload.notification?.body || payload.data?.body || payload.data?.message || 'You have a new notification'
     
+    // Use a unique tag to prevent duplicate notifications
+    // Include timestamp to ensure each notification is unique
+    const notificationTag = payload.data?.tag || `acmnuml-${Date.now()}`
+    
     const notificationOptions = {
       body: notificationBody,
-      icon: payload.notification?.icon || payload.data?.icon || '/icon-192.png',
-      badge: '/icon-192.png',
+      icon: payload.notification?.icon || payload.data?.icon || '/icon-512.png', // Main notification icon (larger for dropdown)
+      badge: '/icon-512.png', // Badge for status bar - use larger icon for better visibility
       image: payload.notification?.image || payload.data?.image,
       data: {
         ...payload.data,
         url: payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/',
       },
-      tag: payload.data?.tag || 'acmnuml-notification',
+      tag: notificationTag, // Unique tag prevents duplicates
       requireInteraction: false,
       silent: false,
       vibrate: [200, 100, 200],
+      // Add renotify to replace existing notifications with same tag
+      renotify: false,
     }
 
     console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
     
-    return self.registration.showNotification(notificationTitle, notificationOptions)
+    // Check if notification with same tag already exists and close it first
+    return self.registration.getNotifications({ tag: notificationTag })
+      .then(existingNotifications => {
+        // Close existing notifications with the same tag to prevent duplicates
+        existingNotifications.forEach(notification => notification.close())
+        
+        // Show new notification
+        return self.registration.showNotification(notificationTitle, notificationOptions)
+      })
       .catch((error) => {
         console.error('[FCM SW] Error showing notification:', error)
       })
