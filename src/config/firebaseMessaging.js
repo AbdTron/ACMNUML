@@ -95,19 +95,49 @@ const getFCMToken = async () => {
     // Get service worker registration for FCM
     let registration = null
     try {
-      registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+      // Try to get FCM service worker registration by script URL
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      
+      // Look for FCM service worker (check by script URL or scope)
+      registration = registrations.find(reg => {
+        // Check if this registration is for FCM service worker
+        return reg.active?.scriptURL?.includes('firebase-messaging-sw.js') ||
+               reg.installing?.scriptURL?.includes('firebase-messaging-sw.js') ||
+               reg.waiting?.scriptURL?.includes('firebase-messaging-sw.js')
+      })
+      
+      // If not found, try to register it
       if (!registration) {
-        // Register if not already registered
+        console.log('[FCM] Registering FCM service worker...')
         registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/'
+          scope: '/',
+          updateViaCache: 'none'
         })
-        console.log('FCM Service Worker registered:', registration.scope)
+        console.log('[FCM] FCM Service Worker registered:', registration.scope)
+        
+        // Wait for it to be ready
+        if (registration.installing) {
+          await new Promise((resolve) => {
+            registration.installing.addEventListener('statechange', () => {
+              if (registration.installing.state === 'activated') {
+                resolve()
+              }
+            })
+          })
+        }
+      } else {
+        console.log('[FCM] Found existing FCM service worker registration')
       }
     } catch (swError) {
-      console.error('Service Worker registration error:', swError)
-      // Try to get any existing registration
+      console.error('[FCM] Service Worker registration error:', swError)
+      // Fallback: try to get any service worker with root scope
       const registrations = await navigator.serviceWorker.getRegistrations()
-      registration = registrations.find(reg => reg.scope.includes('/'))
+      registration = registrations.find(reg => reg.scope === window.location.origin + '/')
+    }
+    
+    if (!registration) {
+      console.error('[FCM] No service worker registration found')
+      return null
     }
     
     // Get FCM token with service worker registration
@@ -117,16 +147,16 @@ const getFCMToken = async () => {
     })
     
     if (token) {
-      console.log('FCM Token:', token)
+      console.log('[FCM] Token obtained:', token.substring(0, 20) + '...')
       // Save token to Firestore
       await saveTokenToFirestore(token)
       return token
     } else {
-      console.log('No registration token available')
+      console.log('[FCM] No registration token available')
       return null
     }
   } catch (error) {
-    console.error('Error getting FCM token:', error)
+    console.error('[FCM] Error getting FCM token:', error)
     return null
   }
 }
@@ -204,13 +234,20 @@ export const getCurrentToken = async () => {
     // Get service worker registration
     let registration = null
     try {
-      registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      // Look for FCM service worker
+      registration = registrations.find(reg => {
+        return reg.active?.scriptURL?.includes('firebase-messaging-sw.js') ||
+               reg.installing?.scriptURL?.includes('firebase-messaging-sw.js') ||
+               reg.waiting?.scriptURL?.includes('firebase-messaging-sw.js')
+      })
+      
+      // Fallback to any root scope registration
       if (!registration) {
-        const registrations = await navigator.serviceWorker.getRegistrations()
-        registration = registrations.find(reg => reg.scope.includes('/'))
+        registration = registrations.find(reg => reg.scope === window.location.origin + '/')
       }
     } catch (swError) {
-      console.error('Service Worker registration error:', swError)
+      console.error('[FCM] Service Worker registration error:', swError)
     }
     
     const token = await getToken(messaging, {

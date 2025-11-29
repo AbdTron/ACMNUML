@@ -51,9 +51,11 @@ self.addEventListener('activate', (event) => {
 if (messaging) {
   messaging.onBackgroundMessage((payload) => {
     console.log('[FCM SW] Background message received:', payload)
+    console.log('[FCM SW] Full payload:', JSON.stringify(payload, null, 2))
 
+    // Handle both notification payload and data-only payloads
     const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
-    const notificationBody = payload.notification?.body || payload.data?.body || 'You have a new notification'
+    const notificationBody = payload.notification?.body || payload.data?.body || payload.data?.message || 'You have a new notification'
     
     const notificationOptions = {
       body: notificationBody,
@@ -62,15 +64,20 @@ if (messaging) {
       image: payload.notification?.image || payload.data?.image,
       data: {
         ...payload.data,
-        url: payload.data?.url || payload.fcmOptions?.link || '/',
+        url: payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/',
       },
       tag: payload.data?.tag || 'acmnuml-notification',
       requireInteraction: false,
       silent: false,
+      vibrate: [200, 100, 200],
     }
 
     console.log('[FCM SW] Showing notification:', notificationTitle, notificationOptions)
+    
     return self.registration.showNotification(notificationTitle, notificationOptions)
+      .catch((error) => {
+        console.error('[FCM SW] Error showing notification:', error)
+      })
   })
 } else {
   console.error('[FCM SW] Messaging not initialized, cannot handle background messages')

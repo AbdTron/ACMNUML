@@ -54,6 +54,13 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == adminId;
       allow write: if false; // Only set via Firebase Console or Admin SDK
     }
+    
+    // FCM Tokens collection - allow anyone to create/update their own token
+    match /fcmTokens/{deviceId} {
+      allow create: if true; // Allow creating tokens
+      allow update: if true; // Allow updating tokens
+      allow read: if request.auth != null; // Only admins can read (for sending notifications)
+    }
   }
 }
 

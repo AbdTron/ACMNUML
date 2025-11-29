@@ -13,7 +13,7 @@ import {
 } from 'react-icons/fi'
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { getCropBackgroundStyle } from '../utils/cropStyles'
 import { truncateText } from '../utils/text'
 import './Home.css'
@@ -29,6 +29,7 @@ const Home = () => {
   const [teamScrollIndex, setTeamScrollIndex] = useState(0)
   const [isScrolling, setIsScrolling] = useState(false)
   const [scrollDirection, setScrollDirection] = useState('next')
+  const scrollTimeoutRef = useRef(null)
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -205,19 +206,45 @@ const Home = () => {
 
   // Team scroll functions
   const handleTeamNext = () => {
-    if (displayCabinet.length <= 4 || isScrolling) return
-    setIsScrolling(true)
+    if (displayCabinet.length <= 4) return
+    
+    // Clear any existing timeout to allow rapid clicks
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+    }
+    
+    // Update immediately - don't block on isScrolling
     setScrollDirection('next')
     setTeamScrollIndex((prev) => (prev + 1) % displayCabinet.length)
-    setTimeout(() => setIsScrolling(false), 600)
+    
+    // Set scrolling state for animation
+    setIsScrolling(true)
+    
+    // Clear scrolling state after animation (500ms matches CSS animation duration)
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false)
+    }, 500)
   }
 
   const handleTeamPrev = () => {
-    if (displayCabinet.length <= 4 || isScrolling) return
-    setIsScrolling(true)
+    if (displayCabinet.length <= 4) return
+    
+    // Clear any existing timeout to allow rapid clicks
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+    }
+    
+    // Update immediately - don't block on isScrolling
     setScrollDirection('prev')
     setTeamScrollIndex((prev) => (prev - 1 + displayCabinet.length) % displayCabinet.length)
-    setTimeout(() => setIsScrolling(false), 600)
+    
+    // Set scrolling state for animation
+    setIsScrolling(true)
+    
+    // Clear scrolling state after animation (500ms matches CSS animation duration)
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false)
+    }, 500)
   }
 
   // Get visible team members (4 at a time, wrapping around)
