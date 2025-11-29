@@ -481,6 +481,12 @@
   gap: 1.5rem;
 }
 
+/* Override grid for head grid - must come after .team-grid-landing */
+.team-grid-landing.team-head-grid {
+  display: flex !important;
+  grid-template-columns: none !important;
+}
+
 .team-card-landing {
   background: var(--bg-white);
   border: 1px solid var(--border-color);
@@ -1531,6 +1537,14 @@
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1.5rem;
   }
+
+  /* Override grid for head grid on mobile */
+  .team-grid-landing.team-head-grid {
+    display: flex !important;
+    grid-template-columns: none !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
   
   .team-grid-scrollable {
     grid-template-columns: repeat(2, 1fr);
@@ -1724,6 +1738,14 @@
   .team-grid-landing {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+  }
+
+  /* Override grid for head grid on small mobile */
+  .team-grid-landing.team-head-grid {
+    display: flex !important;
+    grid-template-columns: none !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
   
   .team-grid-scrollable {
