@@ -92,7 +92,7 @@ if (messaging) {
     const notificationOptions = {
       body: notificationBody,
       icon: payload.notification?.icon || payload.data?.icon || '/icon-512.png', // Main notification icon (larger for dropdown)
-      badge: '/acmlogSplash.png', // Badge for status bar - use splash logo for better visibility
+      badge: '/badge.png', // Badge for status bar
       image: payload.notification?.image || payload.data?.image,
       data: {
         ...payload.data,

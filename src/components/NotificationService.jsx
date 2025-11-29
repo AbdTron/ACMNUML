@@ -51,9 +51,10 @@ const NotificationService = () => {
         .then((payload) => {
           if (payload) {
             console.log('Foreground message received:', payload)
-            // Only show in-app notification for foreground messages
-            // Don't show system notification - the service worker handles background notifications
-            // This prevents duplicate notifications
+            // Show system notification when app is open (foreground)
+            // This ensures notifications are shown even when app is open
+            showSystemNotification(payload)
+            // Also show in-app notification for better UX
             showInAppNotification(payload)
           }
           // Continue listening for more messages
@@ -68,6 +69,59 @@ const NotificationService = () => {
     
     // Start listening
     listenForMessages()
+  }
+
+  const showSystemNotification = async (payload) => {
+    // Check if notifications are supported and permission is granted
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      console.log('Cannot show system notification - permission not granted')
+      return
+    }
+
+    const notificationTitle = payload.notification?.title || payload.data?.title || 'ACM NUML'
+    const notificationBody = payload.notification?.body || payload.data?.body || payload.data?.message || 'You have a new notification'
+    
+    // Use same tag logic as service worker to prevent duplicates
+    const messageId = payload.data?.messageId || payload.messageId || payload.fcmMessageId || 
+                      `${notificationTitle}-${notificationBody}`.substring(0, 50)
+    const notificationTag = `acmnuml-${messageId}`
+
+    const notificationOptions = {
+      body: notificationBody,
+      icon: payload.notification?.icon || payload.data?.icon || '/icon-512.png',
+      badge: '/badge.png',
+      image: payload.notification?.image || payload.data?.image,
+      data: {
+        ...payload.data,
+        url: payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/',
+      },
+      tag: notificationTag,
+      requireInteraction: false,
+      silent: false,
+      vibrate: [200, 100, 200],
+      renotify: true,
+    }
+
+    // Close existing notifications with same tag first
+    const existingNotifications = await navigator.serviceWorker.getRegistration()
+      .then(registration => registration?.getNotifications({ tag: notificationTag }) || [])
+    
+    existingNotifications.forEach(notification => notification.close())
+
+    // Small delay to ensure old notifications are closed
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Show system notification
+    const notification = new Notification(notificationTitle, notificationOptions)
+    
+    // Handle click
+    notification.onclick = (event) => {
+      event.preventDefault()
+      const url = payload.data?.url || payload.fcmOptions?.link || payload.notification?.click_action || '/'
+      window.focus()
+      window.location.href = url
+      notification.close()
+    }
   }
 
   const showInAppNotification = (payload) => {
