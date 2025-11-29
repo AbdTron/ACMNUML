@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FiMenu, FiX, FiShield, FiMoon, FiSun } from 'react-icons/fi'
+import { FiMenu, FiX, FiShield, FiMoon, FiSun, FiUser } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
+import { useMemberAuth } from '../context/MemberAuthContext'
 import { useTheme } from '../context/ThemeContext'
 import acmLogo from '../assets/acmlog.png'
 import './Navbar.css'
@@ -10,6 +11,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
   const { isAdmin } = useAuth()
+  const memberAuth = useMemberAuth()
+  const memberUser = memberAuth?.currentUser || null
   const { theme, toggleTheme } = useTheme()
 
   const isActive = (path) => location.pathname === path
@@ -19,6 +22,7 @@ const Navbar = () => {
     { path: '/events', label: 'Events' },
     { path: '/team', label: 'Team' },
     { path: '/gallery', label: 'Gallery' },
+    { path: '/members', label: 'Members' },
     { path: '/about', label: 'About' },
     { path: '/join', label: 'Join Us' },
     { path: '/contact', label: 'Contact' },
@@ -45,6 +49,30 @@ const Navbar = () => {
               </Link>
             </li>
           ))}
+          {!memberUser && (
+            <li className="navbar-item">
+              <Link
+                to="/member/login"
+                className={`navbar-link ${isActive('/member/login') ? 'active' : ''}`}
+                onClick={() => setIsOpen(false)}
+              >
+                <FiUser />
+                Login
+              </Link>
+            </li>
+          )}
+          {memberUser && (
+            <li className="navbar-item">
+              <Link
+                to="/member"
+                className={`navbar-link ${isActive('/member') ? 'active' : ''}`}
+                onClick={() => setIsOpen(false)}
+              >
+                <FiUser />
+                Dashboard
+              </Link>
+            </li>
+          )}
           {isAdmin && (
             <li className="navbar-item">
               <Link

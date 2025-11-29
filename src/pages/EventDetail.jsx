@@ -1,19 +1,24 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { format } from 'date-fns'
-import { FiArrowLeft, FiCalendar, FiClock, FiMapPin, FiX } from 'react-icons/fi'
+import { FiArrowLeft, FiCalendar, FiClock, FiMapPin, FiX, FiCheck } from 'react-icons/fi'
+import QRCodeGenerator from '../components/QRCodeGenerator'
 import './EventDetail.css'
 
 const EventDetail = () => {
   const { eventId } = useParams()
+  const location = useLocation()
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lightboxImage, setLightboxImage] = useState(null)
   const [imageLoading, setImageLoading] = useState(true)
   const [galleryImagesLoading, setGalleryImagesLoading] = useState({})
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
+  const [qrData, setQrData] = useState(null)
+  const [registrationStatus, setRegistrationStatus] = useState(null)
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -52,7 +57,16 @@ const EventDetail = () => {
     }
 
     fetchEvent()
-  }, [eventId])
+
+    // Check for registration success from navigation state
+    if (location.state?.registrationSuccess) {
+      setRegistrationSuccess(true)
+      setQrData(location.state.qrData)
+      setRegistrationStatus(location.state.status)
+      // Clear the state after showing
+      window.history.replaceState({}, document.title)
+    }
+  }, [eventId, location.state])
 
   if (loading) {
     return (
@@ -114,15 +128,41 @@ const EventDetail = () => {
                 )}
               </div>
 
-              {event.registerLink && (
-                <a
-                  href={event.registerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="event-detail-cta"
-                >
-                  Register for Event
-                </a>
+              {registrationSuccess && (
+                <div className="registration-success-card">
+                  <div className="success-header">
+                    <FiCheck />
+                    <h3>Registration Successful!</h3>
+                  </div>
+                  <p>Your registration status: <strong>{registrationStatus || 'confirmed'}</strong></p>
+                  {qrData && (
+                    <div className="qr-code-section">
+                      <p>Your registration QR code:</p>
+                      <QRCodeGenerator data={qrData} size={200} />
+                      <p className="qr-instructions">Show this QR code at the event for check-in</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!registrationSuccess && (event.registrationEnabled || event.registerLink) && (
+                event.registrationEnabled ? (
+                  <Link
+                    to={`/events/${event.id}/register`}
+                    className="event-detail-cta"
+                  >
+                    Register for Event
+                  </Link>
+                ) : (
+                  <a
+                    href={event.registerLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="event-detail-cta"
+                  >
+                    Register for Event
+                  </a>
+                )
               )}
 
               <div className="event-detail-description">

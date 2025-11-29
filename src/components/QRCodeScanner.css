@@ -1,0 +1,160 @@
+.qr-scanner-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 2rem;
+}
+
+.qr-scanner-content {
+  background: var(--bg-white);
+  border-radius: 1rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+}
+
+.qr-scanner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.qr-scanner-header h3 {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.3s ease;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: var(--text-dark);
+}
+
+.qr-scanner-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.error-message {
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+}
+
+.camera-preview {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  gap: 1rem;
+}
+
+.camera-placeholder svg {
+  font-size: 3rem;
+}
+
+.camera-placeholder p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.camera-placeholder .note {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.scanner-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.manual-input-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+.manual-input-section p {
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.manual-input-form {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.manual-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background: var(--bg-white);
+  color: var(--text-dark);
+}
+
+.manual-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .qr-scanner-modal {
+    padding: 1rem;
+  }
+
+  .qr-scanner-content {
+    max-height: 95vh;
+  }
+
+  .manual-input-form {
+    flex-direction: column;
+  }
+}
+
+
+

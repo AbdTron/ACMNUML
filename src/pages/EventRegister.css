@@ -1,0 +1,136 @@
+.event-register-page {
+  min-height: 100vh;
+  background: var(--bg-light);
+  padding: 2rem 0;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: var(--secondary-color);
+}
+
+.register-header {
+  background: var(--bg-white);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.register-header h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+.event-meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-light);
+}
+
+.event-meta-info > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-meta-info svg {
+  color: var(--primary-color);
+  font-size: 1.125rem;
+}
+
+.capacity-info {
+  color: var(--text-light);
+  font-size: 0.9375rem;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  margin-bottom: 1.5rem;
+}
+
+.error-message svg {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.registration-form-container {
+  background: var(--bg-white);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.registration-status-card {
+  background: var(--bg-white);
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.registration-status-card h2 {
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+
+.registration-status-card p {
+  color: var(--text-light);
+  margin-bottom: 0.75rem;
+}
+
+.registration-status-card strong {
+  color: var(--primary-color);
+  text-transform: capitalize;
+}
+
+@media (max-width: 768px) {
+  .event-register-page {
+    padding: 1rem 0;
+  }
+
+  .register-header {
+    padding: 1.5rem;
+  }
+
+  .register-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .event-meta-info {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .registration-form-container {
+    padding: 1.5rem;
+  }
+}
+
+
+

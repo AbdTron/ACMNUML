@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { MemberAuthProvider } from './context/MemberAuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import NotificationPopup from './components/NotificationPopup'
@@ -25,6 +26,18 @@ import AdminEvents from './pages/admin/AdminEvents'
 import AdminNotifications from './pages/admin/AdminNotifications'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminTeam from './pages/admin/AdminTeam'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminEventRegistrations from './pages/admin/AdminEventRegistrations'
+import AdminCheckIn from './pages/admin/AdminCheckIn'
+import AdminFormTemplates from './pages/admin/AdminFormTemplates'
+import MemberLogin from './pages/MemberLogin'
+import EventRegister from './pages/EventRegister'
+import MemberDashboard from './pages/member/MemberDashboard'
+import MemberProfile from './pages/member/MemberProfile'
+import MemberEvents from './pages/member/MemberEvents'
+import MemberCertificates from './pages/member/MemberCertificates'
+import MemberDirectory from './pages/MemberDirectory'
+import MemberProfilePublic from './pages/MemberProfilePublic'
 
 function App() {
   const [showSplash, setShowSplash] = useState(false)
@@ -52,8 +65,9 @@ function App() {
 
   return (
     <AuthProvider>
-      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemberAuthProvider>
+        {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <div className="app" style={showSplash ? { opacity: 0, pointerEvents: 'none' } : {}}>
           <Navbar />
@@ -65,6 +79,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/:eventId" element={<EventDetail />} />
+              <Route path="/events/:eventId/register" element={<EventRegister />} />
               <Route path="/team" element={<Team />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/join" element={<Join />} />
@@ -112,11 +127,63 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/registrations"
+                element={
+                  <ProtectedRoute>
+                    <AdminEventRegistrations />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/checkin"
+                element={
+                  <ProtectedRoute>
+                    <AdminCheckIn />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/form-templates"
+                element={
+                  <ProtectedRoute>
+                    <AdminFormTemplates />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/member/login" element={<MemberLogin />} />
+              <Route
+                path="/member"
+                element={<MemberDashboard />}
+              />
+              <Route
+                path="/member/profile"
+                element={<MemberProfile />}
+              />
+              <Route
+                path="/member/events"
+                element={<MemberEvents />}
+              />
+              <Route
+                path="/member/certificates"
+                element={<MemberCertificates />}
+              />
+              <Route path="/members" element={<MemberDirectory />} />
+              <Route path="/members/:memberId" element={<MemberProfilePublic />} />
             </Routes>
           </main>
           <Footer />
         </div>
       </Router>
+      </MemberAuthProvider>
     </AuthProvider>
   )
 }

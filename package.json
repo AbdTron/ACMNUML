@@ -7,6 +7,8 @@
     "@supabase/supabase-js": "^2.44.2",
     "date-fns": "^2.30.0",
     "firebase": "^10.7.1",
+    "html5-qrcode": "^2.3.8",
+    "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-easy-crop": "^5.5.5",

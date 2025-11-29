@@ -8,7 +8,9 @@ import {
   FiLogOut, 
   FiUsers,
   FiImage,
-  FiMail
+  FiMail,
+  FiRefreshCw,
+  FiFileText
 } from 'react-icons/fi'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../config/firebase'
@@ -23,41 +25,57 @@ const AdminDashboard = () => {
     notifications: 0,
     teamMembers: 0,
     galleryImages: 0,
-    contacts: 0
+    contacts: 0,
+    users: 0
   })
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchStats = async () => {
+    if (!db) {
+      setLoading(false)
+      return
+    }
+    try {
+      const [eventsSnap, notificationsSnap, teamSnap, gallerySnap, contactsSnap, usersSnap] = await Promise.all([
+        getDocs(collection(db, 'events')),
+        getDocs(collection(db, 'notifications')),
+        getDocs(collection(db, 'team')),
+        getDocs(collection(db, 'gallery')),
+        getDocs(collection(db, 'contacts')),
+        getDocs(collection(db, 'users'))
+      ])
+
+      setStats({
+        events: eventsSnap.size,
+        notifications: notificationsSnap.size,
+        teamMembers: teamSnap.size,
+        galleryImages: gallerySnap.size,
+        contacts: contactsSnap.size,
+        users: usersSnap.size
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      // Show more specific error message
+      if (error.code === 'permission-denied') {
+        alert('Permission denied. Please make sure you are logged in as an admin and that Firestore rules are deployed.')
+      } else {
+        alert(`Error loading statistics: ${error.message}. Please refresh the page.`)
+      }
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!db) {
-        setLoading(false)
-        return
-      }
-      try {
-        const [eventsSnap, notificationsSnap, teamSnap, gallerySnap, contactsSnap] = await Promise.all([
-          getDocs(collection(db, 'events')),
-          getDocs(collection(db, 'notifications')),
-          getDocs(collection(db, 'team')),
-          getDocs(collection(db, 'gallery')),
-          getDocs(collection(db, 'contacts'))
-        ])
-
-        setStats({
-          events: eventsSnap.size,
-          notifications: notificationsSnap.size,
-          teamMembers: teamSnap.size,
-          galleryImages: gallerySnap.size,
-          contacts: contactsSnap.size
-        })
-      } catch (error) {
-        console.error('Error fetching stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchStats()
   }, [])
+
+  const handleRefresh = () => {
+    setRefreshing(true)
+    fetchStats()
+  }
 
   const handleLogout = async () => {
     try {
@@ -104,6 +122,20 @@ const AdminDashboard = () => {
       link: '/admin/settings',
       color: '#f59e0b'
     },
+    {
+      icon: FiUsers,
+      title: 'User Management',
+      description: 'Manage member accounts and permissions',
+      link: '/admin/users',
+      color: '#6366f1'
+    },
+    {
+      icon: FiFileText,
+      title: 'Form Templates',
+      description: 'Create and manage reusable form templates',
+      link: '/admin/form-templates',
+      color: '#8b5cf6'
+    },
   ]
 
   return (
@@ -115,10 +147,20 @@ const AdminDashboard = () => {
               <h1>Admin Dashboard</h1>
               <p>Welcome back, {currentUser?.email}</p>
             </div>
-            <button onClick={handleLogout} className="btn-logout">
-              <FiLogOut />
-              Logout
-            </button>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <button 
+                onClick={handleRefresh} 
+                className="btn-refresh"
+                disabled={refreshing}
+                title="Refresh statistics"
+              >
+                <FiRefreshCw style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+              </button>
+              <button onClick={handleLogout} className="btn-logout">
+                <FiLogOut />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -170,6 +212,15 @@ const AdminDashboard = () => {
               <div className="stat-info">
                 <h3>{loading ? '...' : stats.contacts}</h3>
                 <p>Contact Messages</p>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: '#e0e7ff' }}>
+                <FiUsers style={{ color: '#6366f1' }} />
+              </div>
+              <div className="stat-info">
+                <h3>{loading ? '...' : stats.users}</h3>
+                <p>Total Users</p>
               </div>
             </div>
           </div>

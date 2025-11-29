@@ -6,6 +6,7 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
+  getDoc,
   Timestamp,
   query,
   orderBy
@@ -20,13 +21,16 @@ import {
   FiCalendar,
   FiArrowLeft,
   FiCheck,
-  FiX
+  FiX,
+  FiUsers,
+  FiCamera
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminEvents.css'
 import ImageUploader from '../../components/ImageUploader'
 import { getCropBackgroundStyle } from '../../utils/cropStyles'
 import { uploadToSupabase } from '../../config/supabase'
+import FormBuilder from '../../components/FormBuilder'
 
 const AdminEvents = () => {
   const { currentUser } = useAuth()
@@ -47,8 +51,15 @@ const AdminEvents = () => {
     coverFilePath: '',
     coverCrop: null,
     registerLink: '',
-    additionalImages: [] // Array of image URLs
+    additionalImages: [], // Array of image URLs
+    registrationEnabled: false,
+    capacity: ''
   })
+  const [formConfig, setFormConfig] = useState({ fields: [], description: '' })
+  const [showFormBuilder, setShowFormBuilder] = useState(false)
+  const [formTemplates, setFormTemplates] = useState([])
+  const [selectedTemplate, setSelectedTemplate] = useState('')
+  const [loadingTemplates, setLoadingTemplates] = useState(false)
 
   const createEventId = (title) => {
     const slug = title
@@ -61,7 +72,45 @@ const AdminEvents = () => {
 
   useEffect(() => {
     fetchEvents()
+    fetchFormTemplates()
   }, [])
+
+  const fetchFormTemplates = async () => {
+    if (!db) return
+    setLoadingTemplates(true)
+    try {
+      const templatesRef = collection(db, 'formTemplates')
+      const q = query(templatesRef, orderBy('createdAt', 'desc'))
+      const querySnapshot = await getDocs(q)
+      const templatesData = []
+      querySnapshot.forEach((doc) => {
+        templatesData.push({
+          id: doc.id,
+          ...doc.data()
+        })
+      })
+      setFormTemplates(templatesData)
+    } catch (error) {
+      console.error('Error fetching form templates:', error)
+      // Try without orderBy if it fails
+      try {
+        const templatesRef = collection(db, 'formTemplates')
+        const querySnapshot = await getDocs(templatesRef)
+        const templatesData = []
+        querySnapshot.forEach((doc) => {
+          templatesData.push({
+            id: doc.id,
+            ...doc.data()
+          })
+        })
+        setFormTemplates(templatesData)
+      } catch (err) {
+        console.error('Error fetching templates:', err)
+      }
+    } finally {
+      setLoadingTemplates(false)
+    }
+  }
 
   const fetchEvents = async () => {
     if (!db) {
@@ -144,6 +193,15 @@ const AdminEvents = () => {
 
       setShowForm(false)
       setEditingEvent(null)
+      // Save form configuration if registration is enabled
+      if (formData.registrationEnabled && formConfig.fields.length > 0) {
+        const eventId = editingEvent ? editingEvent.id : createEventId(formData.title)
+        await setDoc(doc(db, 'eventForms', eventId), {
+          ...formConfig,
+          updatedAt: new Date().toISOString()
+        })
+      }
+      
       setFormData({
         title: '',
         description: '',
@@ -156,8 +214,13 @@ const AdminEvents = () => {
         coverFilePath: '',
         coverCrop: null,
         registerLink: '',
-        additionalImages: []
+        additionalImages: [],
+        registrationEnabled: false,
+        capacity: ''
       })
+      setFormConfig({ fields: [], description: '' })
+      setShowFormBuilder(false)
+      setSelectedTemplate('')
       fetchEvents()
     } catch (error) {
       console.error('Error saving event:', error)
@@ -165,7 +228,7 @@ const AdminEvents = () => {
     }
   }
 
-  const handleEdit = (event) => {
+  const handleEdit = async (event) => {
     setEditingEvent(event)
     setFormData({
       title: event.title || '',
@@ -179,8 +242,30 @@ const AdminEvents = () => {
       coverFilePath: event.coverFilePath || '',
       coverCrop: event.coverCrop || null,
       registerLink: event.registerLink || '',
-      additionalImages: Array.isArray(event.additionalImages) ? event.additionalImages : []
+      additionalImages: Array.isArray(event.additionalImages) ? event.additionalImages : [],
+      registrationEnabled: event.registrationEnabled || false,
+      capacity: event.capacity || ''
     })
+    
+    // Load form configuration if it exists
+    if (event.id && db) {
+      try {
+        const formRef = doc(db, 'eventForms', event.id)
+        const formSnap = await getDoc(formRef)
+        if (formSnap.exists()) {
+          setFormConfig(formSnap.data())
+          setSelectedTemplate('') // Clear template selection when editing existing event
+        } else {
+          setFormConfig({ fields: [], description: '' })
+          setSelectedTemplate('')
+        }
+      } catch (error) {
+        console.error('Error loading form config:', error)
+        setFormConfig({ fields: [], description: '' })
+        setSelectedTemplate('')
+      }
+    }
+    
     setShowForm(true)
   }
 
@@ -287,8 +372,13 @@ const AdminEvents = () => {
                 time: '',
                 location: '',
                 type: 'Workshop',
-                sessions: ''
+                sessions: '',
+                registrationEnabled: false,
+                capacity: ''
               })
+              setFormConfig({ fields: [], description: '' })
+              setShowFormBuilder(false)
+              setSelectedTemplate('')
             }}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
@@ -446,14 +536,109 @@ const AdminEvents = () => {
                     <small>Upload additional images to display in a gallery on the event detail page</small>
                   </div>
                   <div className="form-group">
-                    <label>Registration / RSVP Link</label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={formData.registrationEnabled}
+                        onChange={(e) => {
+                          setFormData({ ...formData, registrationEnabled: e.target.checked })
+                          if (!e.target.checked) {
+                            setFormConfig({ fields: [], description: '' })
+                            setShowFormBuilder(false)
+                            setSelectedTemplate('')
+                          }
+                        }}
+                      />
+                      Enable Built-in Registration Form
+                    </label>
+                    <small>Check this to use the form builder below instead of external link</small>
+                  </div>
+
+                  {formData.registrationEnabled && (
+                    <>
+                      <div className="form-group">
+                        <label>Capacity (Optional)</label>
+                        <input
+                          type="number"
+                          name="capacity"
+                          value={formData.capacity}
+                          onChange={handleInputChange}
+                          placeholder="e.g., 50"
+                          min="1"
+                        />
+                        <small>Maximum number of attendees. Leave empty for unlimited.</small>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Use Form Template (Optional)</label>
+                        <select
+                          value={selectedTemplate}
+                          onChange={(e) => {
+                            const templateId = e.target.value
+                            setSelectedTemplate(templateId)
+                            if (templateId) {
+                              const template = formTemplates.find(t => t.id === templateId)
+                              if (template && template.formConfig) {
+                                setFormConfig(template.formConfig)
+                                setShowFormBuilder(true)
+                              }
+                            } else {
+                              setFormConfig({ fields: [], description: '' })
+                            }
+                          }}
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          <option value="">Create New Form</option>
+                          {formTemplates.map(template => (
+                            <option key={template.id} value={template.id}>
+                              {template.name}
+                            </option>
+                          ))}
+                        </select>
+                        <small>
+                          Select a template to use its form fields, or choose "Create New Form" to build from scratch.
+                          {formTemplates.length === 0 && (
+                            <span> No templates available. <a href="/admin/form-templates" target="_blank" style={{ color: 'var(--primary-color)' }}>Create one here</a>.</span>
+                          )}
+                        </small>
+                      </div>
+
+                      <div className="form-group">
+                        <label>
+                          <button
+                            type="button"
+                            onClick={() => setShowFormBuilder(!showFormBuilder)}
+                            className="btn btn-secondary"
+                          >
+                            {showFormBuilder ? 'Hide' : 'Show'} Form Builder
+                          </button>
+                        </label>
+                        {showFormBuilder && (
+                          <div style={{ marginTop: '1rem' }}>
+                            <FormBuilder
+                              formConfig={formConfig}
+                              onChange={(config) => {
+                                setFormConfig(config)
+                                setSelectedTemplate('') // Clear template selection when manually editing
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  <div className="form-group">
+                    <label>Registration Link (External - if not using built-in form)</label>
                     <input
                       type="url"
                       name="registerLink"
                       value={formData.registerLink}
                       onChange={handleInputChange}
                       placeholder="https://forms.gle/..."
-                />
+                      disabled={formData.registrationEnabled}
+                    />
+                    <small>{formData.registrationEnabled ? 'Disabled when built-in registration is enabled' : 'Leave empty if using built-in registration form'}</small>
                   </div>
                   <div className="form-actions">
                     <button type="button" onClick={() => {
@@ -524,6 +709,24 @@ const AdminEvents = () => {
                         </td>
                         <td>
                           <div className="action-buttons">
+                            {event.registrationEnabled && (
+                              <>
+                                <button
+                                  onClick={() => navigate(`/admin/registrations?eventId=${event.id}`)}
+                                  className="btn-icon"
+                                  title="View Registrations"
+                                >
+                                  <FiUsers />
+                                </button>
+                                <button
+                                  onClick={() => navigate(`/admin/checkin?eventId=${event.id}`)}
+                                  className="btn-icon"
+                                  title="Check-In"
+                                >
+                                  <FiCamera />
+                                </button>
+                              </>
+                            )}
                             <button
                               onClick={() => handleEdit(event)}
                               className="btn-icon"
