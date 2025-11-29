@@ -202,47 +202,49 @@ const saveTokenToFirestore = async (token) => {
 
 // Listen for foreground messages (when app is open) - PWA only
 // Note: This only fires when app is in foreground. Background messages are handled by service worker.
-let messageListenerSetup = false
+let messageListenerCallback = null
+let isListenerSetup = false
+
 export const onMessageListener = () => {
   // Only work in PWA mode, not in browser
   if (!isPWA()) {
     return Promise.resolve(null)
   }
 
-  return new Promise((resolve) => {
-    // Only set up listener once
-    if (!messageListenerSetup) {
-      messageListenerSetup = true
-      
-      if (!messaging) {
-        initMessaging().then((msg) => {
-          if (msg) {
-            onMessage(msg, (payload) => {
-              console.log('[FCM] Message received in foreground:', payload)
-              // Don't show system notification - only return payload for in-app display
-              resolve(payload)
-            })
-          } else {
-            resolve(null)
-          }
-        })
-      } else {
-        onMessage(messaging, (payload) => {
-          console.log('[FCM] Message received in foreground:', payload)
-          // Don't show system notification - only return payload for in-app display
-          resolve(payload)
-        })
-      }
+  // Set up listener once
+  if (!isListenerSetup) {
+    isListenerSetup = true
+    
+    if (!messaging) {
+      initMessaging().then((msg) => {
+        if (msg) {
+          onMessage(msg, (payload) => {
+            console.log('[FCM] Message received in foreground:', payload)
+            // Call the callback if one is waiting
+            if (messageListenerCallback) {
+              const callback = messageListenerCallback
+              messageListenerCallback = null
+              callback(payload)
+            }
+          })
+        }
+      })
     } else {
-      // Listener already set up, just wait for next message
-      // This promise will resolve when next message arrives
-      if (messaging) {
-        onMessage(messaging, (payload) => {
-          console.log('[FCM] Message received in foreground:', payload)
-          resolve(payload)
-        })
-      }
+      onMessage(messaging, (payload) => {
+        console.log('[FCM] Message received in foreground:', payload)
+        // Call the callback if one is waiting
+        if (messageListenerCallback) {
+          const callback = messageListenerCallback
+          messageListenerCallback = null
+          callback(payload)
+        }
+      })
     }
+  }
+
+  return new Promise((resolve) => {
+    // Set callback for this promise
+    messageListenerCallback = resolve
   })
 }
 
