@@ -19,18 +19,22 @@ const firebaseConfig = {
 // Initialize Firebase
 try {
   firebase.initializeApp(firebaseConfig)
-  console.log('[FCM SW] Firebase initialized successfully')
+  console.log('[FCM SW] ✅ Firebase initialized successfully')
+  console.log('[FCM SW] Firebase app name:', firebase.app().name)
 } catch (error) {
-  console.error('[FCM SW] Firebase initialization error:', error)
+  console.error('[FCM SW] ❌ Firebase initialization error:', error)
+  console.error('[FCM SW] Error details:', error.message, error.stack)
 }
 
 // Retrieve an instance of Firebase Messaging
 let messaging = null
 try {
   messaging = firebase.messaging()
-  console.log('[FCM SW] Firebase Messaging initialized')
+  console.log('[FCM SW] ✅ Firebase Messaging initialized')
+  console.log('[FCM SW] Messaging instance:', messaging ? 'created' : 'null')
 } catch (error) {
-  console.error('[FCM SW] Firebase Messaging initialization error:', error)
+  console.error('[FCM SW] ❌ Firebase Messaging initialization error:', error)
+  console.error('[FCM SW] Error details:', error.message, error.stack)
 }
 
 // ✅ 8. Install and activate - FCM service worker must take control
@@ -42,10 +46,17 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   console.log('[FCM SW] Activating FCM service worker - taking control')
+  console.log('[FCM SW] Current controller:', self.registration.active ? 'This SW is active' : 'Not active yet')
+  
   // Claim all clients immediately to ensure FCM SW controls the page
   event.waitUntil(
     Promise.all([
-      self.clients.claim(),
+      self.clients.claim().then(() => {
+        console.log('[FCM SW] ✅ Claimed all clients')
+        return self.clients.matchAll().then(clients => {
+          console.log(`[FCM SW] Controlling ${clients.length} client(s)`)
+        })
+      }),
       // Clear any old caches
       caches.keys().then(cacheNames => {
         return Promise.all(
@@ -55,7 +66,10 @@ self.addEventListener('activate', (event) => {
           })
         )
       })
-    ])
+    ]).then(() => {
+      console.log('[FCM SW] ✅ Activation complete')
+      console.log('[FCM SW] Service worker is now controlling the page')
+    })
   )
 })
 

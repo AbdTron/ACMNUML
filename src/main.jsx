@@ -205,10 +205,37 @@ if ('serviceWorker' in navigator) {
         })
       }
       
-      // ✅ 5. Auto-refresh when new SW takes control
+      // ✅ 5. Auto-refresh when new SW takes control (prevent infinite loops)
+      // Store reload state in sessionStorage to prevent infinite loops
+      const reloadKey = 'sw-reload-pending'
+      const hasPendingReload = sessionStorage.getItem(reloadKey) === 'true'
+      
+      if (hasPendingReload) {
+        // Clear the flag - we've already reloaded
+        sessionStorage.removeItem(reloadKey)
+        console.log('[SW] Reload completed, flag cleared')
+      }
+      
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[SW] Service worker controller changed, reloading...')
-        window.location.reload()
+        // Prevent infinite reload loops
+        if (sessionStorage.getItem(reloadKey) === 'true') {
+          console.log('[SW] Reload already pending, skipping...')
+          return
+        }
+        
+        const currentController = navigator.serviceWorker.controller?.scriptURL
+        console.log('[SW] Service worker controller changed:', currentController)
+        
+        // Only reload if we're in PWA mode and wrong SW is controlling
+        if (isPWA && currentController && !currentController.includes('firebase-messaging-sw.js')) {
+          console.log('[SW] Wrong service worker controlling in PWA mode, will reload once')
+          sessionStorage.setItem(reloadKey, 'true')
+          setTimeout(() => {
+            window.location.reload()
+          }, 500)
+        } else {
+          console.log('[SW] Controller change detected but no reload needed')
+        }
       })
       
     } catch (error) {
