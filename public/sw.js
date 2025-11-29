@@ -70,20 +70,33 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Skip service worker and FCM worker files (they should never be cached)
   const url = new URL(event.request.url)
+  
+  // Skip service worker and FCM worker files (they should never be cached)
   if (url.pathname === '/sw.js' || url.pathname === '/firebase-messaging-sw.js') {
     return
   }
 
-  // Check if this is an external request (cross-origin)
-  const isExternalRequest = url.origin !== self.location.origin
+  // Skip Firestore API calls (they should not be intercepted)
+  if (url.hostname.includes('firestore.googleapis.com') || 
+      url.hostname.includes('firebase.googleapis.com') ||
+      url.hostname.includes('googleapis.com')) {
+    return // Let these pass through without service worker interception
+  }
 
+  // Skip external API calls and fonts (let browser handle them)
+  const isExternalRequest = url.origin !== self.location.origin
+  
+  // For external requests (fonts, CDNs, etc.), don't intercept at all
+  if (isExternalRequest) {
+    return // Let browser handle external resources normally
+  }
+
+  // Only handle same-origin requests
   event.respondWith(
     // ✅ Network-first: Try network first
     fetch(event.request, {
-      // Only add cache-control for same-origin requests to avoid CORS issues
-      ...(isExternalRequest ? {} : { cache: 'no-store' })
+      cache: 'no-store' // Always fetch fresh from network for same-origin
     })
       .then((response) => {
         // Check if valid response
@@ -91,18 +104,15 @@ self.addEventListener('fetch', (event) => {
           return response
         }
 
-        // Only cache same-origin requests
-        if (!isExternalRequest) {
-          // Clone the response for caching
-          const responseToCache = response.clone()
+        // Clone the response for caching
+        const responseToCache = response.clone()
 
-          // Update cache with fresh content (background update)
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache)
-          }).catch((error) => {
-            console.warn('[SW] Failed to cache response:', error)
-          })
-        }
+        // Update cache with fresh content (background update)
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache)
+        }).catch((error) => {
+          console.warn('[SW] Failed to cache response:', error)
+        })
 
         return response
       })

@@ -115,15 +115,30 @@ const getFCMToken = async () => {
         })
         console.log('[FCM] FCM Service Worker registered:', registration.scope)
         
-        // Wait for it to be ready
+        // Wait for it to be ready (check if installing exists and is not null)
         if (registration.installing) {
           await new Promise((resolve) => {
-            registration.installing.addEventListener('statechange', () => {
-              if (registration.installing.state === 'activated') {
+            const installing = registration.installing
+            if (installing) {
+              installing.addEventListener('statechange', () => {
+                if (installing.state === 'activated' || installing.state === 'redundant') {
+                  resolve()
+                }
+              })
+              // Also resolve if already activated
+              if (installing.state === 'activated') {
                 resolve()
               }
-            })
+            } else {
+              resolve()
+            }
           })
+        } else if (registration.waiting) {
+          // If waiting, it's already ready
+          console.log('[FCM] FCM Service Worker is waiting (ready)')
+        } else if (registration.active) {
+          // If active, it's already ready
+          console.log('[FCM] FCM Service Worker is already active')
         }
       } else {
         console.log('[FCM] Found existing FCM service worker registration')
