@@ -70,6 +70,38 @@
   flex-wrap: wrap;
 }
 
+.filter-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-white);
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-dark);
+  font-size: 0.9375rem;
+  min-height: 44px; /* Better touch target for mobile */
+}
+
+.filter-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.filter-btn.active:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
 .team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -398,6 +430,30 @@
   color: var(--text-light);
 }
 
+.loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-light);
+  font-size: 1.125rem;
+}
+
+.loading::after {
+  content: '...';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
 @media (max-width: 768px) {
   .page-header {
     padding: 2.5rem 0;
@@ -422,6 +478,7 @@
     width: 100%;
     padding: 0.875rem 1.25rem;
     min-height: 44px;
+    font-size: 0.9375rem;
   }
 
   .team-grid {
@@ -488,8 +545,18 @@
     font-size: 1rem;
   }
 
+  .team-filters {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
   .team-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
   
@@ -498,22 +565,28 @@
     gap: 1rem;
   }
 
+  .team-head-grid .team-card {
+    max-width: 100%;
+  }
+
   .team-card {
-    min-height: 320px;
+    min-height: auto;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .team-card-front,
   .team-card-back {
     padding: 1rem;
-    min-height: 320px;
+    min-height: auto;
   }
 
   .team-info {
-    padding: 0.875rem;
+    padding: 1rem;
   }
 
   .team-image-wrapper {
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 4 / 3;
   }
 
   .team-name {
@@ -531,9 +604,19 @@
   }
 
   .social-link {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     font-size: 0.875rem;
+    min-width: 36px; /* Better touch target */
+  }
+
+  .no-members {
+    padding: 2rem 1rem;
+  }
+
+  .no-members .btn {
+    width: 100%;
+    min-height: 44px;
   }
 }
 

@@ -85,3 +85,4 @@ export const exportRegistrationsToExcel = (registrations, eventTitle = 'registra
 
 
 
+

@@ -429,8 +429,13 @@
 }
 
 @media (max-width: 768px) {
+  .member-events-page {
+    padding: 1rem 0;
+  }
+
   .registrations-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .filters-section {
@@ -441,15 +446,97 @@
     min-width: 100%;
   }
 
+  .search-box input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .registration-card {
+    border-radius: 0.75rem;
+  }
+
+  .registration-header {
+    padding: 1.25rem 1.25rem 0.875rem;
+    flex-wrap: wrap;
+  }
+
+  .registration-header h3 {
+    font-size: 1.125rem;
+  }
+
+  .event-details {
+    padding: 0 1.25rem 0.875rem;
+  }
+
+  .registration-meta {
+    padding: 0 1.25rem 0.875rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .registration-actions {
     flex-direction: column;
+    padding: 1rem 1.25rem 1.25rem;
   }
 
   .registration-actions > * {
     width: 100%;
+    min-width: auto;
+  }
+
+  .event-register-btn,
+  .event-view-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+    min-height: 44px; /* Better touch target */
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px; /* Better touch target */
   }
 
   .qr-modal-content {
-    margin: 1rem;
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .qr-modal-header {
+    padding: 1.25rem;
+  }
+
+  .qr-modal-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .qr-modal-body {
+    padding: 1.5rem;
+  }
+
+  .qr-code-display {
+    padding: 0.75rem;
+  }
+
+  .qr-code-display svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .registration-card {
+    border-radius: 0.5rem;
+  }
+
+  .detail-item {
+    font-size: 0.8125rem;
+  }
+
+  .qr-modal-content {
+    border-radius: 0.75rem;
   }
 }

@@ -17,6 +17,7 @@ const MemberDirectory = () => {
 
   const fetchMembers = async () => {
     if (!db) {
+      console.warn('Firebase db not initialized')
       setLoading(false)
       return
     }
@@ -34,10 +35,13 @@ const MemberDirectory = () => {
       const membersData = []
       usersSnap.forEach((doc) => {
         const data = doc.data()
-        membersData.push({
-          id: doc.id,
-          ...data
-        })
+        // Only include members with valid data
+        if (data && (data.name || data.email)) {
+          membersData.push({
+            id: doc.id,
+            ...data
+          })
+        }
       })
 
       // Sort in JavaScript after fetching
@@ -47,9 +51,16 @@ const MemberDirectory = () => {
         return nameA.localeCompare(nameB)
       })
 
+      console.log(`[MemberDirectory] Loaded ${membersData.length} members`)
       setMembers(membersData)
     } catch (error) {
-      console.error('Error fetching members:', error)
+      console.error('[MemberDirectory] Error fetching members:', error)
+      // Set empty array on error to show empty state instead of infinite loading
+      setMembers([])
+      // Show user-friendly error message
+      if (error.code === 'permission-denied') {
+        console.error('[MemberDirectory] Permission denied - check Firestore rules')
+      }
     } finally {
       setLoading(false)
     }
@@ -107,9 +118,20 @@ const MemberDirectory = () => {
               <h3>No members found</h3>
               <p>
                 {members.length === 0
-                  ? "No members have opted into the directory yet."
+                  ? "No members have opted into the directory yet. If you just enabled this setting, try refreshing the page."
                   : "No members match your search criteria."}
               </p>
+              {members.length === 0 && (
+                <button 
+                  onClick={() => {
+                    window.location.reload()
+                  }}
+                  className="btn btn-primary"
+                  style={{ marginTop: '1rem' }}
+                >
+                  Refresh Page
+                </button>
+              )}
             </div>
           ) : (
             <div className="members-grid">

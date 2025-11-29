@@ -58,11 +58,18 @@ const Team = () => {
             img.src = member.image
           }
         })
+        console.log(`[Team] Loaded ${members.length} team members${headMember ? ' and 1 head' : ''}`)
         setTeamMembers(members)
         setTeamHead(headMember)
         setImagesLoading(loadingStates)
       } catch (error) {
-        console.error('Error fetching team:', error)
+        console.error('[Team] Error fetching team:', error)
+        // Set empty arrays on error to show empty state
+        setTeamMembers([])
+        setTeamHead(null)
+        if (error.code === 'permission-denied') {
+          console.error('[Team] Permission denied - check Firestore rules')
+        }
       } finally {
         setLoading(false)
       }
@@ -71,9 +78,27 @@ const Team = () => {
     fetchTeam()
   }, [])
 
+  // Improved filtering logic to handle role variations
   const filteredMembers = filter === 'all' 
     ? teamMembers 
-    : teamMembers.filter(member => member.role?.toLowerCase() === filter.toLowerCase())
+    : teamMembers.filter(member => {
+        if (!member.role) return false
+        const memberRole = member.role.toLowerCase().trim()
+        const filterRole = filter.toLowerCase().trim()
+        
+        // Exact match
+        if (memberRole === filterRole) return true
+        
+        // Handle variations like "vice president" vs "vice-president"
+        const normalizedMemberRole = memberRole.replace(/[-\s]+/g, ' ')
+        const normalizedFilterRole = filterRole.replace(/[-\s]+/g, ' ')
+        if (normalizedMemberRole === normalizedFilterRole) return true
+        
+        // Partial match for roles like "Vice President" matching "vice president"
+        if (memberRole.includes(filterRole) || filterRole.includes(memberRole)) return true
+        
+        return false
+      })
 
   const getMemberImage = (member) => {
     if (member.image) return member.image
@@ -207,9 +232,25 @@ const Team = () => {
               All Members
             </button>
             {roles.filter(r => r !== 'all').map(role => {
-              const membersWithRole = teamMembers.filter(m => 
-                m.role?.toLowerCase() === role.toLowerCase()
-              )
+              // Improved role matching for filter buttons
+              const membersWithRole = teamMembers.filter(m => {
+                if (!m.role) return false
+                const memberRole = m.role.toLowerCase().trim()
+                const filterRole = role.toLowerCase().trim()
+                
+                // Exact match
+                if (memberRole === filterRole) return true
+                
+                // Handle variations
+                const normalizedMemberRole = memberRole.replace(/[-\s]+/g, ' ')
+                const normalizedFilterRole = filterRole.replace(/[-\s]+/g, ' ')
+                if (normalizedMemberRole === normalizedFilterRole) return true
+                
+                // Partial match
+                if (memberRole.includes(filterRole) || filterRole.includes(memberRole)) return true
+                
+                return false
+              })
               if (membersWithRole.length === 0) return null
               return (
                 <button
@@ -323,7 +364,22 @@ const Team = () => {
             </div>
           ) : (
             <div className="no-members">
-              <p>No team members found.</p>
+              <p>
+                {filter === 'all' 
+                  ? 'No team members found. If you just added members, try refreshing the page.'
+                  : `No ${filter.charAt(0).toUpperCase() + filter.slice(1)}s found.`}
+              </p>
+              {filter === 'all' && (
+                <button 
+                  onClick={() => {
+                    window.location.reload()
+                  }}
+                  className="btn btn-primary"
+                  style={{ marginTop: '1rem' }}
+                >
+                  Refresh Page
+                </button>
+              )}
             </div>
           )}
           </div>

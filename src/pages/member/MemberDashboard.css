@@ -313,28 +313,121 @@
 }
 
 @media (max-width: 768px) {
+  .member-dashboard {
+    padding: 0;
+  }
+
+  .member-header {
+    padding: 1.5rem 0;
+  }
+
   .member-header-content {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .member-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .member-header p {
+    font-size: 0.9375rem;
+  }
+
+  .btn-icon-link,
+  .btn-logout {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+    min-height: 44px; /* Better touch target */
+  }
+
+  .member-content {
+    padding: 2rem 0;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .stat-info h3 {
+    font-size: 1.75rem;
   }
 
   .actions-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .action-card {
+    padding: 1.5rem;
+  }
+
+  .action-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 1.75rem;
+  }
+
+  .action-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .recent-section {
+    padding: 1.5rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.25rem;
   }
 
   .registration-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+    padding: 1.25rem;
   }
 
   .btn-view-event {
     width: 100%;
     text-align: center;
+    min-height: 44px; /* Better touch target */
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .member-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .section-title h2 {
+    font-size: 1.5rem;
+  }
+
+  .action-card h3 {
+    font-size: 1.125rem;
+  }
+
+  .registration-info h3 {
+    font-size: 1rem;
   }
 }
 

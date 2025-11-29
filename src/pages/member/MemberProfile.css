@@ -173,16 +173,59 @@
     padding: 1rem 0;
   }
 
+  .profile-header h1 {
+    font-size: 1.5rem;
+  }
+
   .profile-form {
     padding: 1.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .form-section h2 {
+    font-size: 1.125rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
   }
 
   .form-actions {
     flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
   }
 
   .form-actions > * {
     width: 100%;
+    min-height: 44px; /* Better touch target */
+  }
+
+  .form-actions .btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-form {
+    padding: 1.25rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .checkbox-label {
+    font-size: 0.9375rem;
   }
 }
 
