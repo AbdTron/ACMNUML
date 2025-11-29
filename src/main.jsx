@@ -189,6 +189,11 @@ if ('serviceWorker' in navigator) {
       
       // Listen for FCM service worker updates (PWA mode)
       if (fcmRegistration) {
+        // Force update check on PWA open
+        fcmRegistration.update().catch(err => {
+          console.log('[SW] Update check failed (may be normal):', err)
+        })
+        
         fcmRegistration.addEventListener('updatefound', () => {
           const newWorker = fcmRegistration.installing
           if (newWorker) {

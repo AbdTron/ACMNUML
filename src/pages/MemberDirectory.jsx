@@ -52,6 +52,7 @@ const MemberDirectory = () => {
       })
 
       console.log(`[MemberDirectory] Loaded ${membersData.length} members`)
+      console.log('[MemberDirectory] Members data:', membersData.map(m => ({ id: m.id, name: m.name, showInDirectory: m.showInDirectory })))
       setMembers(membersData)
     } catch (error) {
       console.error('[MemberDirectory] Error fetching members:', error)

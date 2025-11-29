@@ -57,14 +57,17 @@ self.addEventListener('activate', (event) => {
           console.log(`[FCM SW] Controlling ${clients.length} client(s)`)
         })
       }),
-      // Clear any old caches
+      // Clear any old caches (force clear all to ensure fresh content)
       caches.keys().then(cacheNames => {
+        console.log(`[FCM SW] Found ${cacheNames.length} cache(s) to delete`)
         return Promise.all(
           cacheNames.map(cacheName => {
             console.log('[FCM SW] Deleting cache:', cacheName)
             return caches.delete(cacheName)
           })
         )
+      }).then(() => {
+        console.log('[FCM SW] ✅ All caches cleared')
       })
     ]).then(() => {
       console.log('[FCM SW] ✅ Activation complete')
