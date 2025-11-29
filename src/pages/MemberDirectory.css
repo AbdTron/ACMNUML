@@ -305,9 +305,11 @@
   }
 
   .members-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     display: grid !important;
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .member-card {
@@ -317,6 +319,9 @@
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .member-card-admin-acm {
@@ -387,21 +392,30 @@
 
   /* Ensure container doesn't overflow */
   .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }
 
 @media (max-width: 480px) {
   .members-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.5rem !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.375rem !important;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .member-card {
     padding: 0.75rem;
     padding-top: 1.25rem;
     padding-bottom: 0.75rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .member-card-admin-acm {
@@ -449,5 +463,15 @@
   .social-link svg {
     width: 1rem;
     height: 1rem;
+  }
+
+  /* Ensure container doesn't overflow on small screens */
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }
