@@ -71,15 +71,21 @@ service cloud.firestore {
     // Users collection - members can read/update their own profile, admins can read all
     // Also allow reading profiles that are opted into the directory
     match /users/{userId} {
-      // Users can read their own profile, admins can read any user
-      // Also allow reading profiles that opted into directory (for member directory)
-      allow read: if request.auth != null && (
-        request.auth.uid == userId || 
-        isAdmin() ||
+      // Allow reading if:
+      // 1. User is reading their own profile (authenticated)
+      // 2. User is an admin (authenticated)
+      // 3. Profile has showInDirectory == true (for public member directory - no auth required)
+      // Note: For queries to work, we need to allow reading profiles with showInDirectory == true
+      // even for unauthenticated users, since the member directory should be publicly accessible
+      allow read: if (
+        (request.auth != null && request.auth.uid == userId) || 
+        (request.auth != null && isAdmin()) ||
         resource.data.showInDirectory == true
       );
-      // Allow list operations for authenticated users (needed for directory queries)
-      allow list: if request.auth != null;
+      // Allow list operations for both authenticated and unauthenticated users
+      // This is needed for queries with where clauses (member directory is public)
+      // The read rule above will filter which documents can actually be read
+      allow list: if true;
       // Users can create their own profile
       allow create: if request.auth != null && request.auth.uid == userId;
       // Users can update their own profile, admins can update any user

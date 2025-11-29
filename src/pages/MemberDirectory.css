@@ -93,6 +93,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  width: 100%;
 }
 
 .member-card {
@@ -275,12 +276,18 @@
   }
 
   .members-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+    gap: 1.5rem !important;
   }
 
   .member-card {
     padding: 1.5rem;
     padding-top: 2rem;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-height: auto !important;
   }
 
   .member-card-admin-acm {
@@ -301,6 +308,12 @@
 
   .search-box input {
     font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Ensure container doesn't overflow */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
 
