@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { FiExternalLink, FiMail, FiUsers, FiArrowRight } from 'react-icons/fi'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { isPWA } from '../utils/isPWA'
 import './Join.css'
 
 const Join = () => {
@@ -78,52 +77,8 @@ const Join = () => {
                 other tech field, there's a place for you here.
               </p>
 
-              {/* Show "Ready to Join?" section first in PWA mode, after title and description */}
-              {isPWA() && (
-                <div className="join-form-section join-form-section-pwa-top">
-                  <div className="form-card">
-                    <div className="apply-header">
-                      <h2>Ready to Join?</h2>
-                      <p className="form-description">
-                        Click the button below to access our application form. We're always looking
-                        for enthusiastic members who want to make a difference in the CS community.
-                      </p>
-                    </div>
-
-                    <a
-                      href={googleFormUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary btn-google-form"
-                    >
-                      <span>Apply via Google Form</span>
-                      <FiExternalLink />
-                    </a>
-
-                    <div className="form-info">
-                      <p>
-                        <strong>Note:</strong> The application form will open in a new tab. 
-                        Please complete all required fields to submit your application.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="benefits-grid">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="benefit-card">
-                    <div className="benefit-icon">{benefit.icon}</div>
-                    <h3 className="benefit-title">{benefit.title}</h3>
-                    <p className="benefit-description">{benefit.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Show "Ready to Join?" section in original position for browser mode */}
-            {!isPWA() && (
-              <div className="join-form-section">
+              {/* "Ready to Join?" section - shown on mobile/PWA after description, hidden on desktop */}
+              <div className="join-form-section join-form-section-mobile">
                 <div className="form-card">
                   <div className="apply-header">
                     <h2>Ready to Join?</h2>
@@ -151,7 +106,47 @@ const Join = () => {
                   </div>
                 </div>
               </div>
-            )}
+
+              <div className="benefits-grid">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="benefit-card">
+                    <div className="benefit-icon">{benefit.icon}</div>
+                    <h3 className="benefit-title">{benefit.title}</h3>
+                    <p className="benefit-description">{benefit.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* "Ready to Join?" section - shown on desktop in sidebar, hidden on mobile/PWA */}
+            <div className="join-form-section join-form-section-desktop">
+              <div className="form-card">
+                <div className="apply-header">
+                  <h2>Ready to Join?</h2>
+                  <p className="form-description">
+                    Click the button below to access our application form. We're always looking
+                    for enthusiastic members who want to make a difference in the CS community.
+                  </p>
+                </div>
+
+                <a
+                  href={googleFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary btn-google-form"
+                >
+                  <span>Apply via Google Form</span>
+                  <FiExternalLink />
+                </a>
+
+                <div className="form-info">
+                  <p>
+                    <strong>Note:</strong> The application form will open in a new tab. 
+                    Please complete all required fields to submit your application.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -224,7 +224,8 @@
   color: #1e40af;
 }
 
-.role-badge-member {
+.role-badge-user,
+.role-badge-member { /* Backward compatibility */
   background: #e5e7eb;
   color: #374151;
 }

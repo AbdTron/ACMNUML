@@ -1,10 +1,11 @@
 /**
  * Role-based permission system
- * Supports: member, admin, superadmin roles
+ * Supports: user, admin, superadmin roles
+ * Note: "Member" is for ACM Society role (handled by acmRole field), not user role
  */
 
 export const ROLES = {
-  MEMBER: 'member',
+  USER: 'user',
   ADMIN: 'admin',
   SUPERADMIN: 'superadmin'
 }
@@ -19,7 +20,7 @@ export const hasRole = (userRole, requiredRole) => {
   if (!userRole || !requiredRole) return false
   
   const roleHierarchy = {
-    [ROLES.MEMBER]: 1,
+    [ROLES.USER]: 1,
     [ROLES.ADMIN]: 2,
     [ROLES.SUPERADMIN]: 3
   }
@@ -67,8 +68,8 @@ export const canPerformAction = (userRole, action, resourceOwnerId = null, curre
     if (action === 'view_logs') return true
   }
   
-  // Members can view their own data
-  if (userRole === ROLES.MEMBER) {
+  // Users can view their own data
+  if (userRole === ROLES.USER) {
     if (action === 'view_own_profile' && resourceOwnerId === currentUserId) return true
     if (action === 'edit_own_profile' && resourceOwnerId === currentUserId) return true
   }

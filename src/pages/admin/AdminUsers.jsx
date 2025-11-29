@@ -35,7 +35,7 @@ const AdminUsers = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: ROLES.MEMBER,
+    role: ROLES.USER,
     acmRole: ''
   })
 
@@ -75,7 +75,7 @@ const AdminUsers = () => {
     setFormData({
       name: user.name || '',
       email: user.email || '',
-      role: user.role || ROLES.MEMBER,
+      role: user.role || ROLES.USER,
       acmRole: user.acmRole || ''
     })
     setShowEditModal(true)
@@ -146,8 +146,11 @@ const AdminUsers = () => {
         return 'role-badge role-badge-superadmin'
       case ROLES.ADMIN:
         return 'role-badge role-badge-admin'
-      case ROLES.MEMBER:
-        return 'role-badge role-badge-member'
+      case ROLES.USER:
+        return 'role-badge role-badge-user'
+      // Backward compatibility for old 'member' role
+      case 'member':
+        return 'role-badge role-badge-user'
       default:
         return 'role-badge'
     }
@@ -158,9 +161,9 @@ const AdminUsers = () => {
     if (isSuperAdmin(userRole)) {
       return user.role !== ROLES.SUPERADMIN || user.id === currentUser.uid
     }
-    // Admins can edit members only
+    // Admins can edit users only
     if (userRole === ROLES.ADMIN) {
-      return user.role === ROLES.MEMBER
+      return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
     return false
   }
@@ -172,9 +175,9 @@ const AdminUsers = () => {
     if (isSuperAdmin(userRole)) {
       return user.role !== ROLES.SUPERADMIN
     }
-    // Admins can delete members only
+    // Admins can delete users only
     if (userRole === ROLES.ADMIN) {
-      return user.role === ROLES.MEMBER
+      return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
     return false
   }
@@ -190,7 +193,7 @@ const AdminUsers = () => {
           <div className="admin-header-content">
             <div>
               <h1>User Management</h1>
-              <p>Manage member accounts and permissions</p>
+              <p>Manage user accounts and permissions. Note: "Member" refers to ACM Society role (set in ACM Role field), not user role.</p>
             </div>
           </div>
         </div>
@@ -242,7 +245,7 @@ const AdminUsers = () => {
                       onChange={handleInputChange}
                       required
                     >
-                      <option value={ROLES.MEMBER}>Member</option>
+                      <option value={ROLES.USER}>User</option>
                       {(isSuperAdmin(userRole) || userRole === ROLES.ADMIN) && (
                         <option value={ROLES.ADMIN}>Admin</option>
                       )}
@@ -328,7 +331,7 @@ const AdminUsers = () => {
                         <td>
                           <span className={getRoleBadgeClass(user.role)}>
                             <FiShield />
-                            {user.role || ROLES.MEMBER}
+                            {user.role === 'member' ? 'User' : (user.role || 'User')}
                           </span>
                         </td>
                         <td>

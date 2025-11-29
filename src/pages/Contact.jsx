@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { collection, addDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { FiMail, FiMapPin, FiPhone, FiSend, FiCheckCircle } from 'react-icons/fi'
+import { FiMail, FiMapPin, FiPhone, FiSend, FiCheckCircle, FiInstagram, FiLinkedin, FiGithub } from 'react-icons/fi'
 import './Contact.css'
 
 const Contact = () => {
@@ -121,11 +121,18 @@ const Contact = () => {
                 <h3>Follow Us</h3>
                 <p>Stay connected with us on social media</p>
                 <div className="social-links">
- 
-                  <a href="https://www.instagram.com/acm.numllhr/" target="_blank" rel="noopener noreferrer">
-                    Instagram
+                  <a href="https://www.instagram.com/acm.numllhr/" target="_blank" rel="noopener noreferrer" className="social-link">
+                    <FiInstagram />
+                    <span>Instagram</span>
                   </a>
-
+                  <a href="https://www.linkedin.com/company/acmnuml" target="_blank" rel="noopener noreferrer" className="social-link">
+                    <FiLinkedin />
+                    <span>LinkedIn</span>
+                  </a>
+                  <a href="https://github.com/acmnuml" target="_blank" rel="noopener noreferrer" className="social-link">
+                    <FiGithub />
+                    <span>GitHub</span>
+                  </a>
                 </div>
               </div>
             </div>

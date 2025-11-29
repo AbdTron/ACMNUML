@@ -63,15 +63,32 @@
   margin-top: 12rem;
 }
 
-/* PWA-specific styling: form section at top, no sticky positioning */
-.join-form-section-pwa-top {
-  margin-top: 0 !important;
+/* Mobile/PWA: Show form section after description, hide desktop version */
+.join-form-section-mobile {
+  display: none;
+  margin-top: 0;
   margin-bottom: 2.5rem;
 }
 
-.join-form-section-pwa-top .form-card {
+.join-form-section-mobile .form-card {
   position: static !important;
   margin-top: 0 !important;
+}
+
+/* Desktop: Show form section in sidebar, hide mobile version */
+.join-form-section-desktop {
+  display: block;
+}
+
+@media (max-width: 968px) {
+  /* On mobile/PWA: Show mobile version, hide desktop version */
+  .join-form-section-mobile {
+    display: block;
+  }
+  
+  .join-form-section-desktop {
+    display: none;
+  }
 }
 
 .apply-header h2 {

@@ -11,7 +11,9 @@ const Footer = () => {
  
  
     { icon: FiInstagram, href: 'https://www.instagram.com/acm.numllhr/', label: 'Instagram' },
-  ]
+    { icon: FiLinkedin, href: 'https://www.linkedin.com/company/acmnuml', label: 'LinkedIn' },
+    { icon: FiGithub, href: 'https://github.com/acmnuml', label: 'GitHub' },
+  ].filter(link => link.href) // Only show links that have a URL
 
   return (
     <footer className="footer">

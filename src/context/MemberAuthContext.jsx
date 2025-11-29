@@ -54,7 +54,7 @@ export const MemberAuthProvider = ({ children }) => {
               const newProfile = {
                 email: user.email,
                 name: user.displayName || user.email?.split('@')[0] || 'User',
-                role: ROLES.MEMBER,
+                role: ROLES.USER,
                 showInDirectory: true, // Default to enabled
                 joinDate: serverTimestamp(),
                 createdAt: new Date().toISOString(),
@@ -69,7 +69,7 @@ export const MemberAuthProvider = ({ children }) => {
                 setUserProfile({
                   email: user.email,
                   name: user.displayName || user.email?.split('@')[0] || 'User',
-                  role: ROLES.MEMBER
+                  role: ROLES.USER
                 })
               }
             }
@@ -78,11 +78,11 @@ export const MemberAuthProvider = ({ children }) => {
             if (error.code === 'permission-denied') {
               console.log('Could not fetch user profile (may not exist yet):', error.message)
               // Set a basic profile structure
-              setUserProfile({
-                email: user.email,
-                name: user.displayName || user.email?.split('@')[0] || 'User',
-                role: ROLES.MEMBER
-              })
+                setUserProfile({
+                  email: user.email,
+                  name: user.displayName || user.email?.split('@')[0] || 'User',
+                  role: ROLES.USER
+                })
             } else {
               console.error('Error fetching user profile:', error)
               setUserProfile(null)
@@ -111,7 +111,7 @@ export const MemberAuthProvider = ({ children }) => {
     const userProfile = {
       email: user.email,
       name: name || user.email?.split('@')[0] || 'User',
-      role: ROLES.MEMBER,
+      role: ROLES.USER,
       showInDirectory: true, // Default to enabled
       joinDate: serverTimestamp(),
       createdAt: new Date().toISOString(),
@@ -156,7 +156,7 @@ export const MemberAuthProvider = ({ children }) => {
       const userProfile = {
         email: user.email,
         name: user.displayName || user.email?.split('@')[0] || 'User',
-        role: ROLES.MEMBER,
+        role: ROLES.USER,
         showInDirectory: true, // Default to enabled
         photoURL: user.photoURL || null,
         joinDate: serverTimestamp(),
@@ -219,7 +219,7 @@ export const MemberAuthProvider = ({ children }) => {
     signInWithGoogle,
     logout,
     updateProfile,
-    isMember: userProfile?.role === ROLES.MEMBER,
+    isMember: userProfile?.role === ROLES.USER || userProfile?.role === 'member', // Backward compatibility
     isAdmin: userProfile?.role === ROLES.ADMIN || userProfile?.role === ROLES.SUPERADMIN
   }
 
