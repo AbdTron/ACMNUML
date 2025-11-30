@@ -27,7 +27,7 @@ const MemberProfilePublic = () => {
       const userSnap = await getDoc(userRef)
       
       if (!userSnap.exists()) {
-        setError('Member profile not found')
+        setError('User profile not found')
         setLoading(false)
         return
       }
@@ -36,7 +36,7 @@ const MemberProfilePublic = () => {
       
       // Check if member opted into directory
       if (!userData.showInDirectory) {
-        setError('This member profile is not available in the directory')
+        setError('This user profile is not available in the directory')
         setLoading(false)
         return
       }
@@ -48,7 +48,7 @@ const MemberProfilePublic = () => {
       })
     } catch (err) {
       console.error('Error fetching member profile:', err)
-      setError('Failed to load member profile')
+      setError('Failed to load user profile')
     } finally {
       setLoading(false)
     }
@@ -73,7 +73,7 @@ const MemberProfilePublic = () => {
           </Link>
           <div className="error-state">
             <FiUser />
-            <h3>{error || 'Member profile not found'}</h3>
+            <h3>{error || 'User profile not found'}</h3>
             <Link to="/members" className="btn btn-primary">
               Browse Directory
             </Link>
@@ -103,7 +103,7 @@ const MemberProfilePublic = () => {
               {member.joinDate && (
                 <p className="join-date">
                   <FiCalendar />
-                  Member since {format(member.joinDate, 'MMMM yyyy')}
+                  User since {format(member.joinDate, 'MMMM yyyy')}
                 </p>
               )}
             </div>

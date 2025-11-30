@@ -88,7 +88,7 @@ const MemberDirectory = () => {
     return (
       <div className="member-directory-page">
         <div className="container">
-          <div className="loading">Loading member directory...</div>
+          <div className="loading">Loading user directory...</div>
         </div>
       </div>
     )
@@ -98,8 +98,8 @@ const MemberDirectory = () => {
     <div className="member-directory-page">
       <div className="page-header">
         <div className="container">
-          <h1>Member Directory</h1>
-          <p>Connect with fellow ACM NUML members</p>
+          <h1>User Directory</h1>
+          <p>Connect with fellow ACM NUML Users</p>
         </div>
       </div>
 
@@ -110,24 +110,24 @@ const MemberDirectory = () => {
               <FiSearch />
               <input
                 type="text"
-                placeholder="Search members by name, bio, or email..."
+                placeholder="Search users by name, bio, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <p className="member-count">
-              {filteredMembers.length} {filteredMembers.length === 1 ? 'member' : 'members'} found
+              {filteredMembers.length} {filteredMembers.length === 1 ? 'user' : 'users'} found
             </p>
           </div>
 
           {filteredMembers.length === 0 ? (
             <div className="empty-state">
               <FiUser />
-              <h3>No members found</h3>
+              <h3>No users found</h3>
               <p>
                 {members.length === 0
-                  ? "No members have opted into the directory yet. If you just enabled this setting, try refreshing the page."
-                  : "No members match your search criteria."}
+                  ? "No users have opted into the directory yet. If you just enabled this setting, try refreshing the page."
+                  : "No users match your search criteria."}
               </p>
               {members.length === 0 && (
                 <button 
@@ -167,7 +167,7 @@ const MemberDirectory = () => {
                     {member.name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   <div className="member-info">
-                    <h3>{member.name || 'Member'}</h3>
+                    <h3>{member.name || 'User'}</h3>
                     {(member.role === ROLES.ADMIN || member.role === ROLES.SUPERADMIN) && (
                       <span className="admin-badge">
                         <FiShield />
