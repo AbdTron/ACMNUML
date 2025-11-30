@@ -55,11 +55,12 @@
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   width: 100%;
-  display: block;
-  visibility: visible;
-  opacity: 1;
-  position: relative;
-  z-index: 1;
+  overflow: visible;
+}
+
+.event-share-section > * {
+  width: 100%;
+  min-height: 44px;
 }
 
 .event-detail-meta {
@@ -308,10 +309,11 @@
   }
 
   .event-share-section {
-    margin: 1.5rem 0;
-    padding: 1.5rem 0;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    margin: 1rem 0;
+    padding: 1rem 0;
+    width: 100%;
+    overflow: visible;
+    min-height: 60px;
   }
 
   .event-detail-meta {
@@ -501,11 +503,6 @@
 
   .event-detail-content h1 {
     font-size: 1.75rem;
-  }
-
-  .event-share-section {
-    margin: 1rem 0;
-    padding: 1rem 0;
   }
 
   .session-item {
