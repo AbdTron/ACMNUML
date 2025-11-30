@@ -6,6 +6,8 @@
   width: 100%;
   visibility: visible !important;
   opacity: 1 !important;
+  min-height: 44px;
+  height: auto;
 }
 
 .share-buttons-horizontal {
