@@ -125,7 +125,13 @@ const EventDetail = () => {
                 <h1>{event.title}</h1>
                 
                 {/* Share Buttons */}
-                <div className="event-share-section">
+                <div style={{
+                  width: '100%',
+                  padding: '1.5rem 0',
+                  margin: '1rem 0',
+                  borderTop: '1px solid #e5e7eb',
+                  borderBottom: '1px solid #e5e7eb',
+                }}>
                   <ShareButtons
                     url={shareUrl}
                     title={event.title}

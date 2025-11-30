@@ -86,71 +86,175 @@ const ShareButtons = ({
     }
   }
 
-  const buttonClass = `share-button share-button-${variant}`
-  const containerClass = `share-buttons share-buttons-${variant}`
+  const handleShareClick = (e, platform) => {
+    e.preventDefault()
+    e.stopPropagation()
+    handleShare(platform)
+  }
 
   return (
-    <div className={containerClass}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: '12px',
+      flexWrap: 'wrap',
+      width: '100%',
+      minHeight: '44px',
+      padding: 0,
+      margin: 0
+    }}>
       {showNativeShare && isNativeShareSupported && (
         <button
-          className={`${buttonClass} share-button-native`}
-          onClick={() => handleShare('native')}
-          aria-label="Share via native share"
+          onClick={(e) => handleShareClick(e, 'native')}
+          aria-label="Share"
           title="Share"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '44px',
+            height: '44px',
+            minWidth: '44px',
+            minHeight: '44px',
+            padding: '10px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            background: '#fff',
+            color: '#1f2937',
+            cursor: 'pointer',
+            fontSize: '20px',
+            flexShrink: 0
+          }}
         >
-          <FiShare2 />
-          {showLabels && <span>Share</span>}
+          <FiShare2 style={{ fontSize: '20px' }} />
         </button>
       )}
 
       <button
-        className={`${buttonClass} share-button-facebook`}
-        onClick={() => handleShare('facebook')}
+        onClick={(e) => handleShareClick(e, 'facebook')}
         aria-label="Share on Facebook"
-        title="Share on Facebook"
+        title="Facebook"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '44px',
+          height: '44px',
+          minWidth: '44px',
+          minHeight: '44px',
+          padding: '10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          background: '#fff',
+          color: '#1f2937',
+          cursor: 'pointer',
+          fontSize: '20px',
+          flexShrink: 0
+        }}
       >
-        <FiFacebook />
-        {showLabels && <span>Facebook</span>}
+        <FiFacebook style={{ fontSize: '20px' }} />
       </button>
 
       <button
-        className={`${buttonClass} share-button-instagram`}
-        onClick={() => handleShare('instagram')}
+        onClick={(e) => handleShareClick(e, 'instagram')}
         aria-label="Share on Instagram"
-        title="Share on Instagram"
+        title="Instagram"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '44px',
+          height: '44px',
+          minWidth: '44px',
+          minHeight: '44px',
+          padding: '10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          background: '#fff',
+          color: '#1f2937',
+          cursor: 'pointer',
+          fontSize: '20px',
+          flexShrink: 0
+        }}
       >
-        <FiInstagram />
-        {showLabels && <span>Instagram</span>}
+        <FiInstagram style={{ fontSize: '20px' }} />
       </button>
 
       <button
-        className={`${buttonClass} share-button-linkedin`}
-        onClick={() => handleShare('linkedin')}
+        onClick={(e) => handleShareClick(e, 'linkedin')}
         aria-label="Share on LinkedIn"
-        title="Share on LinkedIn"
+        title="LinkedIn"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '44px',
+          height: '44px',
+          minWidth: '44px',
+          minHeight: '44px',
+          padding: '10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          background: '#fff',
+          color: '#1f2937',
+          cursor: 'pointer',
+          fontSize: '20px',
+          flexShrink: 0
+        }}
       >
-        <FiLinkedin />
-        {showLabels && <span>LinkedIn</span>}
+        <FiLinkedin style={{ fontSize: '20px' }} />
       </button>
 
       <button
-        className={`${buttonClass} share-button-whatsapp`}
-        onClick={() => handleShare('whatsapp')}
+        onClick={(e) => handleShareClick(e, 'whatsapp')}
         aria-label="Share on WhatsApp"
-        title="Share on WhatsApp"
+        title="WhatsApp"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '44px',
+          height: '44px',
+          minWidth: '44px',
+          minHeight: '44px',
+          padding: '10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          background: '#fff',
+          color: '#1f2937',
+          cursor: 'pointer',
+          fontSize: '20px',
+          flexShrink: 0
+        }}
       >
-        <FiMessageCircle />
-        {showLabels && <span>WhatsApp</span>}
+        <FiMessageCircle style={{ fontSize: '20px' }} />
       </button>
 
       <button
-        className={`${buttonClass} share-button-copy ${copied ? 'copied' : ''}`}
-        onClick={() => handleShare('copy')}
+        onClick={(e) => handleShareClick(e, 'copy')}
         aria-label="Copy link"
-        title="Copy link"
+        title={copied ? 'Copied!' : 'Copy link'}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '44px',
+          height: '44px',
+          minWidth: '44px',
+          minHeight: '44px',
+          padding: '10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          background: copied ? '#10b981' : '#fff',
+          color: copied ? '#fff' : '#1f2937',
+          cursor: 'pointer',
+          fontSize: '20px',
+          flexShrink: 0
+        }}
       >
-        {copied ? <FiCheck /> : <FiCopy />}
-        {showLabels && <span>{copied ? 'Copied!' : 'Copy Link'}</span>}
+        {copied ? <FiCheck style={{ fontSize: '20px' }} /> : <FiCopy style={{ fontSize: '20px' }} />}
       </button>
     </div>
   )
