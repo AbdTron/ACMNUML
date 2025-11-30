@@ -40,8 +40,6 @@
   flex-direction: column;
   gap: 2rem;
   min-width: 0; /* Prevents grid overflow */
-  position: relative;
-  z-index: 5;
 }
 
 .event-detail-content h1 {
@@ -58,9 +56,12 @@
   border-bottom: 1px solid var(--border-color);
   width: 100%;
   overflow: visible;
-  position: relative;
-  z-index: 10;
-  background: var(--bg-white);
+  display: block !important;
+}
+
+.event-share-section > * {
+  width: 100%;
+  display: block !important;
 }
 
 .event-share-section > * {
@@ -323,14 +324,12 @@
     width: 100%;
     overflow: visible;
     min-height: 60px;
-    position: relative;
-    z-index: 10;
-    background: var(--bg-white);
+    display: block !important;
   }
 
-  .event-detail-content {
-    position: relative;
-    z-index: 5;
+  .event-share-section > * {
+    width: 100%;
+    display: block !important;
   }
 
   .event-detail-meta {
@@ -520,6 +519,15 @@
   .event-detail-header .container {
     padding: 0.25rem 0.75rem;
     min-height: 45px;
+  }
+
+  .event-share-section {
+    display: block !important;
+  }
+
+  .event-share-section > * {
+    width: 100%;
+    display: block !important;
   }
 
   .event-detail-content h1 {
