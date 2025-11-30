@@ -11,10 +11,12 @@ import {
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { generateFlairs } from '../utils/flairUtils'
+import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import './ForumPostCard.css'
 
 const ForumPostCard = ({ post, showCategory = true }) => {
   const [authorFlairs, setAuthorFlairs] = useState([])
+  const [authorAvatar, setAuthorAvatar] = useState(null)
   const formatDate = (date) => {
     if (!date) return ''
     const postDate = date.toDate ? date.toDate() : new Date(date)
@@ -32,20 +34,29 @@ const ForumPostCard = ({ post, showCategory = true }) => {
   }
 
   useEffect(() => {
-    const loadAuthorFlairs = async () => {
+    const loadAuthorData = async () => {
       // If post already has stored flairs, use them
       if (post.authorFlairs && post.authorFlairs.length > 0) {
         setAuthorFlairs(post.authorFlairs)
-        return
       }
 
-      // For backward compatibility: fetch author's current profile to get accurate flairs
+      // If post has authorAvatar, use it
+      if (post.authorAvatar) {
+        setAuthorAvatar(post.authorAvatar)
+      }
+
+      // For backward compatibility: fetch author's current profile to get accurate flairs and avatar
       if (post.authorId && db) {
         try {
           // Fetch author's current profile
           const userDoc = await getDoc(doc(db, 'users', post.authorId))
           if (userDoc.exists()) {
             const userProfile = userDoc.data()
+            
+            // Get avatar from current profile if post doesn't have it
+            if (!post.authorAvatar && userProfile.avatar) {
+              setAuthorAvatar(userProfile.avatar)
+            }
             
             // Check if user is admin
             let isAdmin = false
@@ -56,17 +67,33 @@ const ForumPostCard = ({ post, showCategory = true }) => {
               // Ignore errors checking admin status
             }
 
-            // Generate flairs from current profile
-            const flairs = generateFlairs({
-              acmRole: userProfile.acmRole || post.authorRole,
-              role: userProfile.role,
-              degree: userProfile.degree || post.authorDegree,
-              semester: userProfile.semester || post.authorSemester
-            }, isAdmin || post.authorIsAdmin || false)
-            
-            setAuthorFlairs(flairs)
+            // Generate flairs from current profile if post doesn't have them
+            if (!post.authorFlairs || post.authorFlairs.length === 0) {
+              const flairs = generateFlairs({
+                acmRole: userProfile.acmRole || post.authorRole,
+                role: userProfile.role,
+                degree: userProfile.degree || post.authorDegree,
+                semester: userProfile.semester || post.authorSemester
+              }, isAdmin || post.authorIsAdmin || false)
+              
+              setAuthorFlairs(flairs)
+            }
           } else {
             // Fallback to old post data if profile doesn't exist
+            if (!post.authorFlairs || post.authorFlairs.length === 0) {
+              const flairs = generateFlairs({
+                acmRole: post.authorRole,
+                role: post.authorRole,
+                degree: post.authorDegree,
+                semester: post.authorSemester
+              }, post.authorIsAdmin || false)
+              setAuthorFlairs(flairs)
+            }
+          }
+        } catch (error) {
+          console.error('Error loading author data:', error)
+          // Fallback to old post data
+          if (!post.authorFlairs || post.authorFlairs.length === 0) {
             const flairs = generateFlairs({
               acmRole: post.authorRole,
               role: post.authorRole,
@@ -75,9 +102,10 @@ const ForumPostCard = ({ post, showCategory = true }) => {
             }, post.authorIsAdmin || false)
             setAuthorFlairs(flairs)
           }
-        } catch (error) {
-          console.error('Error loading author flairs:', error)
-          // Fallback to old post data
+        }
+      } else {
+        // Fallback to old post data
+        if (!post.authorFlairs || post.authorFlairs.length === 0) {
           const flairs = generateFlairs({
             acmRole: post.authorRole,
             role: post.authorRole,
@@ -86,20 +114,11 @@ const ForumPostCard = ({ post, showCategory = true }) => {
           }, post.authorIsAdmin || false)
           setAuthorFlairs(flairs)
         }
-      } else {
-        // Fallback to old post data
-        const flairs = generateFlairs({
-          acmRole: post.authorRole,
-          role: post.authorRole,
-          degree: post.authorDegree,
-          semester: post.authorSemester
-        }, post.authorIsAdmin || false)
-        setAuthorFlairs(flairs)
       }
     }
 
-    loadAuthorFlairs()
-  }, [post.authorId, post.authorFlairs, post.authorRole, post.authorDegree, post.authorSemester, post.authorIsAdmin])
+    loadAuthorData()
+  }, [post.authorId, post.authorFlairs, post.authorAvatar, post.authorRole, post.authorDegree, post.authorSemester, post.authorIsAdmin])
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -118,11 +137,16 @@ const ForumPostCard = ({ post, showCategory = true }) => {
       <div className="post-card-header">
         <div className="post-author-info">
           <div className="author-avatar">
-            {post.authorPhotoURL ? (
-              <img src={post.authorPhotoURL} alt={post.authorName} />
-            ) : (
-              <FiUser />
-            )}
+            {(() => {
+              // Try avatar from state (fetched from profile), then post data, then authorPhotoURL as fallback
+              const avatarPath = authorAvatar || post.authorAvatar
+              const avatarUrl = getAvatarUrlOrDefault(avatarPath || post.authorPhotoURL)
+              return avatarUrl ? (
+                <img src={avatarUrl} alt={post.authorName} />
+              ) : (
+                <FiUser />
+              )
+            })()}
           </div>
           <div className="author-details">
             <div className="author-name-with-flairs">

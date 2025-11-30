@@ -4,6 +4,7 @@ import { db } from '../config/firebase'
 import { Link } from 'react-router-dom'
 import { FiSearch, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiShield, FiPhone } from 'react-icons/fi'
 import { ROLES } from '../utils/permissions'
+import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import './MemberDirectory.css'
 
 const MemberDirectory = () => {
@@ -164,7 +165,14 @@ const MemberDirectory = () => {
                   className={cardClass}
                 >
                   <div className="member-avatar">
-                    {member.name?.charAt(0)?.toUpperCase() || '?'}
+                    {(() => {
+                      const avatarUrl = getAvatarUrlOrDefault(member.avatar || member.photoURL)
+                      return avatarUrl ? (
+                        <img src={avatarUrl} alt={member.name} />
+                      ) : (
+                        <span>{member.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                      )
+                    })()}
                   </div>
                   <div className="member-info">
                     <h3>{member.name || 'User'}</h3>

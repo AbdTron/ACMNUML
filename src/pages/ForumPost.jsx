@@ -17,6 +17,7 @@ import {
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
 import { generateFlairs } from '../utils/flairUtils.js'
+import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { 
   FiArrowLeft, 
   FiThumbsUp, 
@@ -45,6 +46,7 @@ const ForumPost = () => {
   const [submittingReply, setSubmittingReply] = useState(false)
   const [userVote, setUserVote] = useState(null) // 'up', 'down', or null
   const [postAuthorFlairs, setPostAuthorFlairs] = useState([])
+  const [postAuthorAvatar, setPostAuthorAvatar] = useState(null)
   const [replyAuthorsFlairs, setReplyAuthorsFlairs] = useState({}) // Map of replyId -> flairs
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
@@ -79,7 +81,11 @@ const ForumPost = () => {
       // If post already has stored flairs, use them
       if (post.authorFlairs && post.authorFlairs.length > 0) {
         setPostAuthorFlairs(post.authorFlairs)
-        return
+      }
+
+      // If post has authorAvatar, use it
+      if (post.authorAvatar) {
+        setPostAuthorAvatar(post.authorAvatar)
       }
 
       // For backward compatibility: fetch author's current profile
@@ -87,6 +93,11 @@ const ForumPost = () => {
         const userDoc = await getDoc(doc(db, 'users', post.authorId))
         if (userDoc.exists()) {
           const userProfile = userDoc.data()
+          
+          // Get avatar from current profile if post doesn't have it
+          if (!post.authorAvatar && userProfile.avatar) {
+            setPostAuthorAvatar(userProfile.avatar)
+          }
           
           // Check if user is admin
           let isAdmin = false
@@ -97,16 +108,32 @@ const ForumPost = () => {
             // Ignore errors
           }
 
-          const flairs = generateFlairs({
-            acmRole: userProfile.acmRole || post.authorRole,
-            role: userProfile.role,
-            degree: userProfile.degree || post.authorDegree,
-            semester: userProfile.semester || post.authorSemester
-          }, isAdmin || post.authorIsAdmin || false)
-          
-          setPostAuthorFlairs(flairs)
+          // Generate flairs if post doesn't have them
+          if (!post.authorFlairs || post.authorFlairs.length === 0) {
+            const flairs = generateFlairs({
+              acmRole: userProfile.acmRole || post.authorRole,
+              role: userProfile.role,
+              degree: userProfile.degree || post.authorDegree,
+              semester: userProfile.semester || post.authorSemester
+            }, isAdmin || post.authorIsAdmin || false)
+            
+            setPostAuthorFlairs(flairs)
+          }
         } else {
           // Fallback
+          if (!post.authorFlairs || post.authorFlairs.length === 0) {
+            const flairs = generateFlairs({
+              acmRole: post.authorRole,
+              role: post.authorRole,
+              degree: post.authorDegree,
+              semester: post.authorSemester
+            }, post.authorIsAdmin || false)
+            setPostAuthorFlairs(flairs)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading post author data:', error)
+        if (!post.authorFlairs || post.authorFlairs.length === 0) {
           const flairs = generateFlairs({
             acmRole: post.authorRole,
             role: post.authorRole,
@@ -115,15 +142,6 @@ const ForumPost = () => {
           }, post.authorIsAdmin || false)
           setPostAuthorFlairs(flairs)
         }
-      } catch (error) {
-        console.error('Error loading post author flairs:', error)
-        const flairs = generateFlairs({
-          acmRole: post.authorRole,
-          role: post.authorRole,
-          degree: post.authorDegree,
-          semester: post.authorSemester
-        }, post.authorIsAdmin || false)
-        setPostAuthorFlairs(flairs)
       }
     }
 
@@ -381,6 +399,7 @@ const ForumPost = () => {
         authorId: currentUser.uid,
         authorName: userProfile?.name || currentUser.displayName || 'Anonymous',
         authorPhotoURL: currentUser.photoURL || null,
+        authorAvatar: userProfile?.avatar || null,
         authorFlairs: userProfile?.flairs || [], // Use stored flairs from profile
         createdAt: serverTimestamp(),
         upvotes: 0,
@@ -498,11 +517,16 @@ const ForumPost = () => {
                 <div className="post-header">
                   <div className="post-author-info">
                     <div className="author-avatar">
-                      {post.authorPhotoURL ? (
-                        <img src={post.authorPhotoURL} alt={post.authorName} />
-                      ) : (
-                        <FiUser />
-                      )}
+                      {(() => {
+                        // Try avatar from state (fetched from profile), then post data, then authorPhotoURL as fallback
+                        const avatarPath = postAuthorAvatar || post?.authorAvatar
+                        const avatarUrl = getAvatarUrlOrDefault(avatarPath || post?.authorPhotoURL)
+                        return avatarUrl ? (
+                          <img src={avatarUrl} alt={post?.authorName} />
+                        ) : (
+                          <FiUser />
+                        )
+                      })()}
                     </div>
                     <div className="author-details">
                       <div className="author-name-with-flairs">
@@ -678,11 +702,14 @@ const ForumPost = () => {
                   <form className="reply-form" onSubmit={handleSubmitReply}>
                     <div className="reply-input-wrapper">
                       <div className="author-avatar small">
-                        {currentUser.photoURL ? (
-                          <img src={currentUser.photoURL} alt={currentUser.displayName} />
-                        ) : (
-                          <FiUser />
-                        )}
+                        {(() => {
+                          const avatarUrl = getAvatarUrlOrDefault(userProfile?.avatar || currentUser.photoURL)
+                          return avatarUrl ? (
+                            <img src={avatarUrl} alt={currentUser.displayName} />
+                          ) : (
+                            <FiUser />
+                          )
+                        })()}
                       </div>
                       <textarea
                         value={replyContent}
@@ -723,11 +750,14 @@ const ForumPost = () => {
                         <div key={reply.id} className="reply-card">
                           <div className="reply-header">
                             <div className="author-avatar small">
-                              {reply.authorPhotoURL ? (
-                                <img src={reply.authorPhotoURL} alt={reply.authorName} />
-                              ) : (
-                                <FiUser />
-                              )}
+                              {(() => {
+                                const avatarUrl = getAvatarUrlOrDefault(reply.authorAvatar || reply.authorPhotoURL)
+                                return avatarUrl ? (
+                                  <img src={avatarUrl} alt={reply.authorName} />
+                                ) : (
+                                  <FiUser />
+                                )
+                              })()}
                             </div>
                             <div className="reply-author-info">
                               <div className="author-name-with-flairs">

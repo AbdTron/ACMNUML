@@ -24,6 +24,7 @@ import { format } from 'date-fns'
 import './AdminUsers.css'
 import { ROLES, isSuperAdmin } from '../../utils/permissions'
 import { logRoleChanged, logUserUpdated, logActivity, ACTIVITY_TYPES } from '../../utils/activityLogger'
+import { getAvatarUrlOrDefault } from '../../utils/avatarUtils'
 
 const AdminUsers = () => {
   const { currentUser, userRole } = useAuth()
@@ -330,13 +331,16 @@ const AdminUsers = () => {
                       <tr key={user.id}>
                         <td>
                           <div className="user-info">
-                            {user.photoURL ? (
-                              <img src={user.photoURL} alt={user.name} className="user-avatar" />
-                            ) : (
-                              <div className="user-avatar user-avatar-placeholder">
-                                <FiUser />
-                              </div>
-                            )}
+                            {(() => {
+                              const avatarUrl = getAvatarUrlOrDefault(user.avatar || user.photoURL)
+                              return avatarUrl ? (
+                                <img src={avatarUrl} alt={user.name} className="user-avatar" />
+                              ) : (
+                                <div className="user-avatar user-avatar-placeholder">
+                                  <FiUser />
+                                </div>
+                              )
+                            })()}
                             <span>{user.name || 'Unknown'}</span>
                           </div>
                         </td>

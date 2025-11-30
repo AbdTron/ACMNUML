@@ -363,18 +363,13 @@ const Forum = () => {
                       </div>
                     ) : (
                       <div className="empty-state">
-                        <FiMessageSquare />
-                        <h3>No posts found</h3>
-                        <p>
-                          {searchTerm 
-                            ? 'Try adjusting your search terms' 
-                            : 'Be the first to start a discussion!'}
-                        </p>
-                        {currentUser && (
+                        {currentUser ? (
                           <Link to="/forum/new" className="btn-primary">
                             <FiPlus />
-                            Create First Post
+                            Create a post
                           </Link>
+                        ) : (
+                          <p>Create a post</p>
                         )}
                       </div>
                     )}

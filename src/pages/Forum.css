@@ -316,24 +316,15 @@
     background: var(--bg-white);
     border-radius: 0.75rem;
     border: 1px solid var(--border-color);
-  }
-  
-  .empty-state svg {
-    font-size: 4rem;
-    color: var(--text-medium);
-    opacity: 0.5;
-    margin-bottom: 1rem;
-  }
-  
-  .empty-state h3 {
-    font-size: 1.5rem;
-    color: var(--text-dark);
-    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .empty-state p {
     color: var(--text-medium);
-    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+    margin: 0;
   }
   
   .empty-state .btn-primary {

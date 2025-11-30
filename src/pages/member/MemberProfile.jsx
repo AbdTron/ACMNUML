@@ -6,6 +6,7 @@ import { useMemberAuth } from '../../context/MemberAuthContext'
 import { sendDisplayEmailVerification } from '../../utils/emailService'
 import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCircle, FiHash, FiBookOpen, FiClock, FiUsers, FiSun, FiMoon, FiAward, FiLock, FiSend } from 'react-icons/fi'
 import { DEPARTMENTS, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../../utils/universityData'
+import AvatarSelector from '../../components/AvatarSelector'
 import './MemberProfile.css'
 
 const MemberProfile = () => {
@@ -35,7 +36,8 @@ const MemberProfile = () => {
     twitter: '',
     showInDirectory: false,
     showContactOnDirectory: false,
-    contactType: 'email'
+    contactType: 'email',
+    avatar: ''
   })
   const [displayEmailVerificationSent, setDisplayEmailVerificationSent] = useState(false)
   const [availableDegrees, setAvailableDegrees] = useState([])
@@ -123,7 +125,8 @@ const MemberProfile = () => {
         twitter: userProfile.twitter || '',
         showInDirectory: userProfile.showInDirectory || false,
         showContactOnDirectory: userProfile.showContactOnDirectory || false,
-        contactType: userProfile.contactType || 'email'
+        contactType: userProfile.contactType || 'email',
+        avatar: userProfile.avatar || ''
       })
       
       // Initialize available degrees and shifts when profile loads
@@ -382,6 +385,7 @@ const MemberProfile = () => {
         showInDirectory: formData.showInDirectory,
         showContactOnDirectory: formData.showContactOnDirectory,
         contactType: formData.contactType,
+        avatar: formData.avatar || null,
         updatedAt: new Date().toISOString()
       }
 
@@ -591,6 +595,18 @@ const MemberProfile = () => {
                 placeholder="Tell us about yourself..."
               />
             </div>
+
+            <AvatarSelector
+              currentAvatar={formData.avatar}
+              acmRole={userProfile?.acmRole}
+              isAdmin={userProfile?.role === 'admin' || userProfile?.role === 'superadmin'}
+              onSelect={(avatarPath) => {
+                setFormData(prev => ({
+                  ...prev,
+                  avatar: avatarPath
+                }))
+              }}
+            />
           </div>
 
           <div className="form-section">

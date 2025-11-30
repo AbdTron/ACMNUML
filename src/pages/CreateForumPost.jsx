@@ -127,6 +127,7 @@ const CreateForumPost = () => {
         authorId: currentUser.uid,
         authorName: userProfile?.name || currentUser.displayName || 'Anonymous',
         authorPhotoURL: currentUser.photoURL || null,
+        authorAvatar: userProfile?.avatar || null,
         authorRole: userProfile?.acmRole || null,
         authorSemester: userProfile?.semester || null,
         upvotes: 0,
