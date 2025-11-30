@@ -14,14 +14,19 @@
     font-size: 2.5rem;
     margin-bottom: 1rem;
     font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.02em;
   }
   
   .forum-hero .hero-description {
     font-size: 1.125rem;
     max-width: 700px;
     margin: 0 auto 2rem;
-    opacity: 0.95;
-    line-height: 1.7;
+    opacity: 1;
+    line-height: 1.8;
+    font-weight: 400;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    color: rgba(255, 255, 255, 0.98);
   }
   
   .btn-create-post {
@@ -379,13 +384,20 @@
     }
 
     .forum-hero h1 {
-      font-size: 1.75rem;
-      margin-bottom: 0.75rem;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      padding: 0 1rem;
     }
 
     .forum-hero .hero-description {
-      font-size: 0.9375rem;
-      padding: 0 1rem;
+      font-size: 1rem;
+      padding: 0 1.5rem;
+      line-height: 1.7;
+      opacity: 1;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      color: rgba(255, 255, 255, 0.98);
+      font-weight: 400;
     }
 
     .btn-create-post {
@@ -393,17 +405,9 @@
       font-size: 0.9375rem;
     }
 
+    /* Hide stats section on mobile/PWA */
     .forum-stats-section {
-      padding: 1.5rem 0;
-    }
-
-    .forum-stats-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    .forum-stat-card {
-      padding: 1.25rem;
+      display: none;
     }
 
     .forum-content-section {
@@ -467,27 +471,29 @@
 
   @media (max-width: 480px) {
     .forum-hero {
-      padding: 1.5rem 0 0.75rem;
+      padding: 1.5rem 0 1rem;
     }
 
     .forum-hero h1 {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
+      margin-bottom: 0.875rem;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      padding: 0 1rem;
     }
 
     .forum-hero .hero-description {
-      font-size: 0.875rem;
+      font-size: 0.9375rem;
+      padding: 0 1.25rem;
+      line-height: 1.6;
+      opacity: 1;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      color: rgba(255, 255, 255, 0.98);
+      font-weight: 400;
     }
 
+    /* Hide stats section on mobile/PWA */
     .forum-stats-section {
-      padding: 1rem 0;
-    }
-
-    .forum-stat-card {
-      padding: 1rem;
-    }
-
-    .forum-stat-card svg {
-      font-size: 1.5rem;
+      display: none;
     }
 
     .forum-content-section {

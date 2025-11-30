@@ -188,8 +188,24 @@ const Forum = () => {
   }
 
   // Separate pinned and regular posts
-  const pinnedPosts = displayPosts.filter(post => post.isPinned)
-  const regularPosts = displayPosts.filter(post => !post.isPinned)
+  // Pinned posts should only appear in their own category section
+  const pinnedPosts = displayPosts.filter(post => {
+    if (!post.isPinned) return false
+    // When a specific category is selected, only show pinned posts from that category
+    if (selectedCategory !== 'all') {
+      return post.category === selectedCategory
+    }
+    // When "all" is selected, show all pinned posts (from all categories)
+    return true
+  })
+  const regularPosts = displayPosts.filter(post => {
+    if (post.isPinned) return false
+    // Regular posts are already filtered by fetchPosts, but add extra safety check
+    if (selectedCategory !== 'all') {
+      return post.category === selectedCategory
+    }
+    return true
+  })
 
   return (
     <div className="forum-page">
