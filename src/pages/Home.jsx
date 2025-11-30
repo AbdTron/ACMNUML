@@ -383,15 +383,16 @@ const Home = () => {
                           )}
                         </p>
                         {upcomingEvents[0]?.registerLink && (
-                          <a
-                            href={upcomingEvents[0].registerLink}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              window.open(upcomingEvents[0].registerLink, '_blank', 'noopener,noreferrer')
+                            }}
                             className="btn hero-register-btn"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
                           >
                             Register
-                          </a>
+                          </button>
                         )}
                       </div>
                 <div className="hero-card-footer">

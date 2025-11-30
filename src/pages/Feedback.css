@@ -1,0 +1,277 @@
+.feedback-page {
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.feedback-hero {
+  padding: 4rem 0 2rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  text-align: center;
+}
+
+.feedback-hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.feedback-hero .hero-description {
+  font-size: 1.125rem;
+  max-width: 700px;
+  margin: 0 auto;
+  opacity: 0.95;
+  line-height: 1.7;
+}
+
+/* Feedback Types Info */
+.feedback-info-section {
+  padding: 3rem 0;
+  background: var(--bg-light);
+}
+
+.feedback-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.feedback-type-card {
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.feedback-type-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.type-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.feedback-icon {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-color);
+}
+
+.feature-icon {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.bug-icon {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.feedback-type-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-dark);
+}
+
+.feedback-type-card p {
+  color: var(--text-medium);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* Feedback Form Section */
+.feedback-form-section {
+  padding: 4rem 0;
+}
+
+.feedback-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--bg-white);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.form-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-dark);
+}
+
+.form-header p {
+  color: var(--text-medium);
+  font-size: 1rem;
+}
+
+/* Success Message */
+.success-message {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.success-message svg {
+  font-size: 4rem;
+  color: #10b981;
+  margin-bottom: 1.5rem;
+}
+
+.success-message h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+.success-message p {
+  color: var(--text-medium);
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+}
+
+.success-message .btn-primary {
+  padding: 0.875rem 2rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.success-message .btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Error Message */
+.error-message {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid #dc2626;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-message p {
+  color: #dc2626;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* FAQ Section */
+.feedback-faq-section {
+  padding: 4rem 0;
+  background: var(--bg-light);
+}
+
+.feedback-faq-section h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 3rem;
+  color: var(--text-dark);
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.faq-item {
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+}
+
+.faq-item h3 {
+  font-size: 1.125rem;
+  margin-bottom: 0.75rem;
+  color: var(--primary-color);
+}
+
+.faq-item p {
+  color: var(--text-medium);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feedback-hero {
+    padding: 3rem 0 1.5rem;
+  }
+
+  .feedback-hero h1 {
+    font-size: 1.875rem;
+  }
+
+  .feedback-hero .hero-description {
+    font-size: 1rem;
+  }
+
+  .feedback-info-section {
+    padding: 2rem 0;
+  }
+
+  .feedback-types-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .feedback-form-section {
+    padding: 2rem 0;
+  }
+
+  .feedback-form-container {
+    padding: 1.5rem;
+  }
+
+  .form-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .success-message svg {
+    font-size: 3rem;
+  }
+
+  .success-message h2 {
+    font-size: 1.5rem;
+  }
+
+  .feedback-faq-section {
+    padding: 2rem 0;
+  }
+
+  .feedback-faq-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .faq-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+

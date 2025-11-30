@@ -40,6 +40,12 @@ import MemberDirectory from './pages/MemberDirectory'
 import MemberProfilePublic from './pages/MemberProfilePublic'
 import VerifyEmail from './pages/VerifyEmail'
 import VerifyDisplayEmail from './pages/VerifyDisplayEmail'
+import Feedback from './pages/Feedback'
+import Forum from './pages/Forum'
+import ForumPost from './pages/ForumPost'
+import AdminFeedback from './pages/admin/AdminFeedback'
+import AdminForum from './pages/admin/AdminForum'
+import ProfileOnboarding from './pages/ProfileOnboarding'
 
 function App() {
   const [showSplash, setShowSplash] = useState(false)
@@ -162,6 +168,7 @@ function App() {
                 }
               />
               <Route path="/member/login" element={<MemberLogin />} />
+              <Route path="/member/onboarding" element={<ProfileOnboarding />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/verify-display-email" element={<VerifyDisplayEmail />} />
               <Route
@@ -182,6 +189,25 @@ function App() {
               />
               <Route path="/members" element={<MemberDirectory />} />
               <Route path="/members/:memberId" element={<MemberProfilePublic />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/forum" element={<Forum />} />
+              <Route path="/forum/:postId" element={<ForumPost />} />
+              <Route
+                path="/admin/feedback"
+                element={
+                  <ProtectedRoute>
+                    <AdminFeedback />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/forum"
+                element={
+                  <ProtectedRoute>
+                    <AdminForum />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
           <Footer />

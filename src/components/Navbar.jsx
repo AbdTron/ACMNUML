@@ -48,8 +48,10 @@ const Navbar = () => {
     { path: '/team', label: 'Team' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/members', label: 'Users' },
+    { path: '/forum', label: 'Forum' },
     { path: '/about', label: 'About' },
     { path: '/join', label: 'Join Us' },
+    { path: '/feedback', label: 'Feedback' },
     { path: '/contact', label: 'Contact' },
   ]
 
