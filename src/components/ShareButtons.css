@@ -149,6 +149,8 @@
     width: 100%;
     min-height: 44px;
     padding: 0.25rem 0;
+    position: relative;
+    z-index: 15;
   }
 
   .share-button {
@@ -160,6 +162,9 @@
     flex-shrink: 0;
     visibility: visible !important;
     opacity: 1 !important;
+    position: relative;
+    z-index: 15;
+    background: var(--bg-white) !important;
   }
 
   .share-button svg {
@@ -189,6 +194,8 @@
     width: 100%;
     min-height: 40px;
     padding: 0.25rem 0;
+    position: relative;
+    z-index: 15;
   }
 
   .share-button {
@@ -199,6 +206,9 @@
     flex-shrink: 0;
     visibility: visible !important;
     opacity: 1 !important;
+    position: relative;
+    z-index: 15;
+    background: var(--bg-white) !important;
   }
 
   .share-button svg {
