@@ -4,6 +4,8 @@ import {
   collection, 
   query, 
   getDocs, 
+  getDoc,
+  doc,
   orderBy, 
   where,
   limit as firestoreLimit
@@ -17,7 +19,8 @@ import {
   FiMessageSquare,
   FiTrendingUp,
   FiClock,
-  FiTag
+  FiTag,
+  FiUser
 } from 'react-icons/fi'
 import ForumPostCard from '../components/ForumPostCard'
 import './Forum.css'
@@ -39,6 +42,13 @@ const Forum = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('recent') // recent, popular, trending
   const [searchTerm, setSearchTerm] = useState('')
+  const [showMyPosts, setShowMyPosts] = useState(false)
+  const [userInteractions, setUserInteractions] = useState({
+    posts: [],
+    replies: [],
+    liked: [],
+    disliked: []
+  })
   const [stats, setStats] = useState({
     totalPosts: 0,
     totalReplies: 0,
@@ -48,6 +58,12 @@ const Forum = () => {
   useEffect(() => {
     fetchPosts()
   }, [selectedCategory, sortBy])
+
+  useEffect(() => {
+    if (currentUser && showMyPosts) {
+      fetchUserInteractions()
+    }
+  }, [showMyPosts, currentUser])
 
   useEffect(() => {
     calculateStats()
@@ -86,6 +102,55 @@ const Forum = () => {
     }
   }
 
+  const fetchUserInteractions = async () => {
+    if (!currentUser || !db) return
+
+    try {
+      // Fetch user's posts
+      const myPostsQuery = query(
+        collection(db, 'forumPosts'),
+        where('authorId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      )
+      const myPostsSnapshot = await getDocs(myPostsQuery)
+      const myPosts = myPostsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+      // Fetch user's replies
+      const myRepliesQuery = query(
+        collection(db, 'forumReplies'),
+        where('authorId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      )
+      const myRepliesSnapshot = await getDocs(myRepliesQuery)
+      const myReplies = myRepliesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+      // Get post IDs from replies
+      const repliedPostIds = [...new Set(myReplies.map(reply => reply.postId))]
+
+      // Fetch posts user has replied to
+      const repliedPosts = []
+      for (const postId of repliedPostIds) {
+        try {
+          const postDoc = await getDoc(doc(db, 'forumPosts', postId))
+          if (postDoc.exists()) {
+            repliedPosts.push({ id: postDoc.id, ...postDoc.data() })
+          }
+        } catch (err) {
+          console.error('Error fetching replied post:', err)
+        }
+      }
+
+      setUserInteractions({
+        posts: myPosts,
+        replies: myReplies,
+        liked: [], // Would need to track likes separately
+        disliked: [] // Would need to track dislikes separately
+      })
+    } catch (error) {
+      console.error('Error fetching user interactions:', error)
+    }
+  }
+
   const calculateStats = () => {
     const totalReplies = posts.reduce((sum, post) => sum + (post.replyCount || 0), 0)
     const uniqueAuthors = new Set(posts.map(post => post.authorId)).size
@@ -98,6 +163,8 @@ const Forum = () => {
   }
 
   const filteredPosts = posts.filter(post => {
+    // Don't show hidden posts
+    if (post.isHidden) return false
     if (searchTerm === '') return true
     const searchLower = searchTerm.toLowerCase()
     return (
@@ -107,9 +174,22 @@ const Forum = () => {
     )
   })
 
+  // Filter by user interactions if enabled
+  let displayPosts = filteredPosts
+  if (showMyPosts && currentUser && userInteractions.posts.length > 0) {
+    const myPostIds = new Set([
+      ...userInteractions.posts.map(p => p.id),
+      ...userInteractions.replies.map(r => r.postId).filter(Boolean)
+    ])
+    displayPosts = filteredPosts.filter(post => myPostIds.has(post.id))
+  } else if (showMyPosts && currentUser && userInteractions.posts.length === 0 && userInteractions.replies.length === 0) {
+    // If user has no posts or replies, show empty state
+    displayPosts = []
+  }
+
   // Separate pinned and regular posts
-  const pinnedPosts = filteredPosts.filter(post => post.isPinned)
-  const regularPosts = filteredPosts.filter(post => !post.isPinned)
+  const pinnedPosts = displayPosts.filter(post => post.isPinned)
+  const regularPosts = displayPosts.filter(post => !post.isPinned)
 
   return (
     <div className="forum-page">
@@ -216,15 +296,26 @@ const Forum = () => {
 
             {/* Posts Area */}
             <div className="forum-posts-area">
-              {/* Search Bar */}
-              <div className="forum-search-bar">
-                <FiSearch />
-                <input
-                  type="text"
-                  placeholder="Search posts, topics, or tags..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              {/* Search Bar and Filters */}
+              <div className="forum-controls">
+                <div className="forum-search-bar">
+                  <FiSearch />
+                  <input
+                    type="text"
+                    placeholder="Search posts, topics, or tags..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                {currentUser && (
+                  <button
+                    className={`filter-my-posts-btn ${showMyPosts ? 'active' : ''}`}
+                    onClick={() => setShowMyPosts(!showMyPosts)}
+                  >
+                    <FiUser />
+                    {showMyPosts ? 'Show All Posts' : 'My Posts'}
+                  </button>
+                )}
               </div>
 
               {/* Posts List */}
@@ -283,7 +374,6 @@ const Forum = () => {
 }
 
 export default Forum
-
 
 
 

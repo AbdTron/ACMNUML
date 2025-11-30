@@ -148,7 +148,7 @@ const Feedback = () => {
             <div className="faq-item">
               <h3>What happens after I submit feedback?</h3>
               <p>
-                Our team reviews all submissions. Feature requests are evaluated for
+                The Developer reviews all submissions. Feature requests are evaluated for
                 implementation, bugs are investigated and fixed, and general feedback
                 helps guide our improvements.
               </p>

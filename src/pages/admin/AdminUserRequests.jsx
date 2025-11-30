@@ -1,15 +1,39 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, serverTimestamp, where } from 'firebase/firestore'
+import { 
+  collection, 
+  query, 
+  getDocs, 
+  orderBy, 
+  updateDoc, 
+  doc,
+  where,
+  getDoc
+} from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { FiArrowLeft, FiCheck, FiX, FiClock, FiUser, FiMail, FiHash, FiBookOpen, FiCalendar, FiFilter, FiRefreshCw } from 'react-icons/fi'
+import { 
+  FiArrowLeft,
+  FiUser,
+  FiCheck,
+  FiX,
+  FiClock,
+  FiFilter,
+  FiRefreshCw,
+  FiBookOpen,
+  FiHash,
+  FiUsers,
+  FiSun,
+  FiMoon,
+  FiAward
+} from 'react-icons/fi'
 import './AdminUserRequests.css'
 
 const AdminUserRequests = () => {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all') // all, pending, approved, rejected
   const [processing, setProcessing] = useState(null)
-  const [filter, setFilter] = useState('pending') // pending, approved, rejected, all
+  const [selectedRequest, setSelectedRequest] = useState(null)
 
   useEffect(() => {
     fetchRequests()
@@ -34,19 +58,39 @@ const AdminUserRequests = () => {
       const snapshot = await getDocs(q)
       const requestsData = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : new Date(doc.data().createdAt)
       }))
       
       setRequests(requestsData)
-    } catch (err) {
-      console.error('Error fetching requests:', err)
+    } catch (error) {
+      console.error('Error fetching requests:', error)
+      // If index error, fallback to fetching all and filtering client-side
+      if (error.code === 'failed-precondition') {
+        try {
+          const requestsRef = collection(db, 'profileChangeRequests')
+          const q = query(requestsRef, orderBy('createdAt', 'desc'))
+          const snapshot = await getDocs(q)
+          const allRequests = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : new Date(doc.data().createdAt)
+          }))
+          setRequests(allRequests)
+        } catch (fallbackError) {
+          console.error('Error in fallback fetch:', fallbackError)
+          alert('Error loading requests')
+        }
+      } else {
+        alert('Error loading requests')
+      }
     } finally {
       setLoading(false)
     }
   }
 
   const handleApprove = async (request) => {
-    if (!confirm(`Approve change request from ${request.userName}? This will allow them to edit their academic information once.`)) {
+    if (!confirm(`Approve change request from ${request.userName || 'user'}? This will allow them to edit their academic information once.`)) {
       return
     }
 
@@ -56,21 +100,22 @@ const AdminUserRequests = () => {
       const userRef = doc(db, 'users', request.userId)
       await updateDoc(userRef, {
         canEditAcademic: true,
-        updatedAt: serverTimestamp()
+        updatedAt: new Date().toISOString()
       })
 
       // Update the request status
       const requestRef = doc(db, 'profileChangeRequests', request.id)
       await updateDoc(requestRef, {
         status: 'approved',
-        reviewedAt: serverTimestamp(),
+        reviewedAt: new Date().toISOString(),
         reviewNotes: 'Approved - user can now edit academic information once'
       })
 
       // Refresh the list
       await fetchRequests()
-    } catch (err) {
-      console.error('Error approving request:', err)
+      alert('Request approved successfully')
+    } catch (error) {
+      console.error('Error approving request:', error)
       alert('Failed to approve request. Please try again.')
     } finally {
       setProcessing(null)
@@ -88,24 +133,25 @@ const AdminUserRequests = () => {
       const requestRef = doc(db, 'profileChangeRequests', request.id)
       await updateDoc(requestRef, {
         status: 'rejected',
-        reviewedAt: serverTimestamp(),
+        reviewedAt: new Date().toISOString(),
         reviewNotes: reason || 'Request rejected by admin'
       })
 
       // Refresh the list
       await fetchRequests()
-    } catch (err) {
-      console.error('Error rejecting request:', err)
+      alert('Request rejected')
+    } catch (error) {
+      console.error('Error rejecting request:', error)
       alert('Failed to reject request. Please try again.')
     } finally {
       setProcessing(null)
     }
   }
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A'
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-    return date.toLocaleDateString('en-US', {
+  const formatDate = (date) => {
+    if (!date) return 'N/A'
+    const d = date.toDate ? date.toDate() : new Date(date)
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -115,16 +161,22 @@ const AdminUserRequests = () => {
   }
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending':
-        return <span className="status-badge pending"><FiClock /> Pending</span>
-      case 'approved':
-        return <span className="status-badge approved"><FiCheck /> Approved</span>
-      case 'rejected':
-        return <span className="status-badge rejected"><FiX /> Rejected</span>
-      default:
-        return <span className="status-badge">{status}</span>
+    const badges = {
+      pending: { class: 'status-pending', text: 'Pending' },
+      approved: { class: 'status-approved', text: 'Approved' },
+      rejected: { class: 'status-rejected', text: 'Rejected' }
     }
+    return badges[status] || badges.pending
+  }
+
+  // Requests are already filtered by the query, but we can use this for client-side filtering if needed
+  const filteredRequests = requests
+
+  const stats = {
+    total: requests.length,
+    pending: requests.filter(r => r.status === 'pending').length,
+    approved: requests.filter(r => r.status === 'approved').length,
+    rejected: requests.filter(r => r.status === 'rejected').length
   }
 
   return (
@@ -136,8 +188,8 @@ const AdminUserRequests = () => {
 
         <div className="page-header">
           <div className="header-content">
-            <h1>Profile Change Requests</h1>
-            <p>Review and manage user requests to change their academic information</p>
+            <h1>User Requests</h1>
+            <p>Review and manage academic profile change requests</p>
           </div>
           <button onClick={fetchRequests} className="btn btn-secondary" disabled={loading}>
             <FiRefreshCw className={loading ? 'spin' : ''} />
@@ -145,32 +197,55 @@ const AdminUserRequests = () => {
           </button>
         </div>
 
-        <div className="filters">
-          <FiFilter />
-          <button
-            className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
-            onClick={() => setFilter('pending')}
-          >
-            Pending
-          </button>
-          <button
-            className={`filter-btn ${filter === 'approved' ? 'active' : ''}`}
-            onClick={() => setFilter('approved')}
-          >
-            Approved
-          </button>
-          <button
-            className={`filter-btn ${filter === 'rejected' ? 'active' : ''}`}
-            onClick={() => setFilter('rejected')}
-          >
-            Rejected
-          </button>
-          <button
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All
-          </button>
+        {/* Stats */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-value">{stats.total}</div>
+            <div className="stat-label">Total Requests</div>
+          </div>
+          <div className="stat-card stat-pending">
+            <div className="stat-value">{stats.pending}</div>
+            <div className="stat-label">Pending</div>
+          </div>
+          <div className="stat-card stat-approved">
+            <div className="stat-value">{stats.approved}</div>
+            <div className="stat-label">Approved</div>
+          </div>
+          <div className="stat-card stat-rejected">
+            <div className="stat-value">{stats.rejected}</div>
+            <div className="stat-label">Rejected</div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="filters-section">
+          <div className="filter-group">
+            <FiFilter />
+            <button
+              className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              All
+            </button>
+            <button
+              className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
+              onClick={() => setFilter('pending')}
+            >
+              Pending
+            </button>
+            <button
+              className={`filter-btn ${filter === 'approved' ? 'active' : ''}`}
+              onClick={() => setFilter('approved')}
+            >
+              Approved
+            </button>
+            <button
+              className={`filter-btn ${filter === 'rejected' ? 'active' : ''}`}
+              onClick={() => setFilter('rejected')}
+            >
+              Rejected
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -178,111 +253,130 @@ const AdminUserRequests = () => {
             <div className="spinner"></div>
             <p>Loading requests...</p>
           </div>
-        ) : requests.length === 0 ? (
+        ) : filteredRequests.length === 0 ? (
           <div className="empty-state">
             <FiUser />
-            <h3>No {filter !== 'all' ? filter : ''} requests found</h3>
-            <p>
-              {filter === 'pending' 
-                ? 'All caught up! No pending requests to review.'
-                : `No ${filter} requests in the system.`}
-            </p>
+            <h3>No requests found</h3>
+            <p>No requests match your current filter.</p>
           </div>
         ) : (
           <div className="requests-list">
-            {requests.map(request => (
-              <div key={request.id} className="request-card">
-                <div className="request-header">
-                  <div className="user-info">
-                    <h3><FiUser /> {request.userName}</h3>
-                    <span className="user-email"><FiMail /> {request.userEmail}</span>
-                  </div>
-                  {getStatusBadge(request.status)}
-                </div>
-
-                <div className="request-body">
-                  <div className="current-data">
-                    <h4>Current Academic Information:</h4>
-                    <div className="data-grid">
-                      <div className="data-item">
-                        <FiHash />
-                        <span className="label">Roll Number:</span>
-                        <span className="value">{request.currentData?.rollNumber || 'N/A'}</span>
+            {filteredRequests.map(request => {
+              const statusBadge = getStatusBadge(request.status)
+              const currentData = request.currentData || {}
+              
+              return (
+                <div key={request.id} className="request-card">
+                  <div className="card-header">
+                    <div className="request-info">
+                      <div className="request-title-row">
+                        <h3><FiUser /> {request.userName || 'Unknown User'}</h3>
+                        {getStatusBadge(request.status).text === 'Pending' ? (
+                          <span className={`status-badge ${statusBadge.class}`}>
+                            <FiClock /> {statusBadge.text}
+                          </span>
+                        ) : getStatusBadge(request.status).text === 'Approved' ? (
+                          <span className={`status-badge ${statusBadge.class}`}>
+                            <FiCheck /> {statusBadge.text}
+                          </span>
+                        ) : (
+                          <span className={`status-badge ${statusBadge.class}`}>
+                            <FiX /> {statusBadge.text}
+                          </span>
+                        )}
                       </div>
-                      <div className="data-item">
-                        <FiBookOpen />
-                        <span className="label">Department:</span>
-                        <span className="value">{request.currentData?.department || 'N/A'}</span>
-                      </div>
-                      <div className="data-item">
-                        <FiBookOpen />
-                        <span className="label">Degree:</span>
-                        <span className="value">{request.currentData?.degree || 'N/A'}</span>
-                      </div>
-                      <div className="data-item">
-                        <FiCalendar />
-                        <span className="label">Semester:</span>
-                        <span className="value">{request.currentData?.semester || 'N/A'}</span>
-                      </div>
-                      <div className="data-item">
-                        <FiUser />
-                        <span className="label">Section:</span>
-                        <span className="value">{request.currentData?.section || 'N/A'}</span>
-                      </div>
-                      <div className="data-item">
-                        <FiClock />
-                        <span className="label">Shift:</span>
-                        <span className="value">{request.currentData?.shift || 'N/A'}</span>
+                      <div className="request-meta">
+                        <span className="meta-item">
+                          <FiUser />
+                          {request.userEmail || 'N/A'}
+                        </span>
+                        <span className="meta-item">
+                          <FiClock />
+                          Submitted: {formatDate(request.createdAt)}
+                        </span>
+                        {request.reviewedAt && (
+                          <span className="meta-item">
+                            Reviewed: {formatDate(request.reviewedAt)}
+                          </span>
+                        )}
                       </div>
                     </div>
+                    {request.status === 'pending' && (
+                      <div className="card-actions">
+                        <button
+                          onClick={() => handleApprove(request)}
+                          className="btn btn-success btn-small"
+                          disabled={processing === request.id}
+                        >
+                          <FiCheck />
+                          {processing === request.id ? 'Processing...' : 'Approve'}
+                        </button>
+                        <button
+                          onClick={() => handleReject(request)}
+                          className="btn btn-danger btn-small"
+                          disabled={processing === request.id}
+                        >
+                          <FiX />
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {request.reason && (
-                    <div className="request-reason">
-                      <strong>Reason:</strong> {request.reason}
+                  <div className="request-content">
+                    <div className="info-section">
+                      <h4>Current Academic Information:</h4>
+                      <div className="info-grid">
+                        <div className="info-item">
+                          <FiHash />
+                          <span className="info-label">Roll Number:</span>
+                          <span className="info-value">{currentData.rollNumber || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          <FiBookOpen />
+                          <span className="info-label">Department:</span>
+                          <span className="info-value">{currentData.department || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          <FiAward />
+                          <span className="info-label">Degree:</span>
+                          <span className="info-value">{currentData.degree || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          <FiBookOpen />
+                          <span className="info-label">Semester:</span>
+                          <span className="info-value">{currentData.semester || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          <FiUsers />
+                          <span className="info-label">Section:</span>
+                          <span className="info-value">{currentData.section || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          {currentData.shift === 'Morning' ? <FiSun /> : <FiMoon />}
+                          <span className="info-label">Shift:</span>
+                          <span className="info-value">{currentData.shift || 'N/A'}</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  {request.reviewNotes && (
-                    <div className="review-notes">
-                      <strong>Admin Notes:</strong> {request.reviewNotes}
-                    </div>
-                  )}
-                </div>
+                    {request.reason && (
+                      <div className="reason-section">
+                        <h4>Reason for Change</h4>
+                        <p><strong>Reason:</strong> {request.reason}</p>
+                      </div>
+                    )}
 
-                <div className="request-footer">
-                  <span className="request-date">
-                    <FiCalendar /> Submitted: {formatDate(request.createdAt)}
-                  </span>
-                  {request.reviewedAt && (
-                    <span className="reviewed-date">
-                      Reviewed: {formatDate(request.reviewedAt)}
-                    </span>
-                  )}
-                </div>
-
-                {request.status === 'pending' && (
-                  <div className="request-actions">
-                    <button
-                      onClick={() => handleApprove(request)}
-                      className="btn btn-success"
-                      disabled={processing === request.id}
-                    >
-                      <FiCheck />
-                      {processing === request.id ? 'Processing...' : 'Approve'}
-                    </button>
-                    <button
-                      onClick={() => handleReject(request)}
-                      className="btn btn-danger"
-                      disabled={processing === request.id}
-                    >
-                      <FiX />
-                      Reject
-                    </button>
+                    {request.reviewNotes && (
+                      <div className="reason-section">
+                        <h4>Admin Notes</h4>
+                        <p><strong>Admin Notes:</strong> {request.reviewNotes}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
@@ -291,7 +385,3 @@ const AdminUserRequests = () => {
 }
 
 export default AdminUserRequests
-
-
-
-

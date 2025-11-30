@@ -273,6 +273,67 @@
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+
+  .faq-item {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .feedback-hero {
+    padding: 2rem 0 1rem;
+  }
+
+  .feedback-hero h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feedback-hero .hero-description {
+    font-size: 0.9375rem;
+    padding: 0 1rem;
+  }
+
+  .feedback-info-section {
+    padding: 1.5rem 0;
+  }
+
+  .feedback-type-card {
+    padding: 1.5rem;
+  }
+
+  .feedback-type-card svg {
+    font-size: 2rem;
+  }
+
+  .feedback-form-section {
+    padding: 1.5rem 0;
+  }
+
+  .feedback-form-container {
+    padding: 1.25rem;
+  }
+
+  .form-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .feedback-faq-section {
+    padding: 1.5rem 0;
+  }
+
+  .feedback-faq-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .faq-item {
+    padding: 1.25rem;
+  }
+
+  .faq-item h3 {
+    font-size: 1rem;
+  }
 }
 
 

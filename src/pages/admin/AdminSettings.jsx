@@ -8,7 +8,8 @@ import {
   FiLink,
   FiMail,
   FiGlobe,
-  FiMessageSquare
+  FiMessageSquare,
+  FiSettings
 } from 'react-icons/fi'
 import './AdminSettings.css'
 
@@ -21,6 +22,7 @@ const AdminSettings = () => {
     contactEmail: '',
     websiteUrl: '',
     showGallery: true,
+    requireAcademicChangeApproval: true,
     socialLinks: {
       facebook: '',
       instagram: '',
@@ -53,6 +55,7 @@ const AdminSettings = () => {
           contactEmail: data.contactEmail || '',
           websiteUrl: data.websiteUrl || '',
           showGallery: data.showGallery !== false,
+          requireAcademicChangeApproval: data.requireAcademicChangeApproval !== false,
           socialLinks: data.socialLinks || {
             facebook: '',
             instagram: '',
@@ -79,6 +82,8 @@ const AdminSettings = () => {
     const { name, value } = e.target
     if (name === 'showGallery') {
       setFormData({ ...formData, showGallery: e.target.checked })
+    } else if (name === 'requireAcademicChangeApproval') {
+      setFormData({ ...formData, requireAcademicChangeApproval: e.target.checked })
     } else if (name.startsWith('social.')) {
       const socialKey = name.split('.')[1]
       setFormData({
@@ -148,6 +153,48 @@ const AdminSettings = () => {
       <div className="admin-content">
         <div className="container">
           <form onSubmit={handleSubmit} className="settings-form">
+            {/* General Settings Section */}
+            <div className="settings-section">
+              <h2>
+                <FiSettings />
+                General Settings
+              </h2>
+              <div className="form-group toggle-group">
+                <div className="toggle-item">
+                  <div className="toggle-label">
+                    <label>Show Gallery on Landing Page</label>
+                    <small>Display gallery preview section on the home page</small>
+                  </div>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      name="showGallery"
+                      checked={formData.showGallery}
+                      onChange={handleInputChange}
+                    />
+                    <span className="slider" />
+                  </label>
+                </div>
+              </div>
+              <div className="form-group toggle-group">
+                <div className="toggle-item">
+                  <div className="toggle-label">
+                    <label>Require Admin Approval for Academic Changes</label>
+                    <small>When enabled, users must request admin approval to change their academic information (department, degree, semester, section, shift, roll number). When disabled, users can freely edit their academic information.</small>
+                  </div>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      name="requireAcademicChangeApproval"
+                      checked={formData.requireAcademicChangeApproval}
+                      onChange={handleInputChange}
+                    />
+                    <span className="slider" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
             {/* Form Links Section */}
             <div className="settings-section">
               <h2>
@@ -292,19 +339,6 @@ const AdminSettings = () => {
                   rows="4"
                   placeholder="Brief description of ACM NUML..."
                 />
-              </div>
-
-              <div className="form-group toggle-group">
-                <label>Show Gallery on Landing Page</label>
-                <label className="switch">
-                  <input
-                    type="checkbox"
-                    name="showGallery"
-                    checked={formData.showGallery}
-                    onChange={handleInputChange}
-                  />
-                  <span className="slider" />
-                </label>
               </div>
             </div>
 

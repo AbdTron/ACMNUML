@@ -9,12 +9,14 @@ import {
   getDocs, 
   addDoc, 
   updateDoc, 
+  deleteDoc,
   increment,
   serverTimestamp,
   orderBy
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
+import { generateFlairs } from '../utils/flairUtils.js'
 import { 
   FiArrowLeft, 
   FiThumbsUp, 
@@ -23,7 +25,11 @@ import {
   FiClock,
   FiUser,
   FiTag,
-  FiSend
+  FiSend,
+  FiEdit2,
+  FiTrash2,
+  FiX,
+  FiCheck
 } from 'react-icons/fi'
 import CodeSnippet from '../components/CodeSnippet'
 import './ForumPost.css'
@@ -31,18 +37,162 @@ import './ForumPost.css'
 const ForumPost = () => {
   const { postId } = useParams()
   const navigate = useNavigate()
-  const { currentUser } = useMemberAuth()
+  const { currentUser, userProfile } = useMemberAuth()
   const [post, setPost] = useState(null)
   const [replies, setReplies] = useState([])
   const [loading, setLoading] = useState(true)
   const [replyContent, setReplyContent] = useState('')
   const [submittingReply, setSubmittingReply] = useState(false)
   const [userVote, setUserVote] = useState(null) // 'up', 'down', or null
+  const [postAuthorFlairs, setPostAuthorFlairs] = useState([])
+  const [replyAuthorsFlairs, setReplyAuthorsFlairs] = useState({}) // Map of replyId -> flairs
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [requestingDeletion, setRequestingDeletion] = useState(false)
 
   useEffect(() => {
     fetchPost()
     fetchReplies()
-  }, [postId])
+    checkAdminStatus()
+  }, [postId, currentUser])
+
+  const checkAdminStatus = async () => {
+    if (!currentUser || !db) {
+      setIsAdmin(false)
+      return
+    }
+    try {
+      const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
+      setIsAdmin(adminDoc.exists())
+    } catch (error) {
+      setIsAdmin(false)
+    }
+  }
+
+  // Load author flairs for the post
+  useEffect(() => {
+    const loadPostAuthorFlairs = async () => {
+      if (!post || !post.authorId || !db) return
+
+      // If post already has stored flairs, use them
+      if (post.authorFlairs && post.authorFlairs.length > 0) {
+        setPostAuthorFlairs(post.authorFlairs)
+        return
+      }
+
+      // For backward compatibility: fetch author's current profile
+      try {
+        const userDoc = await getDoc(doc(db, 'users', post.authorId))
+        if (userDoc.exists()) {
+          const userProfile = userDoc.data()
+          
+          // Check if user is admin
+          let isAdmin = false
+          try {
+            const adminDoc = await getDoc(doc(db, 'admins', post.authorId))
+            isAdmin = adminDoc.exists()
+          } catch (err) {
+            // Ignore errors
+          }
+
+          const flairs = generateFlairs({
+            acmRole: userProfile.acmRole || post.authorRole,
+            role: userProfile.role,
+            degree: userProfile.degree || post.authorDegree,
+            semester: userProfile.semester || post.authorSemester
+          }, isAdmin || post.authorIsAdmin || false)
+          
+          setPostAuthorFlairs(flairs)
+        } else {
+          // Fallback
+          const flairs = generateFlairs({
+            acmRole: post.authorRole,
+            role: post.authorRole,
+            degree: post.authorDegree,
+            semester: post.authorSemester
+          }, post.authorIsAdmin || false)
+          setPostAuthorFlairs(flairs)
+        }
+      } catch (error) {
+        console.error('Error loading post author flairs:', error)
+        const flairs = generateFlairs({
+          acmRole: post.authorRole,
+          role: post.authorRole,
+          degree: post.authorDegree,
+          semester: post.authorSemester
+        }, post.authorIsAdmin || false)
+        setPostAuthorFlairs(flairs)
+      }
+    }
+
+    loadPostAuthorFlairs()
+  }, [post])
+
+  // Load author flairs for replies
+  useEffect(() => {
+    const loadReplyAuthorsFlairs = async () => {
+      if (!replies.length || !db) return
+
+      const flairsMap = {}
+      
+      for (const reply of replies) {
+        // If reply already has stored flairs, use them
+        if (reply.authorFlairs && reply.authorFlairs.length > 0) {
+          flairsMap[reply.id] = reply.authorFlairs
+          continue
+        }
+
+        // For backward compatibility: fetch author's current profile
+        if (reply.authorId) {
+          try {
+            const userDoc = await getDoc(doc(db, 'users', reply.authorId))
+            if (userDoc.exists()) {
+              const userProfile = userDoc.data()
+              
+              let isAdmin = false
+              try {
+                const adminDoc = await getDoc(doc(db, 'admins', reply.authorId))
+                isAdmin = adminDoc.exists()
+              } catch (err) {
+                // Ignore errors
+              }
+
+              const flairs = generateFlairs({
+                acmRole: userProfile.acmRole || reply.authorRole,
+                role: userProfile.role,
+                degree: userProfile.degree || reply.authorDegree,
+                semester: userProfile.semester || reply.authorSemester
+              }, isAdmin || reply.authorIsAdmin || false)
+              
+              flairsMap[reply.id] = flairs
+            } else {
+              // Fallback
+              flairsMap[reply.id] = generateFlairs({
+                acmRole: reply.authorRole,
+                role: reply.authorRole,
+                degree: reply.authorDegree,
+                semester: reply.authorSemester
+              }, reply.authorIsAdmin || false)
+            }
+          } catch (error) {
+            console.error('Error loading reply author flairs:', error)
+            flairsMap[reply.id] = generateFlairs({
+              acmRole: reply.authorRole,
+              role: reply.authorRole,
+              degree: reply.authorDegree,
+              semester: reply.authorSemester
+            }, reply.authorIsAdmin || false)
+          }
+        }
+      }
+
+      setReplyAuthorsFlairs(flairsMap)
+    }
+
+    loadReplyAuthorsFlairs()
+  }, [replies])
 
   const fetchPost = async () => {
     try {
@@ -83,6 +233,12 @@ const ForumPost = () => {
       return
     }
 
+    // Check if voting is disabled
+    if (post?.votingDisabled || post?.isDeletedByUser) {
+      alert('Voting is disabled for this post.')
+      return
+    }
+
     try {
       const postRef = doc(db, 'forumPosts', postId)
       
@@ -113,11 +269,105 @@ const ForumPost = () => {
     }
   }
 
+  const handleEditPost = () => {
+    if (!post) return
+    setEditContent(post.content || '')
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditContent('')
+  }
+
+  const handleSaveEdit = async () => {
+    if (!post || !editContent.trim()) return
+
+    try {
+      await updateDoc(doc(db, 'forumPosts', postId), {
+        content: editContent.trim(),
+        editedAt: serverTimestamp(),
+        editedBy: currentUser.uid,
+        isAdminEdit: isAdmin // Track if admin edited
+      })
+
+      setPost({ ...post, content: editContent.trim(), editedAt: new Date(), editedBy: currentUser.uid, isAdminEdit: isAdmin })
+      setIsEditing(false)
+      setEditContent('')
+    } catch (error) {
+      console.error('Error updating post:', error)
+      alert('Failed to update post')
+    }
+  }
+
+  const handleDeletePost = async () => {
+    if (!post) return
+    if (!confirm('Are you sure you want to delete this post? The content will be removed and voting/replies will be disabled. You can request permanent deletion from an admin later.')) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await updateDoc(doc(db, 'forumPosts', postId), {
+        content: 'This post was deleted by the user.',
+        isDeletedByUser: true,
+        deletedAt: serverTimestamp(),
+        votingDisabled: true,
+        repliesDisabled: true,
+        updatedAt: serverTimestamp()
+      })
+
+      // Refresh post data
+      await fetchPost()
+      alert('Post deleted. You can request permanent deletion from an admin.')
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      alert('Failed to delete post')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleRequestPermanentDeletion = async () => {
+    if (!post) return
+    if (!confirm('Request permanent deletion of this post? An admin will review and delete it completely.')) {
+      return
+    }
+
+    setRequestingDeletion(true)
+    try {
+      // Create a deletion request
+      await addDoc(collection(db, 'postDeletionRequests'), {
+        postId: postId,
+        postTitle: post.title,
+        authorId: post.authorId,
+        authorName: post.authorName,
+        requestedBy: currentUser.uid,
+        requestedAt: serverTimestamp(),
+        status: 'pending',
+        reason: 'User requested permanent deletion'
+      })
+
+      alert('Deletion request submitted. An admin will review it.')
+    } catch (error) {
+      console.error('Error requesting deletion:', error)
+      alert('Failed to submit deletion request')
+    } finally {
+      setRequestingDeletion(false)
+    }
+  }
+
   const handleSubmitReply = async (e) => {
     e.preventDefault()
     
     if (!currentUser) {
       alert('Please login to reply')
+      return
+    }
+
+    // Check if replies are disabled
+    if (post?.repliesDisabled || post?.isDeletedByUser) {
+      alert('Replies are disabled for this post.')
       return
     }
 
@@ -129,8 +379,9 @@ const ForumPost = () => {
         postId,
         content: replyContent,
         authorId: currentUser.uid,
-        authorName: currentUser.displayName || 'Anonymous',
+        authorName: userProfile?.name || currentUser.displayName || 'Anonymous',
         authorPhotoURL: currentUser.photoURL || null,
+        authorFlairs: userProfile?.flairs || [], // Use stored flairs from profile
         createdAt: serverTimestamp(),
         upvotes: 0,
         downvotes: 0
@@ -196,17 +447,6 @@ const ForumPost = () => {
     return parts.length > 0 ? parts : [{ type: 'text', content }]
   }
 
-  const getRoleFlair = (role) => {
-    if (!role) return null
-    const roleLower = role.toLowerCase()
-    if (roleLower.includes('president')) return { text: 'President', class: 'flair-president' }
-    if (roleLower.includes('vice president')) return { text: 'Vice President', class: 'flair-vp' }
-    if (roleLower.includes('secretary')) return { text: 'Secretary', class: 'flair-secretary' }
-    if (roleLower.includes('admin')) return { text: 'Admin', class: 'flair-admin' }
-    if (roleLower.includes('moderator')) return { text: 'Moderator', class: 'flair-moderator' }
-    if (roleLower.includes('member')) return { text: 'Member', class: 'flair-member' }
-    return null
-  }
 
   if (loading) {
     return (
@@ -267,16 +507,11 @@ const ForumPost = () => {
                     <div className="author-details">
                       <div className="author-name-with-flairs">
                         <span className="author-name">{post.authorName || 'Anonymous'}</span>
-                        {getRoleFlair(post.authorRole) && (
-                          <span className={`user-flair ${getRoleFlair(post.authorRole).class}`}>
-                            {getRoleFlair(post.authorRole).text}
+                        {postAuthorFlairs.map((flair, index) => (
+                          <span key={index} className={`user-flair ${flair.class}`}>
+                            {flair.text}
                           </span>
-                        )}
-                        {post.authorSemester && (
-                          <span className="user-flair flair-semester">
-                            Sem {post.authorSemester}
-                          </span>
-                        )}
+                        ))}
                       </div>
                       <div className="post-meta">
                         <FiClock />
@@ -290,28 +525,108 @@ const ForumPost = () => {
                       {post.category}
                     </span>
                   )}
+                  {/* Edit/Delete buttons - show if user is author or admin */}
+                  {(currentUser && (post.authorId === currentUser.uid || isAdmin)) && !post.isDeletedByUser && (
+                    <div className="post-actions-menu">
+                      {!isEditing && (
+                        <>
+                          <button
+                            onClick={handleEditPost}
+                            className="btn-icon"
+                            title="Edit post"
+                          >
+                            <FiEdit2 />
+                          </button>
+                          <button
+                            onClick={handleDeletePost}
+                            className="btn-icon btn-danger"
+                            title="Delete post"
+                            disabled={isDeleting}
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {/* Request permanent deletion button - only for post author when deleted */}
+                  {post.isDeletedByUser && currentUser && post.authorId === currentUser.uid && (
+                    <div className="post-actions-menu">
+                      <button
+                        onClick={handleRequestPermanentDeletion}
+                        className="btn btn-danger btn-small"
+                        title="Request permanent deletion from admin"
+                        disabled={requestingDeletion}
+                      >
+                        <FiTrash2 />
+                        {requestingDeletion ? 'Requesting...' : 'Request Permanent Deletion'}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <h1 className="post-title">{post.title}</h1>
 
-                <div className="post-content">
-                  {contentParts.map((part, index) => {
-                    if (part.type === 'code') {
-                      return (
-                        <CodeSnippet 
-                          key={index}
-                          code={part.content}
-                          language={part.language}
-                        />
-                      )
-                    }
-                    return (
-                      <p key={index} style={{ whiteSpace: 'pre-wrap' }}>
-                        {part.content}
-                      </p>
-                    )
-                  })}
-                </div>
+                {isEditing ? (
+                  <div className="edit-post-form">
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="edit-content-input"
+                      rows={10}
+                      placeholder="Edit your post content..."
+                    />
+                    <div className="edit-actions">
+                      <button
+                        onClick={handleSaveEdit}
+                        className="btn btn-primary btn-small"
+                        disabled={!editContent.trim()}
+                      >
+                        <FiCheck />
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="btn btn-secondary btn-small"
+                      >
+                        <FiX />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="post-content">
+                    {post.isDeletedByUser ? (
+                      <div className="deleted-post-message">
+                        <p>This post was deleted by the user.</p>
+                      </div>
+                    ) : (
+                      contentParts.map((part, index) => {
+                        if (part.type === 'code') {
+                          return (
+                            <CodeSnippet 
+                              key={index}
+                              code={part.content}
+                              language={part.language}
+                            />
+                          )
+                        }
+                        return (
+                          <p key={index} style={{ whiteSpace: 'pre-wrap' }}>
+                            {part.content}
+                          </p>
+                        )
+                      })
+                    )}
+                  </div>
+                )}
+
+                {/* Edited label - only show if edited and not by admin */}
+                {post.editedAt && !post.isAdminEdit && (
+                  <div className="edited-label">
+                    <span>Edited</span>
+                  </div>
+                )}
 
                 {post.tags && post.tags.length > 0 && (
                   <div className="post-tags">
@@ -327,6 +642,8 @@ const ForumPost = () => {
                   <button 
                     className={`vote-btn ${userVote === 'up' ? 'active' : ''}`}
                     onClick={() => handleVote('up')}
+                    disabled={post?.votingDisabled || post?.isDeletedByUser}
+                    title={post?.votingDisabled || post?.isDeletedByUser ? 'Voting is disabled' : 'Upvote'}
                   >
                     <FiThumbsUp />
                     <span>{post.upvotes || 0}</span>
@@ -334,6 +651,8 @@ const ForumPost = () => {
                   <button 
                     className={`vote-btn ${userVote === 'down' ? 'active' : ''}`}
                     onClick={() => handleVote('down')}
+                    disabled={post?.votingDisabled || post?.isDeletedByUser}
+                    title={post?.votingDisabled || post?.isDeletedByUser ? 'Voting is disabled' : 'Downvote'}
                   >
                     <FiThumbsDown />
                     <span>{post.downvotes || 0}</span>
@@ -341,6 +660,9 @@ const ForumPost = () => {
                   <div className="reply-count">
                     <FiMessageSquare />
                     <span>{post.replyCount || 0} {post.replyCount === 1 ? 'reply' : 'replies'}</span>
+                    {(post?.repliesDisabled || post?.isDeletedByUser) && (
+                      <span className="disabled-badge">(Disabled)</span>
+                    )}
                   </div>
                 </div>
               </article>
@@ -352,7 +674,7 @@ const ForumPost = () => {
                   {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
                 </h2>
 
-                {currentUser && (
+                {currentUser && !post?.repliesDisabled && !post?.isDeletedByUser && (
                   <form className="reply-form" onSubmit={handleSubmitReply}>
                     <div className="reply-input-wrapper">
                       <div className="author-avatar small">
@@ -380,11 +702,16 @@ const ForumPost = () => {
                   </form>
                 )}
 
-                {!currentUser && (
+                {!currentUser && !post?.repliesDisabled && !post?.isDeletedByUser && (
                   <div className="login-prompt-box">
                     <p>
                       <Link to="/member/login">Login</Link> to reply to this post
                     </p>
+                  </div>
+                )}
+                {(post?.repliesDisabled || post?.isDeletedByUser) && (
+                  <div className="replies-disabled-message">
+                    <p>Replies are disabled for this post.</p>
                   </div>
                 )}
 
@@ -405,16 +732,11 @@ const ForumPost = () => {
                             <div className="reply-author-info">
                               <div className="author-name-with-flairs">
                                 <span className="author-name">{reply.authorName || 'Anonymous'}</span>
-                                {getRoleFlair(reply.authorRole) && (
-                                  <span className={`user-flair ${getRoleFlair(reply.authorRole).class}`}>
-                                    {getRoleFlair(reply.authorRole).text}
+                                {(replyAuthorsFlairs[reply.id] || []).map((flair, index) => (
+                                  <span key={index} className={`user-flair ${flair.class}`}>
+                                    {flair.text}
                                   </span>
-                                )}
-                                {reply.authorSemester && (
-                                  <span className="user-flair flair-semester">
-                                    Sem {reply.authorSemester}
-                                  </span>
-                                )}
+                                ))}
                               </div>
                               <div className="post-meta">
                                 <FiClock />
@@ -454,26 +776,6 @@ const ForumPost = () => {
               </div>
             </div>
 
-            {/* Sidebar */}
-            <aside className="post-sidebar">
-              <div className="sidebar-card">
-                <h3>About This Discussion</h3>
-                <div className="discussion-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">Created</span>
-                    <span className="stat-value">{formatDate(post.createdAt)}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Replies</span>
-                    <span className="stat-value">{post.replyCount || 0}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Upvotes</span>
-                    <span className="stat-value">{post.upvotes || 0}</span>
-                  </div>
-                </div>
-              </div>
-            </aside>
           </div>
         </div>
       </section>

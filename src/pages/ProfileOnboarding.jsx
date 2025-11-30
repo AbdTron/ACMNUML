@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
 import { FiUser, FiHash, FiBookOpen, FiUsers, FiClock, FiArrowRight, FiSun, FiMoon, FiAward } from 'react-icons/fi'
 import { DEPARTMENTS, DEGREES_BY_DEPARTMENT, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../utils/universityData'
+import { computeFlairsForStorage } from '../utils/flairUtils.js'
 import './ProfileOnboarding.css'
 
 const ProfileOnboarding = () => {
@@ -132,9 +133,17 @@ const ProfileOnboarding = () => {
     setLoading(true)
 
     try {
-      // Update user profile in Firestore
-      const userRef = doc(db, 'users', currentUser.uid)
-      await setDoc(userRef, {
+      // Check if user is admin
+      let isAdmin = false
+      try {
+        const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
+        isAdmin = adminDoc.exists()
+      } catch (err) {
+        // Ignore errors checking admin status
+      }
+
+      // Prepare profile data
+      const profileData = {
         name: formData.name.trim(),
         rollNumber: formData.rollNumber.trim().toUpperCase(),
         department: formData.department,
@@ -147,7 +156,15 @@ const ProfileOnboarding = () => {
         academicInfoLocked: true, // Lock academic info after first save
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp()
-      }, { merge: true })
+      }
+
+      // Compute flairs based on profile data
+      const flairs = computeFlairsForStorage(profileData, isAdmin)
+      profileData.flairs = flairs
+
+      // Update user profile in Firestore
+      const userRef = doc(db, 'users', currentUser.uid)
+      await setDoc(userRef, profileData, { merge: true })
 
       // Refresh profile
       await refreshProfile()

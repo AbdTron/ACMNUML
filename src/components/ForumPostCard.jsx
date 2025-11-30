@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   FiMessageSquare, 
@@ -7,9 +8,13 @@ import {
   FiUser,
   FiTag
 } from 'react-icons/fi'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { generateFlairs } from '../utils/flairUtils'
 import './ForumPostCard.css'
 
 const ForumPostCard = ({ post, showCategory = true }) => {
+  const [authorFlairs, setAuthorFlairs] = useState([])
   const formatDate = (date) => {
     if (!date) return ''
     const postDate = date.toDate ? date.toDate() : new Date(date)
@@ -26,6 +31,76 @@ const ForumPostCard = ({ post, showCategory = true }) => {
     return postDate.toLocaleDateString()
   }
 
+  useEffect(() => {
+    const loadAuthorFlairs = async () => {
+      // If post already has stored flairs, use them
+      if (post.authorFlairs && post.authorFlairs.length > 0) {
+        setAuthorFlairs(post.authorFlairs)
+        return
+      }
+
+      // For backward compatibility: fetch author's current profile to get accurate flairs
+      if (post.authorId && db) {
+        try {
+          // Fetch author's current profile
+          const userDoc = await getDoc(doc(db, 'users', post.authorId))
+          if (userDoc.exists()) {
+            const userProfile = userDoc.data()
+            
+            // Check if user is admin
+            let isAdmin = false
+            try {
+              const adminDoc = await getDoc(doc(db, 'admins', post.authorId))
+              isAdmin = adminDoc.exists()
+            } catch (err) {
+              // Ignore errors checking admin status
+            }
+
+            // Generate flairs from current profile
+            const flairs = generateFlairs({
+              acmRole: userProfile.acmRole || post.authorRole,
+              role: userProfile.role,
+              degree: userProfile.degree || post.authorDegree,
+              semester: userProfile.semester || post.authorSemester
+            }, isAdmin || post.authorIsAdmin || false)
+            
+            setAuthorFlairs(flairs)
+          } else {
+            // Fallback to old post data if profile doesn't exist
+            const flairs = generateFlairs({
+              acmRole: post.authorRole,
+              role: post.authorRole,
+              degree: post.authorDegree,
+              semester: post.authorSemester
+            }, post.authorIsAdmin || false)
+            setAuthorFlairs(flairs)
+          }
+        } catch (error) {
+          console.error('Error loading author flairs:', error)
+          // Fallback to old post data
+          const flairs = generateFlairs({
+            acmRole: post.authorRole,
+            role: post.authorRole,
+            degree: post.authorDegree,
+            semester: post.authorSemester
+          }, post.authorIsAdmin || false)
+          setAuthorFlairs(flairs)
+        }
+      } else {
+        // Fallback to old post data
+        const flairs = generateFlairs({
+          acmRole: post.authorRole,
+          role: post.authorRole,
+          degree: post.authorDegree,
+          semester: post.authorSemester
+        }, post.authorIsAdmin || false)
+        setAuthorFlairs(flairs)
+      }
+    }
+
+    loadAuthorFlairs()
+  }, [post.authorId, post.authorFlairs, post.authorRole, post.authorDegree, post.authorSemester, post.authorIsAdmin])
+
   const getCategoryColor = (category) => {
     const colors = {
       'General': 'category-general',
@@ -37,20 +112,6 @@ const ForumPostCard = ({ post, showCategory = true }) => {
     }
     return colors[category] || 'category-general'
   }
-
-  const getRoleFlair = (role) => {
-    if (!role) return null
-    const roleLower = role.toLowerCase()
-    if (roleLower.includes('president')) return { text: 'President', class: 'flair-president' }
-    if (roleLower.includes('vice president')) return { text: 'Vice President', class: 'flair-vp' }
-    if (roleLower.includes('secretary')) return { text: 'Secretary', class: 'flair-secretary' }
-    if (roleLower.includes('admin')) return { text: 'Admin', class: 'flair-admin' }
-    if (roleLower.includes('moderator')) return { text: 'Moderator', class: 'flair-moderator' }
-    if (roleLower.includes('member')) return { text: 'Member', class: 'flair-member' }
-    return null
-  }
-
-  const roleFlair = getRoleFlair(post.authorRole)
 
   return (
     <Link to={`/forum/${post.id}`} className="forum-post-card">
@@ -66,16 +127,11 @@ const ForumPostCard = ({ post, showCategory = true }) => {
           <div className="author-details">
             <div className="author-name-with-flairs">
               <span className="author-name">{post.authorName || 'Anonymous'}</span>
-              {roleFlair && (
-                <span className={`user-flair ${roleFlair.class}`}>
-                  {roleFlair.text}
+              {authorFlairs.map((flair, index) => (
+                <span key={index} className={`user-flair ${flair.class}`}>
+                  {flair.text}
                 </span>
-              )}
-              {post.authorSemester && (
-                <span className="user-flair flair-semester">
-                  Sem {post.authorSemester}
-                </span>
-              )}
+              ))}
             </div>
             <div className="post-meta">
               <FiClock />

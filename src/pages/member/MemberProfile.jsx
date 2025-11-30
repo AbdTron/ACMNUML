@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { doc, updateDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore'
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, getDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useMemberAuth } from '../../context/MemberAuthContext'
 import { sendDisplayEmailVerification } from '../../utils/emailService'
@@ -40,9 +40,30 @@ const MemberProfile = () => {
   const [displayEmailVerificationSent, setDisplayEmailVerificationSent] = useState(false)
   const [availableDegrees, setAvailableDegrees] = useState([])
   const [availableShifts, setAvailableShifts] = useState([])
+  const [requireApproval, setRequireApproval] = useState(true)
 
-  // Check if academic info is locked (already filled once)
-  const isAcademicLocked = userProfile?.academicInfoLocked && !userProfile?.canEditAcademic
+  // Fetch settings to check if approval is required
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!db) return
+      try {
+        const settingsDoc = await getDoc(doc(db, 'settings', 'general'))
+        if (settingsDoc.exists()) {
+          const data = settingsDoc.data()
+          setRequireApproval(data.requireAcademicChangeApproval !== false)
+        }
+      } catch (err) {
+        console.error('Error fetching settings:', err)
+        // Default to requiring approval if error
+        setRequireApproval(true)
+      }
+    }
+    fetchSettings()
+  }, [])
+
+  // Check if academic info is locked
+  // Locked if: approval is required AND user has filled it once AND doesn't have edit permission
+  const isAcademicLocked = requireApproval && userProfile?.academicInfoLocked && !userProfile?.canEditAcademic
 
   useEffect(() => {
     if (!currentUser) {
@@ -365,6 +386,7 @@ const MemberProfile = () => {
       }
 
       // Only update academic fields if not locked or if user has edit permission
+      // If approval is not required, always allow editing
       if (!isAcademicLocked) {
         updateData.rollNumber = formData.rollNumber.trim().toUpperCase()
         updateData.department = formData.department
@@ -372,8 +394,6 @@ const MemberProfile = () => {
         updateData.semester = formData.semester
         updateData.section = formData.section.toUpperCase()
         updateData.shift = formData.shift
-        updateData.academicInfoLocked = true // Lock after first save
-        updateData.canEditAcademic = false
         updateData.profileComplete = !!(
           formData.rollNumber && 
           formData.department && 
@@ -382,6 +402,16 @@ const MemberProfile = () => {
           formData.section && 
           formData.shift
         )
+        
+        // Only lock if approval is required
+        if (requireApproval) {
+          updateData.academicInfoLocked = true // Lock after first save
+          updateData.canEditAcademic = false
+        } else {
+          // If approval not required, don't lock
+          updateData.academicInfoLocked = false
+          updateData.canEditAcademic = true
+        }
       }
       
       await updateDoc(userRef, updateData)
@@ -569,7 +599,7 @@ const MemberProfile = () => {
                 Academic Information
                 {isAcademicLocked && <FiLock className="lock-icon" />}
               </h2>
-              {isAcademicLocked && !pendingRequest && (
+              {isAcademicLocked && !pendingRequest && requireApproval && (
                 <button
                   type="button"
                   onClick={handleRequestChange}
@@ -582,10 +612,17 @@ const MemberProfile = () => {
               )}
             </div>
             
-            {isAcademicLocked && (
+            {isAcademicLocked && requireApproval && (
               <div className="locked-notice">
                 <FiLock />
                 <span>Academic information is locked. To make changes, request admin approval.</span>
+              </div>
+            )}
+            
+            {!requireApproval && (
+              <div className="info-banner" style={{ background: '#dbeafe', borderColor: '#93c5fd', color: '#1e40af' }}>
+                <FiCheckCircle />
+                <span>Academic information can be edited freely. Admin approval is not required.</span>
               </div>
             )}
 

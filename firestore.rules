@@ -165,5 +165,61 @@ service cloud.firestore {
       // Only admins can delete requests
       allow delete: if request.auth != null && isAdmin();
     }
+
+    // Forum posts collection
+    match /forumPosts/{postId} {
+      // Anyone can read posts (public forum)
+      allow read: if true;
+      // Allow list/query operations for everyone
+      allow list: if true;
+      // Authenticated users can create posts
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.authorId;
+      // Users can update their own posts, admins can update any
+      allow update: if request.auth != null && (
+        resource.data.authorId == request.auth.uid ||
+        isAdmin()
+      );
+      // Users can delete their own posts, admins can delete any
+      allow delete: if request.auth != null && (
+        resource.data.authorId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Forum replies collection
+    match /forumReplies/{replyId} {
+      // Anyone can read replies (public forum)
+      allow read: if true;
+      // Allow list/query operations for everyone
+      allow list: if true;
+      // Authenticated users can create replies
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.authorId;
+      // Users can update their own replies, admins can update any
+      allow update: if request.auth != null && (
+        resource.data.authorId == request.auth.uid ||
+        isAdmin()
+      );
+      // Users can delete their own replies, admins can delete any
+      allow delete: if request.auth != null && (
+        resource.data.authorId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Feedback collection
+    match /feedback/{feedbackId} {
+      // Anyone can create feedback
+      allow create: if true;
+      // Only admins can read feedback
+      allow read: if request.auth != null && isAdmin();
+      // Allow list/query operations for admins
+      allow list: if request.auth != null && isAdmin();
+      // Only admins can update feedback
+      allow update: if request.auth != null && isAdmin();
+      // Only admins can delete feedback
+      allow delete: if request.auth != null && isAdmin();
+    }
   }
 }

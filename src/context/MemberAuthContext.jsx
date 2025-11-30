@@ -16,6 +16,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../config/firebase'
 import { logActivity, ACTIVITY_TYPES } from '../utils/activityLogger'
 import { ROLES } from '../utils/permissions'
+import { computeFlairsForStorage } from '../utils/flairUtils.js'
 
 const MemberAuthContext = createContext({
   currentUser: null,
@@ -56,22 +57,57 @@ export const MemberAuthProvider = ({ children }) => {
         // Fetch user profile from Firestore
         if (db) {
           try {
+            // Check if user is admin
+            let isAdmin = false
+            try {
+              const adminDoc = await getDoc(doc(db, 'admins', user.uid))
+              isAdmin = adminDoc.exists()
+            } catch (err) {
+              // Ignore errors checking admin status
+            }
+
             const userDoc = await getDoc(doc(db, 'users', user.uid))
             if (userDoc.exists()) {
               const profileData = userDoc.data()
-              // Update emailVerified status from auth
-              setUserProfile({
+              
+              // Compute and update flairs if profile data changed
+              const flairs = computeFlairsForStorage(profileData, isAdmin)
+              
+              // Update emailVerified status from auth and flairs
+              const updatedProfile = {
                 ...profileData,
                 emailVerified: user.emailVerified,
-                email: user.email // Sync email from auth
-              })
+                email: user.email, // Sync email from auth
+                flairs: flairs // Store computed flairs
+              }
+              
+              // Only update flairs in Firestore if they changed
+              if (JSON.stringify(profileData.flairs) !== JSON.stringify(flairs)) {
+                try {
+                  await setDoc(doc(db, 'users', user.uid), { flairs }, { merge: true })
+                } catch (err) {
+                  console.error('Error updating flairs:', err)
+                }
+              }
+              
+              setUserProfile(updatedProfile)
             } else {
+              // Check if user is admin
+              let isAdmin = false
+              try {
+                const adminDoc = await getDoc(doc(db, 'admins', user.uid))
+                isAdmin = adminDoc.exists()
+              } catch (err) {
+                // Ignore errors checking admin status
+              }
+
               // User doesn't have a profile yet - create one
               const newProfile = {
                 email: user.email,
                 name: user.displayName || user.email?.split('@')[0] || 'User',
                 role: ROLES.USER,
                 showInDirectory: true, // Default to enabled
+                flairs: [], // Empty flairs initially (will be computed after onboarding)
                 joinDate: serverTimestamp(),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -299,8 +335,24 @@ export const MemberAuthProvider = ({ children }) => {
       throw new Error('User not authenticated')
     }
     
+    // Check if user is admin
+    let isAdmin = false
+    try {
+      const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
+      isAdmin = adminDoc.exists()
+    } catch (err) {
+      // Ignore errors checking admin status
+    }
+    
+    // Merge updates with current profile to compute flairs
+    const mergedProfile = { ...userProfile, ...updates }
+    
+    // Recompute flairs based on updated profile
+    const flairs = computeFlairsForStorage(mergedProfile, isAdmin)
+    
     const updatedData = {
       ...updates,
+      flairs: flairs, // Store computed flairs
       updatedAt: new Date().toISOString()
     }
     
@@ -319,13 +371,36 @@ export const MemberAuthProvider = ({ children }) => {
     }
     
     try {
+      // Check if user is admin
+      let isAdmin = false
+      try {
+        const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
+        isAdmin = adminDoc.exists()
+      } catch (err) {
+        // Ignore errors checking admin status
+      }
+
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
       if (userDoc.exists()) {
         const profileData = userDoc.data()
+        
+        // Recompute flairs
+        const flairs = computeFlairsForStorage(profileData, isAdmin)
+        
+        // Update flairs in Firestore if they changed
+        if (JSON.stringify(profileData.flairs) !== JSON.stringify(flairs)) {
+          try {
+            await setDoc(doc(db, 'users', currentUser.uid), { flairs }, { merge: true })
+          } catch (err) {
+            console.error('Error updating flairs:', err)
+          }
+        }
+        
         setUserProfile({
           ...profileData,
           emailVerified: currentUser.emailVerified,
-          email: currentUser.email
+          email: currentUser.email,
+          flairs: flairs
         })
       }
     } catch (error) {

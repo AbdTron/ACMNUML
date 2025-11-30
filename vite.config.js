@@ -1,9 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { copyFileSync } from 'fs'
-import { join } from 'path'
+import { join, resolve } from 'path'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
+  },
   plugins: [
     react(),
     // ✅ 7. Copy service workers to dist root after build
