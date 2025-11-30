@@ -1,0 +1,175 @@
+.share-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.share-buttons-horizontal {
+  flex-direction: row;
+}
+
+.share-buttons-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.share-buttons-compact {
+  gap: 0.5rem;
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--bg-white);
+  color: var(--text-dark);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.share-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.share-button:active {
+  transform: translateY(0);
+}
+
+.share-button svg {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.share-button span {
+  white-space: nowrap;
+}
+
+/* Platform-specific colors */
+.share-button-facebook:hover {
+  background: #1877f2;
+  border-color: #1877f2;
+  color: white;
+}
+
+.share-button-instagram:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border-color: #bc1888;
+  color: white;
+}
+
+.share-button-linkedin:hover {
+  background: #0077b5;
+  border-color: #0077b5;
+  color: white;
+}
+
+.share-button-whatsapp:hover {
+  background: #25d366;
+  border-color: #25d366;
+  color: white;
+}
+
+.share-button-copy:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.share-button-copy.copied {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.share-button-native:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+/* Compact variant */
+.share-buttons-compact .share-button {
+  padding: 0.5rem;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.share-buttons-compact .share-button span {
+  display: none;
+}
+
+.share-buttons-compact .share-button svg {
+  font-size: 1.125rem;
+}
+
+/* Icon-only variant (when showLabels is false) */
+.share-button:not(:has(span)) {
+  padding: 0.625rem;
+  min-width: 44px;
+}
+
+/* Dark mode */
+[data-theme='dark'] .share-button {
+  background: var(--bg-dark);
+  border-color: var(--border-color-dark);
+  color: var(--text-light);
+}
+
+[data-theme='dark'] .share-button:hover {
+  background: var(--bg-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .share-buttons {
+    gap: 0.5rem;
+  }
+
+  .share-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  .share-button svg {
+    font-size: 1.125rem;
+  }
+
+  .share-buttons-horizontal .share-button span {
+    display: none;
+  }
+
+  .share-buttons-horizontal .share-button {
+    padding: 0.5rem;
+    min-width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .share-buttons {
+    gap: 0.375rem;
+  }
+
+  .share-button {
+    padding: 0.5rem;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .share-button svg {
+    font-size: 1rem;
+  }
+}
+

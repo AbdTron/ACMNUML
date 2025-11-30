@@ -5,6 +5,8 @@ import { db } from '../config/firebase'
 import { format } from 'date-fns'
 import { FiArrowLeft, FiCalendar, FiClock, FiMapPin, FiX, FiCheck } from 'react-icons/fi'
 import QRCodeGenerator from '../components/QRCodeGenerator'
+import ShareButtons from '../components/ShareButtons'
+import SEOHead from '../components/SEOHead'
 import './EventDetail.css'
 
 const EventDetail = () => {
@@ -93,23 +95,50 @@ const EventDetail = () => {
     )
   }
 
-  return (
-    <div className="event-detail-page">
-      <div className="event-detail-header">
-        <div className="container">
-          <Link to="/events" className="back-link">
-            <FiArrowLeft /> Back to events
-          </Link>
-        </div>
-      </div>
+  // Generate share URL
+  const shareUrl = `${window.location.origin}/events/${event.id}`
+  const shareImage = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+  const shareDescription = event.longDescription || event.description || `Join us for ${event.title} on ${format(new Date(event.date), 'MMMM dd, yyyy')}`
 
-      <section className="section event-detail-section">
-        <div className="container">
-          <div className="event-detail-layout">
-            <div className="event-detail-content">
-              <h1>{event.title}</h1>
-              
-              <div className="event-detail-meta">
+  return (
+    <>
+      <SEOHead
+        title={`${event.title} - ACM NUML Events`}
+        description={shareDescription}
+        image={shareImage}
+        url={shareUrl}
+        type="article"
+      />
+      <div className="event-detail-page">
+        <div className="event-detail-header">
+          <div className="container">
+            <Link to="/events" className="back-link">
+              <FiArrowLeft /> Back to events
+            </Link>
+          </div>
+        </div>
+
+        <section className="section event-detail-section">
+          <div className="container">
+            <div className="event-detail-layout">
+              <div className="event-detail-content">
+                <h1>{event.title}</h1>
+                
+                {/* Share Buttons */}
+                <div className="event-share-section">
+                  <ShareButtons
+                    url={shareUrl}
+                    title={event.title}
+                    text={shareDescription}
+                    image={shareImage}
+                    event={event}
+                    variant="horizontal"
+                    showLabels={false}
+                    showNativeShare={true}
+                  />
+                </div>
+                
+                <div className="event-detail-meta">
                 <div>
                   <FiCalendar />
                   <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
@@ -275,7 +304,8 @@ const EventDetail = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 
