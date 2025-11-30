@@ -4,6 +4,7 @@
   "description": "ACM Society Website for NUML University",
   "private": true,
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@supabase/supabase-js": "^2.44.2",
     "date-fns": "^2.30.0",
     "firebase": "^10.7.1",

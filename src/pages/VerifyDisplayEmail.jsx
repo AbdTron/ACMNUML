@@ -9,7 +9,7 @@ import './VerifyEmail.css'
 const VerifyDisplayEmail = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { currentUser } = useMemberAuth()
+  const { currentUser, refreshProfile } = useMemberAuth()
   const [status, setStatus] = useState('verifying') // verifying, success, error
   const [message, setMessage] = useState('Verifying your display email...')
 
@@ -52,6 +52,11 @@ const VerifyDisplayEmail = () => {
             displayEmailVerificationToken: null,
             updatedAt: new Date().toISOString()
           })
+          
+          // Refresh the user profile in context
+          if (refreshProfile) {
+            await refreshProfile()
+          }
           
           setStatus('success')
           setMessage('Your display email has been verified successfully!')

@@ -30,6 +30,7 @@ const MemberAuthContext = createContext({
   resetPassword: async () => {},
   sendVerificationEmail: async () => {},
   verifyEmail: async () => {},
+  refreshProfile: async () => {},
   isMember: false,
   isAdmin: false
 })
@@ -312,6 +313,26 @@ export const MemberAuthProvider = ({ children }) => {
     await logActivity(currentUser.uid, ACTIVITY_TYPES.PROFILE_UPDATED, 'User profile updated', { changes: updates })
   }
 
+  const refreshProfile = async () => {
+    if (!currentUser || !db) {
+      return
+    }
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
+      if (userDoc.exists()) {
+        const profileData = userDoc.data()
+        setUserProfile({
+          ...profileData,
+          emailVerified: currentUser.emailVerified,
+          email: currentUser.email
+        })
+      }
+    } catch (error) {
+      console.error('Error refreshing profile:', error)
+    }
+  }
+
   const value = {
     currentUser,
     userProfile,
@@ -325,6 +346,7 @@ export const MemberAuthProvider = ({ children }) => {
     resetPassword,
     sendVerificationEmail,
     verifyEmail,
+    refreshProfile,
     isMember: userProfile?.role === ROLES.USER || userProfile?.role === 'member', // Backward compatibility
     isAdmin: userProfile?.role === ROLES.ADMIN || userProfile?.role === ROLES.SUPERADMIN
   }

@@ -3,11 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useMemberAuth } from '../../context/MemberAuthContext'
+import { sendDisplayEmailVerification } from '../../utils/emailService'
 import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCircle } from 'react-icons/fi'
 import './MemberProfile.css'
 
 const MemberProfile = () => {
-  const { currentUser, userProfile, updateProfile, updateUserEmail } = useMemberAuth()
+  const { currentUser, userProfile, updateProfile, refreshProfile } = useMemberAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -35,11 +36,25 @@ const MemberProfile = () => {
       return
     }
 
-    // Load user profile data
+    // Refresh profile when component mounts (in case it was updated elsewhere)
+    const loadProfile = async () => {
+      if (refreshProfile) {
+        await refreshProfile()
+      }
+    }
+    loadProfile()
+  }, [currentUser, navigate, refreshProfile])
+
+  useEffect(() => {
+    // Load user profile data when userProfile changes
     if (userProfile) {
+      console.log('Profile loaded:', {
+        displayEmail: userProfile.displayEmail,
+        displayEmailVerified: userProfile.displayEmailVerified
+      })
       setFormData({
         name: userProfile.name || '',
-        email: userProfile.email || currentUser.email || '',
+        email: userProfile.email || currentUser?.email || '',
         displayEmail: userProfile.displayEmail || '', // Separate email for display
         phone: userProfile.phone || '',
         bio: userProfile.bio || '',
@@ -52,13 +67,13 @@ const MemberProfile = () => {
         contactType: userProfile.contactType || 'email'
       })
       setDisplayEmailVerificationSent(false)
-    } else {
+    } else if (currentUser) {
       setFormData(prev => ({
         ...prev,
         email: currentUser.email || ''
       }))
     }
-  }, [currentUser, userProfile, navigate])
+  }, [userProfile, currentUser])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -107,14 +122,39 @@ const MemberProfile = () => {
         updatedAt: new Date().toISOString()
       })
       
-      // TODO: Send actual verification email to displayEmail using Firebase Functions or external service
-      // For now, we'll show the verification URL (in production, send via email)
-      console.log('Verification URL:', verificationUrl)
-      alert(`Verification email would be sent to ${formData.displayEmail}.\n\nFor now, use this link to verify:\n${verificationUrl}\n\n(Note: In production, this link will be sent via email automatically)`)
-      
-      setDisplayEmailVerificationSent(true)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 5000)
+      // Try to send verification email
+      try {
+        console.log('Attempting to send verification email...')
+        await sendDisplayEmailVerification(
+          formData.displayEmail,
+          verificationUrl,
+          formData.name || userProfile?.name || 'User'
+        )
+        setDisplayEmailVerificationSent(true)
+        setSuccess(true)
+        setError(null)
+        console.log('✅ Email sent successfully!')
+      } catch (emailError) {
+        // Log the full error for debugging
+        console.error('❌ Email sending failed:', emailError)
+        setError(`Failed to send email: ${emailError.message}. Check browser console for details.`)
+        
+        // Show the verification link as fallback
+        const useLink = confirm(
+          `Email could not be sent automatically.\n\n` +
+          `Error: ${emailError.message}\n\n` +
+          `Would you like to copy the verification link instead?\n\n` +
+          `(Check browser console for more details)`
+        )
+        
+        if (useLink) {
+          navigator.clipboard.writeText(verificationUrl).then(() => {
+            alert(`Verification link copied to clipboard!\n\n${verificationUrl}\n\nPaste it in your browser to verify.`)
+          }).catch(() => {
+            alert(`Please use this verification link:\n\n${verificationUrl}`)
+          })
+        }
+      }
     } catch (err) {
       console.error('Error sending verification email:', err)
       setError(err.message || 'Failed to send verification email. Please try again.')

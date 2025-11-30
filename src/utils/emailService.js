@@ -81,6 +81,82 @@ export const sendWaitlistConfirmation = async (registrationData, eventData) => {
   })
 }
 
+/**
+ * Send display email verification email
+ * @param {string} toEmail - Email address to send verification to
+ * @param {string} verificationUrl - Verification link URL
+ * @param {string} userName - User's name
+ * @returns {Promise<void>}
+ */
+export const sendDisplayEmailVerification = async (toEmail, verificationUrl, userName = 'User') => {
+  // Check if EmailJS is configured
+  const emailjsConfig = {
+    serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+    templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID_DISPLAY_EMAIL,
+    publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+  }
+
+  // Debug: Log configuration (without exposing full keys)
+  console.log('EmailJS Config Check:', {
+    hasServiceId: !!emailjsConfig.serviceId,
+    hasTemplateId: !!emailjsConfig.templateId,
+    hasPublicKey: !!emailjsConfig.publicKey,
+    serviceId: emailjsConfig.serviceId,
+    templateId: emailjsConfig.templateId
+  })
+
+  // If EmailJS is configured, use it
+  if (emailjsConfig.serviceId && emailjsConfig.templateId && emailjsConfig.publicKey) {
+    try {
+      // Import emailjs - use the correct import syntax
+      const emailjs = (await import('@emailjs/browser')).default
+      
+      // Initialize EmailJS with public key
+      emailjs.init(emailjsConfig.publicKey)
+      
+      console.log('Sending email via EmailJS...', {
+        to: toEmail,
+        serviceId: emailjsConfig.serviceId,
+        templateId: emailjsConfig.templateId
+      })
+      
+      // Send email
+      const response = await emailjs.send(
+        emailjsConfig.serviceId,
+        emailjsConfig.templateId,
+        {
+          to_email: toEmail,
+          user_name: userName,
+          verification_url: verificationUrl,
+          from_name: 'ACM NUML'
+        }
+      )
+      
+      console.log('EmailJS response:', response)
+      console.log('✅ Display email verification sent via EmailJS to:', toEmail)
+      return
+    } catch (error) {
+      console.error('❌ EmailJS error details:', {
+        message: error.message,
+        text: error.text,
+        status: error.status,
+        fullError: error
+      })
+      throw new Error(`Failed to send email: ${error.text || error.message || 'Unknown error'}`)
+    }
+  }
+
+  // Fallback: EmailJS not configured
+  console.warn('⚠️ EmailJS not configured. Missing:', {
+    serviceId: !emailjsConfig.serviceId,
+    templateId: !emailjsConfig.templateId,
+    publicKey: !emailjsConfig.publicKey
+  })
+  console.log('Verification URL (fallback):', verificationUrl)
+  
+  throw new Error('Email service not configured. Please check your .env file and restart the server. See EMAILJS_SETUP.md for instructions.')
+}
+
 
 
 
