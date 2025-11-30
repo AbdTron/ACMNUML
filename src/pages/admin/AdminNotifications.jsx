@@ -36,7 +36,8 @@ const AdminNotifications = () => {
     message: '',
     link: '',
     buttons: [],
-    active: true
+    active: true,
+    persistent: false
   })
   const [buttonText, setButtonText] = useState('')
   const [buttonUrl, setButtonUrl] = useState('')
@@ -123,7 +124,8 @@ const AdminNotifications = () => {
         message: '',
         link: '',
         buttons: [],
-        active: true
+        active: true,
+        persistent: false
       })
       setButtonText('')
       setButtonUrl('')
@@ -141,7 +143,8 @@ const AdminNotifications = () => {
       message: notification.message || '',
       link: notification.link || '',
       buttons: Array.isArray(notification.buttons) ? notification.buttons : [],
-      active: notification.active !== false
+      active: notification.active !== false,
+      persistent: notification.persistent === true
     })
     setButtonText('')
     setButtonUrl('')
@@ -213,7 +216,9 @@ const AdminNotifications = () => {
                 title: '',
                 message: '',
                 link: '',
-                active: true
+                buttons: [],
+                active: true,
+                persistent: false
               })
             }}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -338,6 +343,18 @@ const AdminNotifications = () => {
                       <span>Active (show this notification)</span>
                     </label>
                   </div>
+                  <div className="form-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        name="persistent"
+                        checked={formData.persistent}
+                        onChange={handleInputChange}
+                      />
+                      <span>Persistent (always show, even after user dismisses)</span>
+                    </label>
+                    <small>When enabled, this notification will continue to appear even after users click the X button. Useful for important announcements that should always be visible.</small>
+                  </div>
                   <div className="form-actions">
                     <button type="button" onClick={() => {
                       setShowForm(false)
@@ -396,6 +413,11 @@ const AdminNotifications = () => {
                       <a href={notification.link} target="_blank" rel="noopener noreferrer" className="notification-link">
                         {notification.link}
                       </a>
+                    )}
+                    {notification.persistent && (
+                      <div className="persistent-badge">
+                        <span className="badge badge-info">Persistent</span>
+                      </div>
                     )}
                   </div>
                   <div className="notification-actions">

@@ -34,10 +34,17 @@ const NotificationPopup = () => {
 
           if (sorted.length) {
             const latest = sorted[0]
-            const dismissed = localStorage.getItem(`notification_${latest.id}_dismissed`)
-            if (!dismissed) {
+            // If notification is persistent, always show it regardless of dismissal
+            if (latest.persistent === true) {
               setNotification(latest)
               setIsVisible(true)
+            } else {
+              // For non-persistent notifications, check if user dismissed it
+              const dismissed = localStorage.getItem(`notification_${latest.id}_dismissed`)
+              if (!dismissed) {
+                setNotification(latest)
+                setIsVisible(true)
+              }
             }
           }
         }
@@ -51,7 +58,11 @@ const NotificationPopup = () => {
 
   const handleDismiss = () => {
     if (notification) {
-      localStorage.setItem(`notification_${notification.id}_dismissed`, 'true')
+      // Only save dismissal to localStorage if notification is not persistent
+      // Persistent notifications will always show again on next page load
+      if (notification.persistent !== true) {
+        localStorage.setItem(`notification_${notification.id}_dismissed`, 'true')
+      }
     }
     setIsVisible(false)
   }
