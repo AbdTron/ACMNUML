@@ -86,87 +86,89 @@ Files to create:
 src/pages/MemberDirectory.jsx
 src/pages/MemberProfilePublic.jsx
 
-Phase 5: Social Media Integration
-5.1 Share Functionality
+Phase 4: Social Media Integration
+4.1 Share Functionality
 Share buttons component (Facebook, Twitter, LinkedIn, WhatsApp)
-Share to social media from events, blog posts, achievements
+Share to social media from events.
 Open Graph meta tags for better sharing previews
 Files to create:
-
 src/components/ShareButtons.jsx
 src/utils/shareUtils.js
-5.2 Social Media Feed Widget
-Social media feed integration (if API available)
-Display recent posts from social accounts
-Auto-post events to social media (via API or manual)
-Files to create:
 
-src/components/SocialFeedWidget.jsx
-Phase 7: Feedback & Community
-7.1 Feedback System
+
+Phase 5: Feedback & Community
+5.1 Feedback System
 Website feedback form
 Feature requests system
-Bug reports with screenshots
-User satisfaction surveys
+Bug reports
+User satisfaction surveys (lie for events that users attended, and other sureys)
 Files to create:
-
 src/pages/Feedback.jsx
 src/pages/admin/AdminFeedback.jsx
 src/components/FeedbackForm.jsx
-7.2 Community Forum
+5.2 Community Forum
 Forum section with categories
 Post creation and replies
 Code snippet sharing
 Real-time discussions
 Upvoting/downvoting
-Files to create:
 
+Files to create:
 src/pages/Forum.jsx
 src/pages/ForumPost.jsx
 src/pages/admin/AdminForum.jsx
 src/components/ForumPostCard.jsx
 src/components/CodeSnippet.jsx
-Phase 8: Analytics Dashboard
-8.1 Analytics Collection
+
+
+Phase 6: Analytics Dashboard
+6.1 Analytics Collection
 Page view tracking
 Event registration analytics
 User engagement metrics
 Traffic source tracking
 Device/browser analytics
-Files to create:
 
+Files to create:
 src/utils/analytics.js
 src/hooks/useAnalytics.js
-8.2 Admin Analytics Dashboard
+
+
+6.2 Admin Analytics Dashboard
 Visual charts and graphs
 Popular content tracking
 Conversion tracking
 Export analytics data
-Files to create:
 
+Files to create:
 src/pages/admin/AdminAnalytics.jsx
 src/components/analytics/ChartComponents.jsx
-Phase 9: SEO Improvements
-9.1 Meta Tags & Open Graph
+
+
+Phase 7: SEO Improvements
+7.1 Meta Tags & Open Graph
 Dynamic meta tags for all pages
 Open Graph tags for social sharing
 Twitter Card tags
 Structured data (JSON-LD)
-Files to create:
 
+Files to create:
 src/components/SEOHead.jsx
 src/utils/seoUtils.js
 Update all page components with SEO
-9.2 Sitemap & Robots
+
+7.2 Sitemap & Robots
 Generate sitemap.xml dynamically
 Create robots.txt
 Submit to search engines
-Files to create:
 
+Files to create:
 public/robots.txt
 src/utils/sitemapGenerator.js
-Phase 10: Offline Functionality
-10.1 Enhanced Service Worker
+
+
+Phase 8: Offline Functionality
+8.1 Enhanced Service Worker
 Cache events for offline browsing
 Cache gallery images
 Queue contact form submissions
@@ -175,15 +177,15 @@ Files to modify:
 
 public/sw.js - Enhanced caching strategies
 src/utils/offlineQueue.js
-10.2 Offline UI
+8.2 Offline UI
 Offline indicator
 Offline mode toggle
 Sync status display
 Files to create:
 
 src/components/OfflineIndicator.jsx
-Phase 11: Push Notifications Enhancement
-11.1 Notification Types
+Phase 9: Push Notifications Enhancement
+9.1 Notification Types
 Event reminders (24h, 1h before)
 New blog posts notifications
 Important announcements
@@ -193,8 +195,9 @@ Files to modify:
 src/components/NotificationService.jsx
 src/config/firebaseMessaging.js
 public/firebase-messaging-sw.js
-Phase 12: Performance & Security
-12.1 Image Optimization
+
+Phase 10: Performance & Security
+10.1 Image Optimization
 Progressive image loading
 Lazy loading for galleries and events
 WebP format support
@@ -204,7 +207,7 @@ Files to create:
 src/components/ProgressiveImage.jsx
 src/components/LazyImage.jsx
 Update existing image components
-12.2 Security Improvements
+10.2 Security Improvements
 Rate limiting for forms
 CSRF protection
 Content Security Policy headers
@@ -215,8 +218,10 @@ Files to create:
 src/utils/security.js
 src/utils/rateLimiter.js
 Update firebase.json with security headers
-Phase 13: UI/UX Enhancements
-13.1 Loading States
+
+
+Phase 11: UI/UX Enhancements
+11.1 Loading States
 Skeleton loaders
 Progressive loading
 Better error states
@@ -224,7 +229,9 @@ Files to create:
 
 src/components/SkeletonLoader.jsx
 src/components/ErrorBoundary.jsx
-13.2 Accessibility
+
+
+11.2 Accessibility
 ARIA labels
 Keyboard navigation
 Screen reader support
@@ -258,15 +265,16 @@ Dependencies to Add
   "chart.js": "^4.x",
   "react-chartjs-2": "^5.x"
 }
+
 Implementation Order
 Phase 1 - Core infrastructure (auth, user management)
 Phase 2 - Event registration (high priority)
 Phase 3 - Member portal
-Phase 5 - Social integration
-Phase 7 - Feedback & Forum
-Phase 8 - Analytics
-Phase 9 - SEO
-Phase 10 - Offline functionality
-Phase 11 - Push notifications
-Phase 12 - Performance & Security
-Phase 13 - UI/UX polish
+Phase 4 - Social integration
+Phase 5 - Feedback & Forum
+Phase 6 - Analytics
+Phase 7 - SEO
+Phase 8 - Offline functionality
+Phase 9 - Push notifications
+Phase 10 - Performance & Security
+Phase 11 - UI/UX polish

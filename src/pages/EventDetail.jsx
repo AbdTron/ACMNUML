@@ -126,18 +126,16 @@ const EventDetail = () => {
                 
                 {/* Share Buttons */}
                 <div className="event-share-section">
-                  <div className="share-buttons-wrapper">
-                    <ShareButtons
-                      url={shareUrl}
-                      title={event.title}
-                      text={shareDescription}
-                      image={shareImage}
-                      event={event}
-                      variant="horizontal"
-                      showLabels={false}
-                      showNativeShare={true}
-                    />
-                  </div>
+                  <ShareButtons
+                    url={shareUrl}
+                    title={event.title}
+                    text={shareDescription}
+                    image={shareImage}
+                    event={event}
+                    variant="horizontal"
+                    showLabels={false}
+                    showNativeShare={true}
+                  />
                 </div>
                 
                 <div className="event-detail-meta">

@@ -3,7 +3,7 @@
 }
 
 .event-detail-header {
-  padding: 0;
+  padding: -0.5rem 0;
   background: var(--bg-light);
   border-bottom: 1px solid var(--border-color);
 }
@@ -13,16 +13,16 @@
   align-items: center;
   justify-content: flex-start;
   min-height: 45px;
-  padding: 0.25rem 1.5rem;
-  height: 45px;
-  line-height: 45px;
+  padding: 0.5rem 1.5rem;
+  height: auto;
 }
 
 .event-detail-header .back-link {
   line-height: 1.5;
   display: inline-flex;
   align-items: center;
-  vertical-align: middle;
+  padding: 0.25rem 0;
+  margin: 0;
 }
 
 .event-detail-section {
@@ -66,7 +66,7 @@
 
 .event-share-section {
   margin: 1rem 0;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   width: 100%;
@@ -74,29 +74,33 @@
   display: block !important;
   position: relative;
   z-index: 2;
-  min-height: 60px;
-  background: transparent;
+  min-height: 80px;
+  background: var(--bg-white);
 }
 
-.share-buttons-wrapper {
-  width: 100%;
+.event-share-section .share-buttons {
   display: flex !important;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  min-height: 44px;
-  padding: 0;
-  margin: 0;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.75rem !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   visibility: visible !important;
   opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
-.share-buttons-wrapper > * {
+.event-share-section .share-button {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
+  position: relative !important;
+  z-index: 11 !important;
 }
 
 .event-detail-meta {
@@ -359,18 +363,18 @@
 
 @media (max-width: 768px) {
   .event-detail-header {
-    padding: 0;
+    padding: 0.5rem 0;
   }
 
   .event-detail-header .container {
-    padding: 0.25rem 1rem;
+    padding: 0.5rem 1rem;
     min-height: 50px;
-    height: 50px;
-    line-height: 50px;
+    height: auto;
   }
 
   .event-detail-header .back-link {
     line-height: 1.5;
+    padding: 0.25rem 0;
   }
 
   .event-detail-section {
@@ -400,38 +404,45 @@
 
   .event-share-section {
     margin: 1rem 0;
-    padding: 1rem 0;
+    padding: 1.5rem 0;
     width: 100%;
     overflow: visible;
-    min-height: 60px;
+    min-height: 80px;
     display: block !important;
     position: relative;
     z-index: 2;
-    background: transparent;
+    background: var(--bg-white);
   }
 
-  .share-buttons-wrapper {
-    width: 100% !important;
+  .event-share-section .share-buttons {
     display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    min-height: 44px;
-    padding: 0;
-    margin: 0;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
     visibility: visible !important;
     opacity: 1 !important;
+    position: relative !important;
+    z-index: 10 !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  .share-buttons-wrapper > * {
+  .event-share-section .share-button {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    flex-shrink: 0;
+    position: relative !important;
+    z-index: 11 !important;
+    flex-shrink: 0 !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
   }
 
   .event-detail-meta {
@@ -618,15 +629,19 @@
     padding: 0;
   }
 
+  .event-detail-header {
+    padding: 0.5rem 0;
+  }
+
   .event-detail-header .container {
-    padding: 0.25rem 0.75rem;
+    padding: 0.5rem 0.75rem;
     min-height: 45px;
-    height: 45px;
-    line-height: 45px;
+    height: auto;
   }
 
   .event-detail-header .back-link {
     line-height: 1.5;
+    padding: 0.25rem 0;
   }
 
   .event-share-section {
