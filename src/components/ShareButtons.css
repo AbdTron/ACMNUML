@@ -8,6 +8,13 @@
   opacity: 1 !important;
   min-height: 44px;
   height: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.share-buttons * {
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .share-buttons-horizontal {
