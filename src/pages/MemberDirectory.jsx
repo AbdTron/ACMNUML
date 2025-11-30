@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { Link } from 'react-router-dom'
-import { FiSearch, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiShield } from 'react-icons/fi'
+import { FiSearch, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiShield, FiPhone } from 'react-icons/fi'
 import { ROLES } from '../utils/permissions'
 import './MemberDirectory.css'
 
@@ -177,11 +177,36 @@ const MemberDirectory = () => {
                     {member.acmRole && (
                       <p className="member-acm-role">{member.acmRole}</p>
                     )}
-                    {member.email && (
-                      <p className="member-email">
-                        <FiMail />
-                        {member.email}
-                      </p>
+                    {/* Show contact based on user preference, or default to account email */}
+                    {member.showContactOnDirectory ? (
+                      <>
+                        {member.contactType === 'email' && member.email && (
+                          <p className="member-email">
+                            <FiMail />
+                            {member.email}
+                          </p>
+                        )}
+                        {member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified && (
+                          <p className="member-email">
+                            <FiMail />
+                            {member.displayEmail}
+                          </p>
+                        )}
+                        {member.contactType === 'phone' && member.phone && (
+                          <p className="member-phone">
+                            <FiPhone />
+                            {member.phone}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      // Default: show account email if not explicitly disabled
+                      member.email && (
+                        <p className="member-email">
+                          <FiMail />
+                          {member.email}
+                        </p>
+                      )
                     )}
                     {member.bio && (
                       <p className="member-bio">{member.bio}</p>

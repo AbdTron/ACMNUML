@@ -47,7 +47,7 @@ const Navbar = () => {
     { path: '/events', label: 'Events' },
     { path: '/team', label: 'Team' },
     { path: '/gallery', label: 'Gallery' },
-    { path: '/members', label: 'Members' },
+    { path: '/members', label: 'Users' },
     { path: '/about', label: 'About' },
     { path: '/join', label: 'Join Us' },
     { path: '/contact', label: 'Contact' },

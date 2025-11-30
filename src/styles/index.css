@@ -72,6 +72,8 @@ body {
 }
 
 [data-theme='dark'] .navbar,
+[data-theme='dark'] .navbar-container,
+[data-theme='dark'] .navbar-menu,
 [data-theme='dark'] .footer,
 [data-theme='dark'] .card,
 [data-theme='dark'] .event-card,

@@ -99,8 +99,9 @@
 .social-links a {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  justify-content: center;
+  gap: 0;
+  padding: 0.75rem;
   background: var(--bg-white);
   border-radius: 0.5rem;
   text-decoration: none;
@@ -108,6 +109,8 @@
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
+  width: 48px;
+  height: 48px;
 }
 
 .social-links a svg {
@@ -224,11 +227,15 @@
     gap: 0.75rem;
   }
 
+  .social-links {
+    justify-content: center;
+  }
+
   .social-links a {
-    width: 100%;
-    text-align: center;
-    padding: 0.875rem 1.25rem;
-    min-height: 44px;
+    width: 48px;
+    height: 48px;
+    padding: 0.75rem;
+    min-height: 48px;
   }
 
   .contact-form {

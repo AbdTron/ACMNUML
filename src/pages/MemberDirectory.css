@@ -242,7 +242,8 @@
   overflow: hidden;
 }
 
-.member-email {
+.member-email,
+.member-phone {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,7 +356,8 @@
     margin-bottom: 0.375rem;
   }
 
-  .member-email {
+  .member-email,
+  .member-phone {
     font-size: 0.75rem;
   }
 
@@ -451,7 +453,8 @@
     font-size: 0.8125rem;
   }
 
-  .member-email {
+  .member-email,
+  .member-phone {
     font-size: 0.75rem;
   }
 

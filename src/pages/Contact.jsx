@@ -121,17 +121,14 @@ const Contact = () => {
                 <h3>Follow Us</h3>
                 <p>Stay connected with us on social media</p>
                 <div className="social-links">
-                  <a href="https://www.instagram.com/acm.numllhr/" target="_blank" rel="noopener noreferrer" className="social-link">
+                  <a href="https://www.instagram.com/acm.numllhr/" target="_blank" rel="noopener noreferrer" className="social-link" title="Instagram">
                     <FiInstagram />
-                    <span>Instagram</span>
                   </a>
-                  <a href="https://www.linkedin.com/company/acmnuml" target="_blank" rel="noopener noreferrer" className="social-link">
+                  <a href="https://www.linkedin.com/company/acmnuml" target="_blank" rel="noopener noreferrer" className="social-link" title="LinkedIn">
                     <FiLinkedin />
-                    <span>LinkedIn</span>
                   </a>
-                  <a href="https://github.com/acmnuml" target="_blank" rel="noopener noreferrer" className="social-link">
+                  <a href="https://github.com/acmnuml" target="_blank" rel="noopener noreferrer" className="social-link" title="GitHub">
                     <FiGithub />
-                    <span>GitHub</span>
                   </a>
                 </div>
               </div>

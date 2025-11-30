@@ -1,0 +1,95 @@
+.verify-email-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-light);
+  padding: 2rem;
+}
+
+.verify-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+.verify-card {
+  background: var(--bg-white);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lg);
+  padding: 3rem 2.5rem;
+  text-align: center;
+}
+
+.verify-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.verify-status svg {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+}
+
+.verify-status.verifying svg {
+  color: var(--primary-color);
+}
+
+.verify-status.success svg {
+  color: #10b981;
+}
+
+.verify-status.error svg {
+  color: #ef4444;
+}
+
+.verify-status h2 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.verify-status p {
+  color: var(--text-light);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.redirect-message {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-top: 0.5rem;
+}
+
+.verify-actions {
+  margin-top: 2rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .verify-email-page {
+    padding: 1rem;
+  }
+
+  .verify-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .verify-status h2 {
+    font-size: 1.5rem;
+  }
+}
+

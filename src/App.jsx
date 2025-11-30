@@ -38,6 +38,8 @@ import MemberEvents from './pages/member/MemberEvents'
 import MemberCertificates from './pages/member/MemberCertificates'
 import MemberDirectory from './pages/MemberDirectory'
 import MemberProfilePublic from './pages/MemberProfilePublic'
+import VerifyEmail from './pages/VerifyEmail'
+import VerifyDisplayEmail from './pages/VerifyDisplayEmail'
 
 function App() {
   const [showSplash, setShowSplash] = useState(false)
@@ -160,6 +162,8 @@ function App() {
                 }
               />
               <Route path="/member/login" element={<MemberLogin />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/verify-display-email" element={<VerifyDisplayEmail />} />
               <Route
                 path="/member"
                 element={<MemberDashboard />}

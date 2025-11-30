@@ -121,7 +121,8 @@ const MemberProfilePublic = () => {
             )}
 
             {(member.website || member.linkedin || member.github || member.twitter) && (
-              <div className="detail-item">
+              <div className="detail-item social-detail-item">
+                <label>Social Links</label>
                 <div className="social-links">
                   {member.website && (
                     <a
@@ -182,6 +183,7 @@ const MemberProfilePublic = () => {
 }
 
 export default MemberProfilePublic
+
 
 
 

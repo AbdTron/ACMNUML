@@ -5,7 +5,12 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  applyActionCode,
+  updateEmail,
+  verifyBeforeUpdateEmail
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../config/firebase'
@@ -21,6 +26,10 @@ const MemberAuthContext = createContext({
   signInWithGoogle: async () => {},
   logout: async () => {},
   updateProfile: async () => {},
+  updateUserEmail: async () => {},
+  resetPassword: async () => {},
+  sendVerificationEmail: async () => {},
+  verifyEmail: async () => {},
   isMember: false,
   isAdmin: false
 })
@@ -48,7 +57,13 @@ export const MemberAuthProvider = ({ children }) => {
           try {
             const userDoc = await getDoc(doc(db, 'users', user.uid))
             if (userDoc.exists()) {
-              setUserProfile(userDoc.data())
+              const profileData = userDoc.data()
+              // Update emailVerified status from auth
+              setUserProfile({
+                ...profileData,
+                emailVerified: user.emailVerified,
+                email: user.email // Sync email from auth
+              })
             } else {
               // User doesn't have a profile yet - create one
               const newProfile = {
@@ -107,12 +122,21 @@ export const MemberAuthProvider = ({ children }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
 
+    // Send email verification
+    try {
+      await sendEmailVerification(user)
+    } catch (error) {
+      console.error('Error sending verification email:', error)
+      // Don't throw - allow signup to continue even if verification email fails
+    }
+
     // Create user profile in Firestore
     const userProfile = {
       email: user.email,
       name: name || user.email?.split('@')[0] || 'User',
       role: ROLES.USER,
       showInDirectory: true, // Default to enabled
+      emailVerified: user.emailVerified,
       joinDate: serverTimestamp(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -191,6 +215,84 @@ export const MemberAuthProvider = ({ children }) => {
     return signOut(auth)
   }
 
+  const resetPassword = async (email) => {
+    if (!auth) {
+      throw new Error('Firebase is not configured')
+    }
+    
+    // Configure action code settings for password reset
+    // Using handleCodeInApp: false to use email link instead of in-app handling
+    // This helps prevent emails from going to spam
+    const actionCodeSettings = {
+      url: `${window.location.origin}/member/login?mode=resetPassword`,
+      handleCodeInApp: false,
+      // Dynamic link domain (if using Firebase Dynamic Links)
+      // dynamicLinkDomain: 'your-app.page.link' // Uncomment if using Dynamic Links
+    }
+    
+    try {
+      await sendPasswordResetEmail(auth, email, actionCodeSettings)
+    } catch (error) {
+      // Provide more helpful error messages
+      if (error.code === 'auth/user-not-found') {
+        throw new Error('No account found with this email address.')
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Invalid email address.')
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Too many requests. Please try again later.')
+      }
+      throw error
+    }
+  }
+
+  const sendVerificationEmail = async () => {
+    if (!auth || !currentUser) {
+      throw new Error('User not authenticated')
+    }
+    
+    await sendEmailVerification(currentUser)
+  }
+
+  const verifyEmail = async (actionCode) => {
+    if (!auth) {
+      throw new Error('Firebase is not configured')
+    }
+    
+    await applyActionCode(auth, actionCode)
+    
+    // Wait a moment for auth state to update
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Get updated user from auth
+    const user = auth.currentUser
+    
+    // Update user profile if authenticated
+    if (user && db) {
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        emailVerified: user.emailVerified,
+        updatedAt: new Date().toISOString()
+      }, { merge: true })
+    }
+  }
+
+  const updateUserEmail = async (newEmail) => {
+    if (!auth || !currentUser) {
+      throw new Error('User not authenticated')
+    }
+    
+    // Validate email format
+    if (!newEmail.includes('@')) {
+      throw new Error('Invalid email address. Email must contain @ symbol.')
+    }
+    
+    // Send verification email to new address
+    await verifyBeforeUpdateEmail(currentUser, newEmail)
+    
+    // Note: Email won't be updated until user clicks verification link
+    // The email will be updated automatically after verification
+  }
+
   const updateProfile = async (updates) => {
     if (!db || !currentUser) {
       throw new Error('User not authenticated')
@@ -219,6 +321,10 @@ export const MemberAuthProvider = ({ children }) => {
     signInWithGoogle,
     logout,
     updateProfile,
+    updateUserEmail,
+    resetPassword,
+    sendVerificationEmail,
+    verifyEmail,
     isMember: userProfile?.role === ROLES.USER || userProfile?.role === 'member', // Backward compatibility
     isAdmin: userProfile?.role === ROLES.ADMIN || userProfile?.role === ROLES.SUPERADMIN
   }
