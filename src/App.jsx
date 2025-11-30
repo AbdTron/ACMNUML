@@ -43,6 +43,7 @@ import VerifyDisplayEmail from './pages/VerifyDisplayEmail'
 import Feedback from './pages/Feedback'
 import Forum from './pages/Forum'
 import ForumPost from './pages/ForumPost'
+import CreateForumPost from './pages/CreateForumPost'
 import AdminFeedback from './pages/admin/AdminFeedback'
 import AdminForum from './pages/admin/AdminForum'
 import ProfileOnboarding from './pages/ProfileOnboarding'
@@ -191,6 +192,7 @@ function App() {
               <Route path="/members/:memberId" element={<MemberProfilePublic />} />
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/forum" element={<Forum />} />
+              <Route path="/forum/new" element={<CreateForumPost />} />
               <Route path="/forum/:postId" element={<ForumPost />} />
               <Route
                 path="/admin/feedback"
