@@ -8,7 +8,7 @@ import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCir
 import './MemberProfile.css'
 
 const MemberProfile = () => {
-  const { currentUser, userProfile, updateProfile, refreshProfile } = useMemberAuth()
+  const { currentUser, userProfile, updateProfile, refreshProfile, sendVerificationEmail } = useMemberAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -35,27 +35,15 @@ const MemberProfile = () => {
       navigate('/member/login')
       return
     }
-
-    // Refresh profile when component mounts (in case it was updated elsewhere)
-    const loadProfile = async () => {
-      if (refreshProfile) {
-        await refreshProfile()
-      }
-    }
-    loadProfile()
-  }, [currentUser, navigate, refreshProfile])
+  }, [currentUser, navigate])
 
   useEffect(() => {
     // Load user profile data when userProfile changes
     if (userProfile) {
-      console.log('Profile loaded:', {
-        displayEmail: userProfile.displayEmail,
-        displayEmailVerified: userProfile.displayEmailVerified
-      })
       setFormData({
         name: userProfile.name || '',
         email: userProfile.email || currentUser?.email || '',
-        displayEmail: userProfile.displayEmail || '', // Separate email for display
+        displayEmail: userProfile.displayEmail || '',
         phone: userProfile.phone || '',
         bio: userProfile.bio || '',
         website: userProfile.website || '',
@@ -73,7 +61,8 @@ const MemberProfile = () => {
         email: currentUser.email || ''
       }))
     }
-  }, [userProfile, currentUser])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile?.displayEmailVerified, userProfile?.displayEmail, userProfile?.name, userProfile?.phone, userProfile?.bio, userProfile?.showInDirectory, userProfile?.showContactOnDirectory, userProfile?.contactType, currentUser?.email])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
