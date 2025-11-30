@@ -159,3 +159,6 @@ export const waitlistNotificationTemplate = (data) => {
 
 
 
+
+
+

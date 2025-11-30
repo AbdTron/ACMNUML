@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useMemberAuth } from '../../context/MemberAuthContext'
 import { sendDisplayEmailVerification } from '../../utils/emailService'
-import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCircle } from 'react-icons/fi'
+import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCircle, FiHash, FiBookOpen, FiClock, FiUsers, FiSun, FiMoon, FiAward, FiLock, FiSend } from 'react-icons/fi'
+import { DEPARTMENTS, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../../utils/universityData'
 import './MemberProfile.css'
 
 const MemberProfile = () => {
@@ -14,21 +15,34 @@ const MemberProfile = () => {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
+  const [pendingRequest, setPendingRequest] = useState(null)
+  const [requestSubmitted, setRequestSubmitted] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    displayEmail: '', // Separate email for display on member card
+    displayEmail: '',
     phone: '',
     bio: '',
+    rollNumber: '',
+    department: DEPARTMENTS[0],
+    degree: '',
+    semester: '',
+    section: '',
+    shift: '',
     website: '',
     linkedin: '',
     github: '',
     twitter: '',
     showInDirectory: false,
     showContactOnDirectory: false,
-    contactType: 'email' // 'email' or 'phone'
+    contactType: 'email'
   })
   const [displayEmailVerificationSent, setDisplayEmailVerificationSent] = useState(false)
+  const [availableDegrees, setAvailableDegrees] = useState([])
+  const [availableShifts, setAvailableShifts] = useState([])
+
+  // Check if academic info is locked (already filled once)
+  const isAcademicLocked = userProfile?.academicInfoLocked && !userProfile?.canEditAcademic
 
   useEffect(() => {
     if (!currentUser) {
@@ -37,15 +51,51 @@ const MemberProfile = () => {
     }
   }, [currentUser, navigate])
 
+  // Check for pending change requests
+  useEffect(() => {
+    const checkPendingRequest = async () => {
+      if (!currentUser) return
+      
+      try {
+        const requestsRef = collection(db, 'profileChangeRequests')
+        const q = query(
+          requestsRef,
+          where('userId', '==', currentUser.uid),
+          where('status', '==', 'pending')
+        )
+        const snapshot = await getDocs(q)
+        
+        if (!snapshot.empty) {
+          setPendingRequest(snapshot.docs[0].data())
+        } else {
+          setPendingRequest(null)
+        }
+      } catch (err) {
+        console.error('Error checking pending requests:', err)
+      }
+    }
+
+    checkPendingRequest()
+  }, [currentUser, requestSubmitted])
+
   useEffect(() => {
     // Load user profile data when userProfile changes
     if (userProfile) {
+      const department = userProfile.department || DEPARTMENTS[0]
+      const degree = userProfile.degree || ''
+      
       setFormData({
         name: userProfile.name || '',
         email: userProfile.email || currentUser?.email || '',
         displayEmail: userProfile.displayEmail || '',
         phone: userProfile.phone || '',
         bio: userProfile.bio || '',
+        rollNumber: userProfile.rollNumber || '',
+        department: department,
+        degree: degree,
+        semester: userProfile.semester || '',
+        section: userProfile.section || '',
+        shift: userProfile.shift || '',
         website: userProfile.website || '',
         linkedin: userProfile.linkedin || '',
         github: userProfile.github || '',
@@ -54,6 +104,24 @@ const MemberProfile = () => {
         showContactOnDirectory: userProfile.showContactOnDirectory || false,
         contactType: userProfile.contactType || 'email'
       })
+      
+      // Initialize available degrees and shifts when profile loads
+      const degrees = getDegreesForDepartment(department)
+      console.log('Initializing degrees for department:', department, 'Degrees found:', degrees)
+      setAvailableDegrees(degrees)
+      
+      if (degree) {
+        const shifts = getShiftsForDegree(department, degree)
+        console.log('Initializing shifts for degree:', degree, 'Shifts found:', shifts)
+        setAvailableShifts(shifts)
+      } else if (degrees.length > 0) {
+        // If no degree selected, get shifts for first degree
+        const shifts = getShiftsForDegree(department, degrees[0].name)
+        setAvailableShifts(shifts)
+      } else {
+        setAvailableShifts([])
+      }
+      
       setDisplayEmailVerificationSent(false)
     } else if (currentUser) {
       setFormData(prev => ({
@@ -61,8 +129,49 @@ const MemberProfile = () => {
         email: currentUser.email || ''
       }))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile?.displayEmailVerified, userProfile?.displayEmail, userProfile?.name, userProfile?.phone, userProfile?.bio, userProfile?.showInDirectory, userProfile?.showContactOnDirectory, userProfile?.contactType, currentUser?.email])
+  }, [userProfile, currentUser])
+
+  // Update available degrees when department changes
+  useEffect(() => {
+    if (!formData.department) return
+    
+    const degrees = getDegreesForDepartment(formData.department)
+    setAvailableDegrees(degrees)
+    
+    // Auto-select first degree if current selection is not available
+    if (degrees.length > 0 && !degrees.find(d => d.name === formData.degree)) {
+      if (!isAcademicLocked) {
+        setFormData(prev => ({
+          ...prev,
+          degree: degrees[0].name,
+          shift: degrees[0].shifts.length === 1 ? degrees[0].shifts[0] : ''
+        }))
+      }
+    }
+  }, [formData.department, isAcademicLocked])
+
+  // Update available shifts when degree changes
+  useEffect(() => {
+    if (!formData.department || !formData.degree) return
+    
+    const shifts = getShiftsForDegree(formData.department, formData.degree)
+    setAvailableShifts(shifts)
+    
+    // Auto-select shift if only one option
+    if (!isAcademicLocked) {
+      if (shifts.length === 1 && formData.shift !== shifts[0]) {
+        setFormData(prev => ({
+          ...prev,
+          shift: shifts[0]
+        }))
+      } else if (shifts.length > 1 && !shifts.includes(formData.shift)) {
+        setFormData(prev => ({
+          ...prev,
+          shift: ''
+        }))
+      }
+    }
+  }, [formData.degree, formData.department, isAcademicLocked])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -73,7 +182,6 @@ const MemberProfile = () => {
       processedValue = value.replace(/[^0-9]/g, '')
     }
     
-    // Don't validate display email during typing - only on verify button click
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : processedValue
@@ -81,7 +189,6 @@ const MemberProfile = () => {
     setError(null)
     setSuccess(false)
     
-    // Reset display email verification status if display email changes
     if (name === 'displayEmail') {
       setDisplayEmailVerificationSent(false)
     }
@@ -97,11 +204,9 @@ const MemberProfile = () => {
     setError(null)
     
     try {
-      // Generate a simple verification token (in production, use a more secure method)
       const verificationToken = `${Date.now()}-${Math.random().toString(36).substring(7)}`
       const verificationUrl = `${window.location.origin}/verify-display-email?token=${verificationToken}&email=${encodeURIComponent(formData.displayEmail)}`
       
-      // Save verification token and email to Firestore
       const userRef = doc(db, 'users', currentUser.uid)
       await updateDoc(userRef, {
         displayEmail: formData.displayEmail,
@@ -111,9 +216,7 @@ const MemberProfile = () => {
         updatedAt: new Date().toISOString()
       })
       
-      // Try to send verification email
       try {
-        console.log('Attempting to send verification email...')
         await sendDisplayEmailVerification(
           formData.displayEmail,
           verificationUrl,
@@ -122,23 +225,17 @@ const MemberProfile = () => {
         setDisplayEmailVerificationSent(true)
         setSuccess(true)
         setError(null)
-        console.log('✅ Email sent successfully!')
       } catch (emailError) {
-        // Log the full error for debugging
-        console.error('❌ Email sending failed:', emailError)
-        setError(`Failed to send email: ${emailError.message}. Check browser console for details.`)
+        console.error('Email sending failed:', emailError)
+        setError(`Failed to send email: ${emailError.message}`)
         
-        // Show the verification link as fallback
         const useLink = confirm(
-          `Email could not be sent automatically.\n\n` +
-          `Error: ${emailError.message}\n\n` +
-          `Would you like to copy the verification link instead?\n\n` +
-          `(Check browser console for more details)`
+          `Email could not be sent automatically.\n\nWould you like to copy the verification link instead?`
         )
         
         if (useLink) {
           navigator.clipboard.writeText(verificationUrl).then(() => {
-            alert(`Verification link copied to clipboard!\n\n${verificationUrl}\n\nPaste it in your browser to verify.`)
+            alert(`Verification link copied to clipboard!`)
           }).catch(() => {
             alert(`Please use this verification link:\n\n${verificationUrl}`)
           })
@@ -147,6 +244,77 @@ const MemberProfile = () => {
     } catch (err) {
       console.error('Error sending verification email:', err)
       setError(err.message || 'Failed to send verification email. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRequestChange = async () => {
+    if (pendingRequest) {
+      setError('You already have a pending change request. Please wait for admin approval.')
+      return
+    }
+
+    if (!currentUser || !userProfile) {
+      setError('User information not available. Please refresh the page.')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Create a change request
+      const requestData = {
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        userName: userProfile?.name || 'Unknown',
+        currentData: {
+          rollNumber: userProfile?.rollNumber || '',
+          department: userProfile?.department || '',
+          degree: userProfile?.degree || '',
+          semester: userProfile?.semester || '',
+          section: userProfile?.section || '',
+          shift: userProfile?.shift || ''
+        },
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        reason: 'User requested to update academic information'
+      }
+
+      console.log('Submitting change request:', requestData)
+      const docRef = await addDoc(collection(db, 'profileChangeRequests'), requestData)
+      console.log('Change request submitted successfully with ID:', docRef.id)
+
+      setRequestSubmitted(true)
+      setSuccess(true)
+      
+      // Show success message
+      alert(`Your request has been submitted successfully!\n\nRequest ID: ${docRef.id}\n\nAn admin will review your request shortly. You'll be able to edit your academic information once approved.`)
+      
+      // Refresh pending request check
+      setTimeout(() => {
+        const checkPending = async () => {
+          try {
+            const requestsRef = collection(db, 'profileChangeRequests')
+            const q = query(
+              requestsRef,
+              where('userId', '==', currentUser.uid),
+              where('status', '==', 'pending')
+            )
+            const snapshot = await getDocs(q)
+            if (!snapshot.empty) {
+              setPendingRequest(snapshot.docs[0].data())
+            }
+          } catch (err) {
+            console.error('Error checking pending requests:', err)
+          }
+        }
+        checkPending()
+      }, 1000)
+    } catch (err) {
+      console.error('Error submitting change request:', err)
+      setError(`Failed to submit change request: ${err.message}. Please try again.`)
     } finally {
       setLoading(false)
     }
@@ -164,10 +332,9 @@ const MemberProfile = () => {
       // Validate contact type requirements
       if (formData.showContactOnDirectory) {
         if (formData.contactType === 'displayEmail') {
-          // Display email must be verified
           const displayEmailVerified = userProfile?.displayEmailVerified || false
           if (!displayEmailVerified || !formData.displayEmail) {
-            setError('Display email must be verified before it can be shown on the members page. Please verify your display email first.')
+            setError('Display email must be verified before it can be shown on the members page.')
             setSaving(false)
             return
           }
@@ -177,11 +344,11 @@ const MemberProfile = () => {
           setSaving(false)
           return
         }
-        // Account email (contactType === 'email') doesn't need verification
       }
 
-      // Update user profile in Firestore
       const userRef = doc(db, 'users', currentUser.uid)
+      
+      // Base update data (non-academic fields)
       const updateData = {
         name: formData.name.trim(),
         displayEmail: formData.displayEmail.trim() || null,
@@ -196,26 +363,35 @@ const MemberProfile = () => {
         contactType: formData.contactType,
         updatedAt: new Date().toISOString()
       }
+
+      // Only update academic fields if not locked or if user has edit permission
+      if (!isAcademicLocked) {
+        updateData.rollNumber = formData.rollNumber.trim().toUpperCase()
+        updateData.department = formData.department
+        updateData.degree = formData.degree
+        updateData.semester = formData.semester
+        updateData.section = formData.section.toUpperCase()
+        updateData.shift = formData.shift
+        updateData.academicInfoLocked = true // Lock after first save
+        updateData.canEditAcademic = false
+        updateData.profileComplete = !!(
+          formData.rollNumber && 
+          formData.department && 
+          formData.degree && 
+          formData.semester && 
+          formData.section && 
+          formData.shift
+        )
+      }
       
       await updateDoc(userRef, updateData)
-
-      // Update profile in context
-      await updateProfile({
-        name: formData.name.trim(),
-        displayEmail: formData.displayEmail.trim() || null,
-        phone: formData.phone.trim() || null,
-        bio: formData.bio.trim() || null,
-        website: formData.website.trim() || null,
-        linkedin: formData.linkedin.trim() || null,
-        github: formData.github.trim() || null,
-        twitter: formData.twitter.trim() || null,
-        showInDirectory: formData.showInDirectory,
-        showContactOnDirectory: formData.showContactOnDirectory,
-        contactType: formData.contactType
-      })
+      await updateProfile(updateData)
 
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
+      
+      // Refresh profile to get latest data
+      await refreshProfile()
     } catch (err) {
       console.error('Error updating profile:', err)
       setError(err.message || 'Failed to update profile. Please try again.')
@@ -247,6 +423,13 @@ const MemberProfile = () => {
           <div className="success-message">
             <FiSave />
             <span>Profile updated successfully!</span>
+          </div>
+        )}
+
+        {pendingRequest && (
+          <div className="info-banner">
+            <FiClock />
+            <span>You have a pending request to change your academic information. Please wait for admin approval.</span>
           </div>
         )}
 
@@ -324,7 +507,7 @@ const MemberProfile = () => {
                   name="displayEmail"
                   value={formData.displayEmail}
                   onChange={handleChange}
-                  placeholder="Enter email to show on member card (different from account email)"
+                  placeholder="Enter email to show on member card"
                   disabled={loading}
                 />
                 {formData.displayEmail && formData.displayEmail !== formData.email && (
@@ -348,7 +531,7 @@ const MemberProfile = () => {
                   <FiCheckCircle /> Display email is verified
                 </small>
               )}
-              <small>Enter a different email address to show on your member card. This email must be verified.</small>
+              <small>Enter a different email to show on your member card. Must be verified.</small>
             </div>
 
             <div className="form-group">
@@ -377,6 +560,176 @@ const MemberProfile = () => {
                 rows="4"
                 placeholder="Tell us about yourself..."
               />
+            </div>
+          </div>
+
+          <div className="form-section">
+            <div className="section-header-with-action">
+              <h2>
+                Academic Information
+                {isAcademicLocked && <FiLock className="lock-icon" />}
+              </h2>
+              {isAcademicLocked && !pendingRequest && (
+                <button
+                  type="button"
+                  onClick={handleRequestChange}
+                  className="btn btn-outline btn-small"
+                  disabled={loading}
+                >
+                  <FiSend />
+                  Request Change
+                </button>
+              )}
+            </div>
+            
+            {isAcademicLocked && (
+              <div className="locked-notice">
+                <FiLock />
+                <span>Academic information is locked. To make changes, request admin approval.</span>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>
+                <FiHash />
+                Roll Number *
+              </label>
+              <input
+                type="text"
+                name="rollNumber"
+                value={formData.rollNumber}
+                onChange={handleChange}
+                required
+                placeholder="e.g., BSCS-21F-001"
+                disabled={isAcademicLocked}
+                className={isAcademicLocked ? 'disabled-input' : ''}
+              />
+              <small>Your university roll number</small>
+            </div>
+
+            <div className="form-group">
+              <label>
+                <FiBookOpen />
+                Department *
+              </label>
+              <select
+                name="department"
+                value={formData.department}
+                onChange={handleChange}
+                required
+                disabled={isAcademicLocked}
+                className={isAcademicLocked ? 'disabled-input' : ''}
+              >
+                {DEPARTMENTS.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>
+                <FiAward />
+                Degree/Program *
+              </label>
+              <select
+                name="degree"
+                value={formData.degree}
+                onChange={handleChange}
+                required
+                disabled={isAcademicLocked}
+                className={isAcademicLocked ? 'disabled-input' : ''}
+              >
+                <option value="">Select Degree</option>
+                {availableDegrees.length > 0 ? (
+                  availableDegrees.map(deg => (
+                    <option key={deg.name} value={deg.name}>{deg.name}</option>
+                  ))
+                ) : formData.degree ? (
+                  <option value={formData.degree}>{formData.degree}</option>
+                ) : null}
+              </select>
+              {availableDegrees.length === 0 && formData.department && (
+                <small className="error-text">No degrees available for this department. Please select a different department.</small>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>
+                {formData.shift === 'Morning' ? <FiSun /> : <FiMoon />}
+                Shift *
+              </label>
+              {availableShifts.length === 1 ? (
+                <>
+                  <input
+                    type="text"
+                    value={availableShifts[0]}
+                    disabled
+                    className="disabled-input"
+                  />
+                  <small>This program is only available in {availableShifts[0]} shift</small>
+                </>
+              ) : (
+                <>
+                  <select
+                    name="shift"
+                    value={formData.shift}
+                    onChange={handleChange}
+                    required
+                    disabled={isAcademicLocked}
+                    className={isAcademicLocked ? 'disabled-input' : ''}
+                  >
+                    <option value="">Select Shift</option>
+                    {availableShifts.map(shift => (
+                      <option key={shift} value={shift}>{shift}</option>
+                    ))}
+                  </select>
+                  {availableShifts.length > 1 && (
+                    <small className="field-hint">Please select either Morning or Evening shift</small>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="form-row-two">
+              <div className="form-group">
+                <label>
+                  <FiClock />
+                  Current Semester *
+                </label>
+                <select
+                  name="semester"
+                  value={formData.semester}
+                  onChange={handleChange}
+                  required
+                  disabled={isAcademicLocked}
+                  className={isAcademicLocked ? 'disabled-input' : ''}
+                >
+                  <option value="">Select Semester</option>
+                  {SEMESTERS.map(sem => (
+                    <option key={sem} value={sem}>Semester {sem}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>
+                  <FiUsers />
+                  Section *
+                </label>
+                <select
+                  name="section"
+                  value={formData.section}
+                  onChange={handleChange}
+                  required
+                  disabled={isAcademicLocked}
+                  className={isAcademicLocked ? 'disabled-input' : ''}
+                >
+                  <option value="">Select Section</option>
+                  {SECTIONS.map(sec => (
+                    <option key={sec} value={sec}>Section {sec}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -495,7 +848,7 @@ const MemberProfile = () => {
                   </label>
                 </div>
                 {formData.contactType === 'displayEmail' && !userProfile?.displayEmailVerified && (
-                  <small className="error-text">Please verify your display email first to show it on the members page</small>
+                  <small className="error-text">Please verify your display email first</small>
                 )}
                 {formData.contactType === 'phone' && !formData.phone && (
                   <small className="error-text">Please enter your phone number first</small>
@@ -520,7 +873,3 @@ const MemberProfile = () => {
 }
 
 export default MemberProfile
-
-
-
-

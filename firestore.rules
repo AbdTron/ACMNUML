@@ -146,5 +146,24 @@ service cloud.firestore {
       // Only admins can delete registrations
       allow delete: if request.auth != null && isAdmin();
     }
+
+    // Profile change requests collection
+    match /profileChangeRequests/{requestId} {
+      // Users can create their own change requests
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      // Users can read their own requests, admins can read all
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      // Allow list/query operations for authenticated users
+      // Needed for users to check their pending requests
+      allow list: if request.auth != null;
+      // Only admins can update requests (approve/reject)
+      allow update: if request.auth != null && isAdmin();
+      // Only admins can delete requests
+      allow delete: if request.auth != null && isAdmin();
+    }
   }
 }

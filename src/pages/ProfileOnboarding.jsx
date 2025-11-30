@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
-import { FiUser, FiHash, FiBookOpen, FiUsers, FiClock, FiArrowRight } from 'react-icons/fi'
+import { FiUser, FiHash, FiBookOpen, FiUsers, FiClock, FiArrowRight, FiSun, FiMoon, FiAward } from 'react-icons/fi'
+import { DEPARTMENTS, DEGREES_BY_DEPARTMENT, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../utils/universityData'
 import './ProfileOnboarding.css'
 
 const ProfileOnboarding = () => {
@@ -14,10 +15,15 @@ const ProfileOnboarding = () => {
   const [formData, setFormData] = useState({
     name: '',
     rollNumber: '',
-    department: 'Computer Science',
+    department: DEPARTMENTS[0],
+    degree: '',
     semester: '1',
-    section: 'A'
+    section: 'A',
+    shift: ''
   })
+
+  const [availableDegrees, setAvailableDegrees] = useState([])
+  const [availableShifts, setAvailableShifts] = useState([])
 
   useEffect(() => {
     // If user not logged in, redirect to login
@@ -27,7 +33,7 @@ const ProfileOnboarding = () => {
     }
 
     // If profile is already complete, redirect to dashboard
-    if (userProfile?.rollNumber && userProfile?.semester && userProfile?.department && userProfile?.section) {
+    if (userProfile?.profileComplete) {
       navigate('/member')
     }
 
@@ -39,6 +45,40 @@ const ProfileOnboarding = () => {
       }))
     }
   }, [currentUser, userProfile, navigate])
+
+  // Update available degrees when department changes
+  useEffect(() => {
+    const degrees = getDegreesForDepartment(formData.department)
+    setAvailableDegrees(degrees)
+    
+    // Auto-select first degree if current selection is not available
+    if (degrees.length > 0 && !degrees.find(d => d.name === formData.degree)) {
+      setFormData(prev => ({
+        ...prev,
+        degree: degrees[0].name,
+        shift: degrees[0].shifts.length === 1 ? degrees[0].shifts[0] : ''
+      }))
+    }
+  }, [formData.department])
+
+  // Update available shifts when degree changes
+  useEffect(() => {
+    const shifts = getShiftsForDegree(formData.department, formData.degree)
+    setAvailableShifts(shifts)
+    
+    // Auto-select shift if only one option
+    if (shifts.length === 1 && formData.shift !== shifts[0]) {
+      setFormData(prev => ({
+        ...prev,
+        shift: shifts[0]
+      }))
+    } else if (shifts.length > 1 && !shifts.includes(formData.shift)) {
+      setFormData(prev => ({
+        ...prev,
+        shift: ''
+      }))
+    }
+  }, [formData.degree, formData.department])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -69,6 +109,11 @@ const ProfileOnboarding = () => {
       return
     }
 
+    if (!formData.degree) {
+      setError('Degree/Program is required')
+      return
+    }
+
     if (!formData.semester) {
       setError('Semester is required')
       return
@@ -76,6 +121,11 @@ const ProfileOnboarding = () => {
 
     if (!formData.section) {
       setError('Section is required')
+      return
+    }
+
+    if (!formData.shift) {
+      setError('Shift is required')
       return
     }
 
@@ -88,10 +138,13 @@ const ProfileOnboarding = () => {
         name: formData.name.trim(),
         rollNumber: formData.rollNumber.trim().toUpperCase(),
         department: formData.department,
+        degree: formData.degree,
         semester: formData.semester,
         section: formData.section.toUpperCase(),
+        shift: formData.shift,
         email: currentUser.email,
         profileComplete: true,
+        academicInfoLocked: true, // Lock academic info after first save
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp()
       }, { merge: true })
@@ -108,18 +161,6 @@ const ProfileOnboarding = () => {
       setLoading(false)
     }
   }
-
-  const departments = [
-    'Computer Science',
-    'Software Engineering',
-    'Information Technology',
-    'Cyber Security',
-    'Data Science',
-    'Artificial Intelligence'
-  ]
-
-  const semesters = ['1', '2', '3', '4', '5', '6', '7', '8']
-  const sections = ['A', 'B', 'C', 'D', 'E', 'F']
 
   return (
     <div className="onboarding-page">
@@ -184,10 +225,65 @@ const ProfileOnboarding = () => {
               onChange={handleChange}
               required
             >
-              {departments.map(dept => (
+              {DEPARTMENTS.map(dept => (
                 <option key={dept} value={dept}>{dept}</option>
               ))}
             </select>
+          </div>
+
+          {/* Degree/Program */}
+          <div className="form-field">
+            <label htmlFor="degree">
+              <FiAward />
+              Degree/Program <span className="required">*</span>
+            </label>
+            <select
+              id="degree"
+              name="degree"
+              value={formData.degree}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select Degree</option>
+              {availableDegrees.map(deg => (
+                <option key={deg.name} value={deg.name}>{deg.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Shift */}
+          <div className="form-field">
+            <label htmlFor="shift">
+              {formData.shift === 'Morning' ? <FiSun /> : <FiMoon />}
+              Shift <span className="required">*</span>
+            </label>
+            {availableShifts.length === 1 ? (
+              <input
+                type="text"
+                value={availableShifts[0]}
+                disabled
+                className="disabled-input"
+              />
+            ) : (
+              <select
+                id="shift"
+                name="shift"
+                value={formData.shift}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Shift</option>
+                {availableShifts.map(shift => (
+                  <option key={shift} value={shift}>{shift}</option>
+                ))}
+              </select>
+            )}
+            {availableShifts.length === 1 && (
+              <small className="field-hint">This program is only available in {availableShifts[0]} shift</small>
+            )}
+            {availableShifts.length > 1 && (
+              <small className="field-hint">Please select either Morning or Evening shift</small>
+            )}
           </div>
 
           {/* Semester and Section Row */}
@@ -204,7 +300,7 @@ const ProfileOnboarding = () => {
                 onChange={handleChange}
                 required
               >
-                {semesters.map(sem => (
+                {SEMESTERS.map(sem => (
                   <option key={sem} value={sem}>Semester {sem}</option>
                 ))}
               </select>
@@ -222,7 +318,7 @@ const ProfileOnboarding = () => {
                 onChange={handleChange}
                 required
               >
-                {sections.map(sec => (
+                {SECTIONS.map(sec => (
                   <option key={sec} value={sec}>Section {sec}</option>
                 ))}
               </select>
@@ -231,12 +327,12 @@ const ProfileOnboarding = () => {
 
           {/* Info Box */}
           <div className="info-box">
-            <p><strong>Why do we need this?</strong></p>
+            <p><strong>Important:</strong></p>
             <ul>
-              <li>Verify you're a NUML student</li>
-              <li>Personalize your experience</li>
-              <li>Connect you with classmates</li>
-              <li>Manage event registrations</li>
+              <li>Please fill in accurate information</li>
+              <li>After saving, you'll need admin approval to change academic details</li>
+              <li>This helps us verify NUML students</li>
+              <li>Your information is kept private and secure</li>
             </ul>
           </div>
 
@@ -259,4 +355,3 @@ const ProfileOnboarding = () => {
 }
 
 export default ProfileOnboarding
-

@@ -182,3 +182,6 @@ The following collections need to be created in Firestore:
 - Error boundaries should be added for production
 - Consider rate limiting for spam prevention
 
+
+
+

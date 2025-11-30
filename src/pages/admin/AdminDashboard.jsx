@@ -10,7 +10,10 @@ import {
   FiImage,
   FiMail,
   FiRefreshCw,
-  FiFileText
+  FiFileText,
+  FiUserCheck,
+  FiMessageSquare,
+  FiMessageCircle
 } from 'react-icons/fi'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../config/firebase'
@@ -31,42 +34,42 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const fetchStats = async () => {
-    if (!db) {
-      setLoading(false)
-      return
-    }
-    try {
+    const fetchStats = async () => {
+      if (!db) {
+        setLoading(false)
+        return
+      }
+      try {
       const [eventsSnap, notificationsSnap, teamSnap, gallerySnap, contactsSnap, usersSnap] = await Promise.all([
-        getDocs(collection(db, 'events')),
-        getDocs(collection(db, 'notifications')),
-        getDocs(collection(db, 'team')),
-        getDocs(collection(db, 'gallery')),
+          getDocs(collection(db, 'events')),
+          getDocs(collection(db, 'notifications')),
+          getDocs(collection(db, 'team')),
+          getDocs(collection(db, 'gallery')),
         getDocs(collection(db, 'contacts')),
         getDocs(collection(db, 'users'))
-      ])
+        ])
 
-      setStats({
-        events: eventsSnap.size,
-        notifications: notificationsSnap.size,
-        teamMembers: teamSnap.size,
-        galleryImages: gallerySnap.size,
+        setStats({
+          events: eventsSnap.size,
+          notifications: notificationsSnap.size,
+          teamMembers: teamSnap.size,
+          galleryImages: gallerySnap.size,
         contacts: contactsSnap.size,
         users: usersSnap.size
-      })
-    } catch (error) {
-      console.error('Error fetching stats:', error)
+        })
+      } catch (error) {
+        console.error('Error fetching stats:', error)
       // Show more specific error message
       if (error.code === 'permission-denied') {
         alert('Permission denied. Please make sure you are logged in as an admin and that Firestore rules are deployed.')
       } else {
         alert(`Error loading statistics: ${error.message}. Please refresh the page.`)
       }
-    } finally {
-      setLoading(false)
+      } finally {
+        setLoading(false)
       setRefreshing(false)
+      }
     }
-  }
 
   useEffect(() => {
     fetchStats()
@@ -136,6 +139,27 @@ const AdminDashboard = () => {
       link: '/admin/form-templates',
       color: '#8b5cf6'
     },
+    {
+      icon: FiUserCheck,
+      title: 'User Requests',
+      description: 'Review profile change requests',
+      link: '/admin/user-requests',
+      color: '#f97316'
+    },
+    {
+      icon: FiMessageSquare,
+      title: 'Feedback',
+      description: 'View and manage user feedback',
+      link: '/admin/feedback',
+      color: '#14b8a6'
+    },
+    {
+      icon: FiMessageCircle,
+      title: 'Forum Moderation',
+      description: 'Moderate forum posts and discussions',
+      link: '/admin/forum',
+      color: '#8b5cf6'
+    },
   ]
 
   return (
@@ -156,10 +180,10 @@ const AdminDashboard = () => {
               >
                 <FiRefreshCw style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
               </button>
-              <button onClick={handleLogout} className="btn-logout">
-                <FiLogOut />
-                Logout
-              </button>
+            <button onClick={handleLogout} className="btn-logout">
+              <FiLogOut />
+              Logout
+            </button>
             </div>
           </div>
         </div>
