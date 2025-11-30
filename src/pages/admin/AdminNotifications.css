@@ -91,6 +91,23 @@
   margin-bottom: 0.5rem;
 }
 
+.notification-buttons-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.button-preview-badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-medium);
+}
+
 .notification-link {
   color: var(--primary-color);
   font-size: 0.875rem;
@@ -157,6 +174,61 @@
   cursor: pointer;
 }
 
+/* Buttons Builder */
+.buttons-builder {
+  margin-top: 0.5rem;
+}
+
+.button-input-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.button-text-input,
+.button-url-input {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.button-input-row .btn-small {
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+.buttons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.button-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--bg-light);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.button-preview {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-medium);
+}
+
+.button-item .btn-icon {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
 @media (max-width: 768px) {
   .notification-header {
     flex-direction: column;
@@ -164,6 +236,15 @@
 
   .notification-status {
     align-self: flex-start;
+  }
+
+  .button-input-row {
+    flex-direction: column;
+  }
+
+  .button-text-input,
+  .button-url-input {
+    width: 100%;
   }
 }
 

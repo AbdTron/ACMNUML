@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { FiX, FiBell } from 'react-icons/fi'
+import { parseMessageLinks } from '../utils/parseMessageLinks'
 import './NotificationPopup.css'
 
 const NotificationPopup = () => {
@@ -65,8 +66,28 @@ const NotificationPopup = () => {
         </div>
         <div className="notification-text">
           <h4>{notification.title}</h4>
-          <p>{notification.message}</p>
-          {notification.link && (
+          <p 
+            dangerouslySetInnerHTML={{ 
+              __html: parseMessageLinks(notification.message) 
+            }} 
+          />
+          {notification.buttons && notification.buttons.length > 0 && (
+            <div className="notification-buttons">
+              {notification.buttons.map((button, index) => (
+                <a
+                  key={index}
+                  href={button.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="notification-button"
+                  onClick={handleDismiss}
+                >
+                  {button.text}
+                </a>
+              ))}
+            </div>
+          )}
+          {!notification.buttons && notification.link && (
             <a href={notification.link} target="_blank" rel="noopener noreferrer" className="notification-link">
               Learn More →
             </a>

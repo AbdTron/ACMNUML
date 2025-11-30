@@ -35,8 +35,11 @@ const AdminNotifications = () => {
     title: '',
     message: '',
     link: '',
+    buttons: [],
     active: true
   })
+  const [buttonText, setButtonText] = useState('')
+  const [buttonUrl, setButtonUrl] = useState('')
 
   useEffect(() => {
     fetchNotifications()
@@ -77,11 +80,30 @@ const AdminNotifications = () => {
     })
   }
 
+  const handleAddButton = () => {
+    if (buttonText.trim() && buttonUrl.trim()) {
+      setFormData({
+        ...formData,
+        buttons: [...(formData.buttons || []), { text: buttonText.trim(), url: buttonUrl.trim() }]
+      })
+      setButtonText('')
+      setButtonUrl('')
+    }
+  }
+
+  const handleRemoveButton = (index) => {
+    setFormData({
+      ...formData,
+      buttons: (formData.buttons || []).filter((_, i) => i !== index)
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       const notificationData = {
         ...formData,
+        buttons: Array.isArray(formData.buttons) ? formData.buttons : [],
         createdAt: editingNotification ? editingNotification.createdAt : Timestamp.now(),
         reactivationToken: editingNotification?.reactivationToken ?? Date.now()
       }
@@ -100,8 +122,11 @@ const AdminNotifications = () => {
         title: '',
         message: '',
         link: '',
+        buttons: [],
         active: true
       })
+      setButtonText('')
+      setButtonUrl('')
       fetchNotifications()
     } catch (error) {
       console.error('Error saving notification:', error)
@@ -115,8 +140,11 @@ const AdminNotifications = () => {
       title: notification.title || '',
       message: notification.message || '',
       link: notification.link || '',
+      buttons: Array.isArray(notification.buttons) ? notification.buttons : [],
       active: notification.active !== false
     })
+    setButtonText('')
+    setButtonUrl('')
     setShowForm(true)
   }
 
@@ -225,7 +253,7 @@ const AdminNotifications = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Link (Optional)</label>
+                    <label>Link (Optional - Legacy)</label>
                     <input
                       type="url"
                       name="link"
@@ -233,7 +261,71 @@ const AdminNotifications = () => {
                       onChange={handleInputChange}
                       placeholder="https://example.com"
                     />
-                    <small>If provided, users can click to learn more</small>
+                    <small>Legacy field - use buttons below for better UX</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Buttons (Optional)</label>
+                    <div className="buttons-builder">
+                      <div className="button-input-row">
+                        <input
+                          type="text"
+                          placeholder="Button text (e.g., Sign up)"
+                          value={buttonText}
+                          onChange={(e) => setButtonText(e.target.value)}
+                          className="button-text-input"
+                        />
+                        <input
+                          type="url"
+                          placeholder="Button URL (e.g., https://acm.atrons.net/member/login)"
+                          value={buttonUrl}
+                          onChange={(e) => setButtonUrl(e.target.value)}
+                          className="button-url-input"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddButton}
+                          className="btn btn-secondary btn-small"
+                          disabled={!buttonText.trim() || !buttonUrl.trim()}
+                        >
+                          <FiPlus />
+                          Add
+                        </button>
+                      </div>
+                      {formData.buttons && formData.buttons.length > 0 && (
+                        <div className="buttons-list">
+                          {formData.buttons.map((button, index) => (
+                            <div key={index} className="button-item">
+                              <span className="button-preview">
+                                <strong>{button.text}</strong> → {button.url}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveButton(index)}
+                                className="btn-icon btn-danger btn-small"
+                                title="Remove button"
+                              >
+                                <FiX />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <small>Add action buttons that appear in the notification. You can add multiple buttons.</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Message *</label>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                      rows="4"
+                      placeholder="Notification message. Use [text](url) format for clickable links, e.g., Visit our [website](https://example.com) for more info."
+                    />
+                    <small>Use [text](url) format for clickable links in the message. Example: "Visit our [website](https://example.com) for more info."</small>
                   </div>
                   <div className="form-group">
                     <label className="checkbox-label">
@@ -291,6 +383,15 @@ const AdminNotifications = () => {
                   </div>
                   <div className="notification-body">
                     <p>{notification.message}</p>
+                    {notification.buttons && Array.isArray(notification.buttons) && notification.buttons.length > 0 && (
+                      <div className="notification-buttons-preview">
+                        {notification.buttons.map((button, index) => (
+                          <span key={index} className="button-preview-badge">
+                            {button.text} → {button.url}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {notification.link && (
                       <a href={notification.link} target="_blank" rel="noopener noreferrer" className="notification-link">
                         {notification.link}
