@@ -10,8 +10,6 @@ import {
   where 
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { useAuth } from '../../context/AuthContext'
-import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   FiMessageCircle, 
   FiZap, 
@@ -28,8 +26,6 @@ import {
 import './AdminFeedback.css'
 
 const AdminFeedback = () => {
-  const { currentUser } = useAuth()
-  useAdminPermission() // Check permission for this route
   const [feedback, setFeedback] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, feedback, feature, bug, survey

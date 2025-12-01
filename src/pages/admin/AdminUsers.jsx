@@ -30,12 +30,10 @@ import { logRoleChanged, logUserUpdated, logActivity, ACTIVITY_TYPES } from '../
 import { getAvatarUrlOrDefault } from '../../utils/avatarUtils'
 import { computeFlairsForStorage } from '../../utils/flairUtils'
 import { addToBanList } from '../../utils/banListUtils'
-import { useAdminPermission } from '../../hooks/useAdminPermission'
 
 const AdminUsers = () => {
   const { currentUser, userRole } = useAuth()
   const navigate = useNavigate()
-  useAdminPermission() // Check permission for this route
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingUser, setEditingUser] = useState(null)
@@ -389,17 +387,15 @@ const AdminUsers = () => {
   }
 
   const canDeleteUser = (user) => {
+    // Only main admin can delete/ban users
+    if (!isMainAdmin(userRole)) {
+      return false
+    }
+    
     // Can't delete yourself
     if (user.id === currentUser.uid) return false
     
-    // Only main admin can delete admins
-    if (!isMainAdmin(userRole)) {
-      // Non-main admins can only delete regular users
-      return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
-    }
-    
-    // Main admin can delete anyone (except themselves, already checked above)
-    // But prevent deleting main admin
+    // Prevent deleting main admin
     if (user.isMainAdmin) return false
     
     return true
@@ -610,23 +606,24 @@ const AdminUsers = () => {
                               </button>
                             )}
                             {canDeleteUser(user) && (
-                              <>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button
                                   onClick={() => handleDeleteUser(user.id, user)}
                                   className="btn-icon btn-delete"
-                                  title="Delete user"
+                                  title="Delete user (removes all data)"
+                                  style={{ color: '#ef4444' }}
                                 >
                                   <FiTrash2 />
                                 </button>
                                 <button
                                   onClick={() => handleBanUser(user.id, user)}
                                   className="btn-icon btn-ban"
-                                  title="Ban user (delete + prevent re-registration)"
-                                  style={{ color: '#dc2626' }}
+                                  title="Delete and ban user (prevents re-registration)"
+                                  style={{ color: '#dc2626', background: 'rgba(220, 38, 38, 0.1)' }}
                                 >
                                   <FiXCircle />
                                 </button>
-                              </>
+                              </div>
                             )}
                             {!canEditUser(user) && !canDeleteUser(user) && (
                               <span className="text-muted">No actions</span>

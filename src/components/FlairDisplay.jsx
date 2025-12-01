@@ -28,3 +28,4 @@ const FlairDisplay = ({ flairs = [], maxFlairs = 3 }) => {
 
 export default FlairDisplay
 
+

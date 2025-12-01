@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { 
@@ -17,17 +17,16 @@ import {
   FiShield
 } from 'react-icons/fi'
 import { isMainAdmin, ROLES } from '../../utils/permissions'
-import { hasFeaturePermission } from '../../utils/adminPermissions'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useState, useEffect } from 'react'
+import { useAdminPermissions } from '../../hooks/useAdminPermission'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
-  const { currentUser, logout, userRole, adminPermissions } = useAuth()
+  const { currentUser, logout, userRole } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const [errorMessage, setErrorMessage] = useState(null)
+  const { permissions, loading: permissionsLoading } = useAdminPermissions()
   const [stats, setStats] = useState({
     events: 0,
     notifications: 0,
@@ -78,13 +77,16 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchStats()
-    // Check for error message from navigation state
-    if (location.state?.error) {
-      setErrorMessage(location.state.error)
-      // Clear the state to prevent showing the error again on refresh
-      window.history.replaceState({}, document.title)
+    
+    // Show error message if redirected from protected route
+    const urlParams = new URLSearchParams(window.location.search)
+    const error = urlParams.get('error')
+    if (error) {
+      alert(error)
+      // Remove error from URL
+      window.history.replaceState({}, '', window.location.pathname)
     }
-  }, [location])
+  }, [])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -100,7 +102,8 @@ const AdminDashboard = () => {
     }
   }
 
-  const allQuickActions = [
+  // Define all possible actions with their feature IDs
+  const allActions = [
     {
       icon: FiCalendar,
       title: 'Manage Events',
@@ -183,14 +186,13 @@ const AdminDashboard = () => {
     },
   ]
 
-  // Filter actions based on permissions
-  const quickActions = allQuickActions.filter(action => {
-    // Main admin can see all actions
+  // Filter actions based on permissions (main admin sees all)
+  const quickActions = allActions.filter(action => {
     if (isMainAdmin(userRole)) {
-      return true
+      return true // Main admin sees all
     }
-    // Regular admins can only see actions they have permission for
-    return hasFeaturePermission(userRole, adminPermissions, action.featureId)
+    // Check if admin has permission for this feature
+    return permissions[action.featureId] === true
   })
 
   // Add Admin Permissions card only for main admin
@@ -201,7 +203,7 @@ const AdminDashboard = () => {
       description: 'Manage admin feature access and permissions',
       link: '/admin/permissions',
       color: '#dc2626',
-      featureId: 'adminPermissions'
+      featureId: 'adminPermissions' // Special feature, only for main admin
     })
   }
 
@@ -234,20 +236,6 @@ const AdminDashboard = () => {
 
       <div className="admin-content">
         <div className="container">
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="error-message" style={{
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              backgroundColor: '#fee2e2',
-              border: '1px solid #fca5a5',
-              borderRadius: '0.5rem',
-              color: '#dc2626'
-            }}>
-              {errorMessage}
-            </div>
-          )}
-          
           {/* Stats */}
           <div className="stats-grid">
             <div className="stat-card">
@@ -312,20 +300,30 @@ const AdminDashboard = () => {
             <p>Manage your website content</p>
           </div>
 
-          <div className="actions-grid">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon
-              return (
-                <Link key={index} to={action.link} className="action-card">
-                  <div className="action-icon" style={{ background: `${action.color}15`, color: action.color }}>
-                    <Icon />
-                  </div>
-                  <h3>{action.title}</h3>
-                  <p>{action.description}</p>
-                </Link>
-              )
-            })}
-          </div>
+          {permissionsLoading ? (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>Loading permissions...</div>
+          ) : (
+            <div className="actions-grid">
+              {quickActions.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1' }}>
+                  <p>No actions available. Contact Main Admin to grant permissions.</p>
+                </div>
+              ) : (
+                quickActions.map((action, index) => {
+                  const Icon = action.icon
+                  return (
+                    <Link key={index} to={action.link} className="action-card">
+                      <div className="action-icon" style={{ background: `${action.color}15`, color: action.color }}>
+                        <Icon />
+                      </div>
+                      <h3>{action.title}</h3>
+                      <p>{action.description}</p>
+                    </Link>
+                  )
+                })
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

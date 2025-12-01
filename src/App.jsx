@@ -7,6 +7,7 @@ import Footer from './components/Footer'
 import NotificationPopup from './components/NotificationPopup'
 import InstallPrompt from './components/InstallPrompt'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminProtectedRoute from './components/AdminProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 import SplashScreen from './components/SplashScreen'
 import NotificationService from './components/NotificationService'
@@ -30,6 +31,7 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminEventRegistrations from './pages/admin/AdminEventRegistrations'
 import AdminCheckIn from './pages/admin/AdminCheckIn'
 import AdminFormTemplates from './pages/admin/AdminFormTemplates'
+import AdminGallery from './pages/admin/AdminGallery'
 import MemberLogin from './pages/MemberLogin'
 import EventRegister from './pages/EventRegister'
 import MemberDashboard from './pages/member/MemberDashboard'
@@ -109,41 +111,41 @@ function App() {
               <Route
                 path="/admin/events"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="manageEvents">
                     <AdminEvents />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
                 path="/admin/notifications"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="notifications">
                     <AdminNotifications />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
                 path="/admin/settings"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="settings">
                     <AdminSettings />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
                 path="/admin/team"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="teamProfiles">
                     <AdminTeam />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
                 path="/admin/users"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="userManagement">
                     <AdminUsers />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
@@ -165,9 +167,17 @@ function App() {
               <Route
                 path="/admin/form-templates"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="formTemplates">
                     <AdminFormTemplates />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/gallery"
+                element={
+                  <AdminProtectedRoute featureId="galleries">
+                    <AdminGallery />
+                  </AdminProtectedRoute>
                 }
               />
               <Route path="/member/login" element={<MemberLogin />} />
@@ -199,25 +209,25 @@ function App() {
               <Route
                 path="/admin/feedback"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="feedback">
                     <AdminFeedback />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
                 path="/admin/forum"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="forumModeration">
                     <AdminForum />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route
                 path="/admin/user-requests"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute featureId="userRequests">
                     <AdminUserRequests />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route

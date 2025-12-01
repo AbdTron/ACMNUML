@@ -28,7 +28,6 @@ import ImageUploader from '../../components/ImageUploader'
 
 const AdminGallery = () => {
   const { currentUser } = useAuth()
-  useAdminPermission() // Check permission for this route
   const navigate = useNavigate()
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)

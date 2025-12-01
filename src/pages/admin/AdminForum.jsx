@@ -12,8 +12,6 @@ import {
   limit
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { useAuth } from '../../context/AuthContext'
-import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   FiArrowLeft,
   FiMessageSquare,
@@ -35,8 +33,6 @@ import {
 import './AdminForum.css'
 
 const AdminForum = () => {
-  const { currentUser } = useAuth()
-  useAdminPermission() // Check permission for this route
   const [posts, setPosts] = useState([])
   const [replies, setReplies] = useState([])
   const [loading, setLoading] = useState(true)

@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   FiArrowLeft,
   FiSave,
@@ -16,9 +14,7 @@ import {
 import './AdminSettings.css'
 
 const AdminSettings = () => {
-  const { currentUser } = useAuth()
   const navigate = useNavigate()
-  useAdminPermission() // Check permission for this route
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({

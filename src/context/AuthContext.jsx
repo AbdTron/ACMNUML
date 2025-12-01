@@ -17,7 +17,6 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [userRole, setUserRole] = useState(null)
-  const [adminPermissions, setAdminPermissions] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -34,23 +33,18 @@ export const AuthProvider = ({ children }) => {
           try {
             const userDoc = await getDoc(doc(db, 'admins', user.uid))
             if (userDoc.exists()) {
-              const adminData = userDoc.data()
-              setUserRole(adminData.role || 'admin')
-              setAdminPermissions(adminData.permissions || {})
+              setUserRole(userDoc.data().role || 'admin')
             } else {
               setUserRole(null)
-              setAdminPermissions(null)
             }
           } catch (error) {
             console.error('Error checking admin status:', error)
             setUserRole(null)
-            setAdminPermissions(null)
           }
         }
       } else {
         setCurrentUser(null)
         setUserRole(null)
-        setAdminPermissions(null)
       }
       setLoading(false)
     })
@@ -82,7 +76,6 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     userRole,
-    adminPermissions,
     login,
     logout,
     isAdmin: userRole === 'admin' || userRole === 'mainadmin',

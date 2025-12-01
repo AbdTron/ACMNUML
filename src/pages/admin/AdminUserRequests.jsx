@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { useAdminPermission } from '../../hooks/useAdminPermission'
+import { Link } from 'react-router-dom'
 import { 
   collection, 
   query, 
@@ -26,26 +24,23 @@ import {
   FiUsers,
   FiSun,
   FiMoon,
-  FiAward
+  FiAward,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi'
 import './AdminUserRequests.css'
 
 const AdminUserRequests = () => {
-  const { currentUser } = useAuth()
-  const navigate = useNavigate()
-  useAdminPermission() // Check permission for this route
-  
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, approved, rejected
   const [processing, setProcessing] = useState(null)
   const [selectedRequest, setSelectedRequest] = useState(null)
+  const [expandedRequests, setExpandedRequests] = useState({}) // { requestId: true/false }
 
   useEffect(() => {
-    if (currentUser) {
-      fetchRequests()
-    }
-  }, [filter, currentUser])
+    fetchRequests()
+  }, [filter])
 
   const fetchRequests = async () => {
     setLoading(true)
@@ -309,79 +304,103 @@ const AdminUserRequests = () => {
                         )}
                       </div>
                     </div>
-                    {request.status === 'pending' && (
-                      <div className="card-actions">
-                        <button
-                          onClick={() => handleApprove(request)}
-                          className="btn btn-success btn-small"
-                          disabled={processing === request.id}
-                        >
-                          <FiCheck />
-                          {processing === request.id ? 'Processing...' : 'Approve'}
-                        </button>
-                        <button
-                          onClick={() => handleReject(request)}
-                          className="btn btn-danger btn-small"
-                          disabled={processing === request.id}
-                        >
-                          <FiX />
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="request-content">
-                    <div className="info-section">
-                      <h4>Current Academic Information:</h4>
-                      <div className="info-grid">
-                        <div className="info-item">
-                          <FiHash />
-                          <span className="info-label">Roll Number:</span>
-                          <span className="info-value">{currentData.rollNumber || 'N/A'}</span>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      {request.status === 'pending' && (
+                        <div className="card-actions">
+                          <button
+                            onClick={() => handleApprove(request)}
+                            className="btn btn-success btn-small"
+                            disabled={processing === request.id}
+                          >
+                            <FiCheck />
+                            {processing === request.id ? 'Processing...' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => handleReject(request)}
+                            className="btn btn-danger btn-small"
+                            disabled={processing === request.id}
+                          >
+                            <FiX />
+                            Reject
+                          </button>
                         </div>
-                        <div className="info-item">
-                          <FiBookOpen />
-                          <span className="info-label">Department:</span>
-                          <span className="info-value">{currentData.department || 'N/A'}</span>
-                        </div>
-                        <div className="info-item">
-                          <FiAward />
-                          <span className="info-label">Degree:</span>
-                          <span className="info-value">{currentData.degree || 'N/A'}</span>
-                        </div>
-                        <div className="info-item">
-                          <FiBookOpen />
-                          <span className="info-label">Semester:</span>
-                          <span className="info-value">{currentData.semester || 'N/A'}</span>
-                        </div>
-                        <div className="info-item">
-                          <FiUsers />
-                          <span className="info-label">Section:</span>
-                          <span className="info-value">{currentData.section || 'N/A'}</span>
-                        </div>
-                        <div className="info-item">
-                          {currentData.shift === 'Morning' ? <FiSun /> : <FiMoon />}
-                          <span className="info-label">Shift:</span>
-                          <span className="info-value">{currentData.shift || 'N/A'}</span>
-                        </div>
-                      </div>
+                      )}
+                      <button
+                        className="permissions-toggle-btn"
+                        onClick={() => setExpandedRequests(prev => ({
+                          ...prev,
+                          [request.id]: !prev[request.id]
+                        }))}
+                        style={{ marginLeft: 'auto' }}
+                      >
+                        {expandedRequests[request.id] ? (
+                          <>
+                            <span>Hide Details</span>
+                            <FiChevronUp />
+                          </>
+                        ) : (
+                          <>
+                            <span>Show Details</span>
+                            <FiChevronDown />
+                          </>
+                        )}
+                      </button>
                     </div>
-
-                    {request.reason && (
-                      <div className="reason-section">
-                        <h4>Reason for Change</h4>
-                        <p><strong>Reason:</strong> {request.reason}</p>
-                      </div>
-                    )}
-
-                    {request.reviewNotes && (
-                      <div className="reason-section">
-                        <h4>Admin Notes</h4>
-                        <p><strong>Admin Notes:</strong> {request.reviewNotes}</p>
-                      </div>
-                    )}
                   </div>
+
+                  {expandedRequests[request.id] && (
+                    <div className="request-content">
+                      <div className="info-section">
+                        <h4>Current Academic Information:</h4>
+                        <div className="info-grid">
+                          <div className="info-item">
+                            <FiHash />
+                            <span className="info-label">Roll Number:</span>
+                            <span className="info-value">{currentData.rollNumber || 'N/A'}</span>
+                          </div>
+                          <div className="info-item">
+                            <FiBookOpen />
+                            <span className="info-label">Department:</span>
+                            <span className="info-value">{currentData.department || 'N/A'}</span>
+                          </div>
+                          <div className="info-item">
+                            <FiAward />
+                            <span className="info-label">Degree:</span>
+                            <span className="info-value">{currentData.degree || 'N/A'}</span>
+                          </div>
+                          <div className="info-item">
+                            <FiBookOpen />
+                            <span className="info-label">Semester:</span>
+                            <span className="info-value">{currentData.semester || 'N/A'}</span>
+                          </div>
+                          <div className="info-item">
+                            <FiUsers />
+                            <span className="info-label">Section:</span>
+                            <span className="info-value">{currentData.section || 'N/A'}</span>
+                          </div>
+                          <div className="info-item">
+                            {currentData.shift === 'Morning' ? <FiSun /> : <FiMoon />}
+                            <span className="info-label">Shift:</span>
+                            <span className="info-value">{currentData.shift || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {request.reason && (
+                        <div className="reason-section">
+                          <h4>Reason for Change</h4>
+                          <p><strong>Reason:</strong> {request.reason}</p>
+                        </div>
+                      )}
+
+                      {request.reviewNotes && (
+                        <div className="reason-section">
+                          <h4>Admin Notes</h4>
+                          <p><strong>Admin Notes:</strong> {request.reviewNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}

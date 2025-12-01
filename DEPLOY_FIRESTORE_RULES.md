@@ -46,3 +46,4 @@ The rules allow:
 - ✅ **Authenticated users to vote on posts** (as long as authorId doesn't change)
 
 
+

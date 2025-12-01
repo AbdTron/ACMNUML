@@ -65,13 +65,38 @@ const ForumPost = () => {
   const checkAdminStatus = async () => {
     if (!currentUser || !db) {
       setIsAdmin(false)
+      setIsMainAdmin(false)
+      setAdminName(null)
       return
     }
     try {
       const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
-      setIsAdmin(adminDoc.exists())
+      if (adminDoc.exists()) {
+        const adminData = adminDoc.data()
+        const adminRole = adminData.role || 'admin'
+        setIsAdmin(true)
+        setIsMainAdmin(adminRole === 'mainadmin')
+        
+        // Get admin name from users collection
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
+          if (userDoc.exists()) {
+            setAdminName(userDoc.data().name || currentUser.email?.split('@')[0] || 'Admin')
+          } else {
+            setAdminName(currentUser.email?.split('@')[0] || 'Admin')
+          }
+        } catch (err) {
+          setAdminName(currentUser.email?.split('@')[0] || 'Admin')
+        }
+      } else {
+        setIsAdmin(false)
+        setIsMainAdmin(false)
+        setAdminName(null)
+      }
     } catch (error) {
       setIsAdmin(false)
+      setIsMainAdmin(false)
+      setAdminName(null)
     }
   }
 
@@ -275,10 +300,20 @@ const ForumPost = () => {
         content: editContent.trim(),
         editedAt: serverTimestamp(),
         editedBy: currentUser.uid,
-        isAdminEdit: isAdmin // Track if admin edited
+        isAdminEdit: isAdmin && !isMainAdmin, // Track if admin (but not main admin) edited
+        isMainAdminEdit: isMainAdmin, // Track if main admin edited
+        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not main admin)
       })
 
-      setPost({ ...post, content: editContent.trim(), editedAt: new Date(), editedBy: currentUser.uid, isAdminEdit: isAdmin })
+      setPost({ 
+        ...post, 
+        content: editContent.trim(), 
+        editedAt: new Date(), 
+        editedBy: currentUser.uid, 
+        isAdminEdit: isAdmin && !isMainAdmin,
+        isMainAdminEdit: isMainAdmin,
+        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null
+      })
       setIsEditing(false)
       setEditContent('')
     } catch (error) {
@@ -363,7 +398,9 @@ const ForumPost = () => {
         content: editReplyContent.trim(),
         editedAt: serverTimestamp(),
         editedBy: currentUser.uid,
-        isAdminEdit: isAdmin
+        isAdminEdit: isAdmin && !isMainAdmin, // Track if admin (but not main admin) edited
+        isMainAdminEdit: isMainAdmin, // Track if main admin edited
+        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not main admin)
       })
 
       // Refresh replies
@@ -646,10 +683,14 @@ const ForumPost = () => {
                   </div>
                 )}
 
-                {/* Edited label - only show if edited and not by admin */}
-                {post.editedAt && !post.isAdminEdit && (
+                {/* Edited label - show for regular users, show with admin name for admins, hide for main admin */}
+                {post.editedAt && !post.isMainAdminEdit && (
                   <div className="edited-label">
-                    <span>Edited</span>
+                    {post.isAdminEdit && post.editedByAdminName ? (
+                      <span>Edited (Admin {post.editedByAdminName})</span>
+                    ) : (
+                      <span>Edited</span>
+                    )}
                   </div>
                 )}
 
@@ -774,8 +815,14 @@ const ForumPost = () => {
                               <div className="post-meta">
                                 <FiClock />
                                 <span>{formatDate(reply.createdAt)}</span>
-                                {reply.editedAt && (
-                                  <span className="edited-label">(edited)</span>
+                                {reply.editedAt && !reply.isMainAdminEdit && (
+                                  <span className="edited-label">
+                                    {reply.isAdminEdit && reply.editedByAdminName ? (
+                                      `(edited by Admin ${reply.editedByAdminName})`
+                                    ) : (
+                                      '(edited)'
+                                    )}
+                                  </span>
                                 )}
                               </div>
                             </div>
