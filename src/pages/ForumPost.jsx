@@ -53,6 +53,8 @@ const ForumPost = () => {
   const [isAdmin, setIsAdmin] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [requestingDeletion, setRequestingDeletion] = useState(false)
+  const [editingReplyId, setEditingReplyId] = useState(null)
+  const [editReplyContent, setEditReplyContent] = useState('')
 
   useEffect(() => {
     fetchPost()
@@ -372,6 +374,38 @@ const ForumPost = () => {
       alert('Failed to submit deletion request')
     } finally {
       setRequestingDeletion(false)
+    }
+  }
+
+  const handleEditReply = (reply) => {
+    if (!reply) return
+    setEditReplyContent(reply.content || '')
+    setEditingReplyId(reply.id)
+  }
+
+  const handleCancelEditReply = () => {
+    setEditingReplyId(null)
+    setEditReplyContent('')
+  }
+
+  const handleSaveEditReply = async (replyId) => {
+    if (!replyId || !editReplyContent.trim()) return
+
+    try {
+      await updateDoc(doc(db, 'forumReplies', replyId), {
+        content: editReplyContent.trim(),
+        editedAt: serverTimestamp(),
+        editedBy: currentUser.uid,
+        isAdminEdit: isAdmin
+      })
+
+      // Refresh replies
+      await fetchReplies()
+      setEditingReplyId(null)
+      setEditReplyContent('')
+    } catch (error) {
+      console.error('Error updating reply:', error)
+      alert('Failed to update reply')
     }
   }
 
@@ -746,6 +780,8 @@ const ForumPost = () => {
                   <div className="replies-list">
                     {replies.map(reply => {
                       const replyParts = parseContent(reply.content)
+                      const isEditingThisReply = editingReplyId === reply.id
+                      const canEditReply = currentUser && (reply.authorId === currentUser.uid || isAdmin)
                       return (
                         <div key={reply.id} className="reply-card">
                           <div className="reply-header">
@@ -771,26 +807,69 @@ const ForumPost = () => {
                               <div className="post-meta">
                                 <FiClock />
                                 <span>{formatDate(reply.createdAt)}</span>
+                                {reply.editedAt && (
+                                  <span className="edited-label">(edited)</span>
+                                )}
                               </div>
                             </div>
+                            {/* Edit/Delete buttons for reply */}
+                            {canEditReply && !isEditingThisReply && (
+                              <div className="reply-actions">
+                                <button
+                                  onClick={() => handleEditReply(reply)}
+                                  className="btn-icon btn-small"
+                                  title="Edit reply"
+                                >
+                                  <FiEdit2 />
+                                </button>
+                              </div>
+                            )}
                           </div>
                           <div className="reply-content">
-                            {replyParts.map((part, index) => {
-                              if (part.type === 'code') {
+                            {isEditingThisReply ? (
+                              <div className="edit-reply-form">
+                                <textarea
+                                  value={editReplyContent}
+                                  onChange={(e) => setEditReplyContent(e.target.value)}
+                                  rows={4}
+                                  className="edit-reply-textarea"
+                                />
+                                <div className="edit-reply-actions">
+                                  <button
+                                    onClick={handleCancelEditReply}
+                                    className="btn-icon btn-secondary"
+                                  >
+                                    <FiX />
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveEditReply(reply.id)}
+                                    className="btn-icon btn-primary"
+                                    disabled={!editReplyContent.trim()}
+                                  >
+                                    <FiCheck />
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              replyParts.map((part, index) => {
+                                if (part.type === 'code') {
+                                  return (
+                                    <CodeSnippet 
+                                      key={index}
+                                      code={part.content}
+                                      language={part.language}
+                                    />
+                                  )
+                                }
                                 return (
-                                  <CodeSnippet 
-                                    key={index}
-                                    code={part.content}
-                                    language={part.language}
-                                  />
+                                  <p key={index} style={{ whiteSpace: 'pre-wrap' }}>
+                                    {part.content}
+                                  </p>
                                 )
-                              }
-                              return (
-                                <p key={index} style={{ whiteSpace: 'pre-wrap' }}>
-                                  {part.content}
-                                </p>
-                              )
-                            })}
+                              })
+                            )}
                           </div>
                         </div>
                       )

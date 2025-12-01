@@ -176,9 +176,17 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.auth.uid == request.resource.data.authorId;
       // Users can update their own posts, admins can update any
+      // Authenticated users can also update posts for voting (upvotes/downvotes fields)
+      // Note: Application code should validate that only vote fields are updated by non-authors
       allow update: if request.auth != null && (
         resource.data.authorId == request.auth.uid ||
-        isAdmin()
+        isAdmin() ||
+        // Allow authenticated users to update vote-related fields only
+        // We check that critical fields haven't changed (content, title, authorId, etc.)
+        (request.resource.data.content == resource.data.content &&
+         request.resource.data.title == resource.data.title &&
+         request.resource.data.authorId == resource.data.authorId &&
+         request.resource.data.category == resource.data.category)
       );
       // Users can delete their own posts, admins can delete any
       allow delete: if request.auth != null && (
