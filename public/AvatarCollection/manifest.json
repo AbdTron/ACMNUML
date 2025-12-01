@@ -1,10 +1,41 @@
 {
-  "User": [],
-  "Members": [],
-  "President": ["hacker.png"]
+  "User": [
+    "arab-woman.png",
+    "bear.png",
+    "boy.png",
+    "dog.png",
+    "gamer (1).png",
+    "gamer.png",
+    "man (1).png",
+    "man (2).png",
+    "man (3).png",
+    "man (4).png",
+    "man.png",
+    "massage.png",
+    "office-man.png",
+    "superhero.png",
+    "teenager.png",
+    "woman (1).png",
+    "woman (2).png",
+    "woman (3).png",
+    "woman.png"
+  ],
+  "Members": [
+    "cat.png",
+    "cool.png",
+    "dinosaur.png",
+    "kitty.png",
+    "knight.png",
+    "knight2..png",
+    "ninja.png",
+    "pikachu.png",
+    "reaper.png",
+    "robot.png",
+    "snake.png",
+    "superhero.png"
+  ],
+  "President": [
+    "hacker (1).png",
+    "hacker.png"
+  ]
 }
-
-
-
-
-

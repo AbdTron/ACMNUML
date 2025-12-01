@@ -22,17 +22,17 @@ export const getAvailableAvatarFolders = (acmRole, isAdmin = false) => {
   
   console.log('[getAvailableAvatarFolders] Input acmRole:', acmRole, 'Normalized:', normalizedRole)
   
-  // Category 1: President - can use all folders (President, Member, User)
+  // Category 1: President - can use all folders (President, Members, User)
   if (normalizedRole === 'president') {
-    folders.push('President', 'Member', 'User')
+    folders.push('President', 'Members', 'User')
     console.log('[getAvailableAvatarFolders] President detected - returning:', folders)
     return folders
   }
   
-  // Category 2: ACM Member (any ACM role except president) - can use Member and User folders
+  // Category 2: ACM Member (any ACM role except president) - can use Members and User folders
   // This includes: Vice President, Treasurer, Secretary, Member, etc.
   if (normalizedRole && normalizedRole !== 'president') {
-    folders.push('Member', 'User')
+    folders.push('Members', 'User')
     console.log('[getAvailableAvatarFolders] ACM Member detected - returning:', folders)
     return folders
   }
@@ -79,7 +79,7 @@ export const getAvatarUrlOrDefault = (avatarPath) => {
  * Note: In a real app, you might want to fetch this from an API
  * For now, we'll use a static list or require manual configuration
  * 
- * @param {string} folder - Folder name ('User', 'Member', 'President')
+ * @param {string} folder - Folder name ('User', 'Members', 'President')
  * @returns {Promise<string[]>} Array of avatar filenames
  */
 export const getAvatarsFromFolder = async (folder) => {
