@@ -6,8 +6,8 @@
 /**
  * Get available avatar folders based on user role
  * Three categories:
- * 1. President - can access President, Members, and User folders
- * 2. ACM Member (any ACM role except president, like vice president, treasurer, etc.) - can access Members and User folders
+ * 1. President - can access President, Member, and User folders
+ * 2. ACM Member (any ACM role except president, like vice president, treasurer, etc.) - can access Member and User folders
  * 3. User (regular user, no ACM role) - can only access User folder
  * 
  * @param {string} acmRole - User's ACM role (e.g., 'President', 'Vice President', 'Treasurer', null)
@@ -17,21 +17,29 @@
 export const getAvailableAvatarFolders = (acmRole, isAdmin = false) => {
   const folders = []
   
-  // Category 1: President - can use all folders (President, Members, User)
-  if (acmRole && acmRole.toLowerCase().trim() === 'president') {
-    folders.push('President', 'Members', 'User')
+  // Normalize acmRole for comparison (handle case and whitespace)
+  const normalizedRole = acmRole ? acmRole.toLowerCase().trim() : ''
+  
+  console.log('[getAvailableAvatarFolders] Input acmRole:', acmRole, 'Normalized:', normalizedRole)
+  
+  // Category 1: President - can use all folders (President, Member, User)
+  if (normalizedRole === 'president') {
+    folders.push('President', 'Member', 'User')
+    console.log('[getAvailableAvatarFolders] President detected - returning:', folders)
     return folders
   }
   
-  // Category 2: ACM Member (any ACM role except president) - can use Members and User folders
+  // Category 2: ACM Member (any ACM role except president) - can use Member and User folders
   // This includes: Vice President, Treasurer, Secretary, Member, etc.
-  if (acmRole && acmRole.toLowerCase().trim() !== 'president') {
-    folders.push('Members', 'User')
+  if (normalizedRole && normalizedRole !== 'president') {
+    folders.push('Member', 'User')
+    console.log('[getAvailableAvatarFolders] ACM Member detected - returning:', folders)
     return folders
   }
   
   // Category 3: Regular User (no ACM role) - can only use User folder
   folders.push('User')
+  console.log('[getAvailableAvatarFolders] Regular user - returning:', folders)
   return folders
 }
 
@@ -71,7 +79,7 @@ export const getAvatarUrlOrDefault = (avatarPath) => {
  * Note: In a real app, you might want to fetch this from an API
  * For now, we'll use a static list or require manual configuration
  * 
- * @param {string} folder - Folder name ('User', 'Members', 'President')
+ * @param {string} folder - Folder name ('User', 'Member', 'President')
  * @returns {Promise<string[]>} Array of avatar filenames
  */
 export const getAvatarsFromFolder = async (folder) => {

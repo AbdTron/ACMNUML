@@ -28,6 +28,7 @@ const AvatarSelector = ({
       try {
         // Get folders user can access
         const folders = getAvailableAvatarFolders(acmRole, isAdmin)
+        console.log('[AvatarSelector] ACM Role:', acmRole, 'Available folders:', folders)
         
         // Load avatar manifest or discover avatars
         const avatars = []

@@ -34,6 +34,12 @@ const MemberDashboard = () => {
       return
     }
     
+    // Check if profile is complete, if not redirect to onboarding
+    if (userProfile && !userProfile.profileComplete) {
+      navigate('/member/onboarding')
+      return
+    }
+    
     // Check if profile is incomplete and redirect to onboarding
     if (userProfile && !userProfile.profileComplete) {
       // Check if user has required academic fields

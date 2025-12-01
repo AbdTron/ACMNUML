@@ -151,8 +151,18 @@ const Forum = () => {
     }
   }
 
-  const calculateStats = () => {
-    const totalReplies = posts.reduce((sum, post) => sum + (post.replyCount || 0), 0)
+  const calculateStats = async () => {
+    // Count all replies from the forumReplies collection for accurate count
+    let totalReplies = 0
+    try {
+      const repliesSnapshot = await getDocs(collection(db, 'forumReplies'))
+      totalReplies = repliesSnapshot.size
+    } catch (error) {
+      console.error('Error counting replies:', error)
+      // Fallback to post.replyCount if query fails
+      totalReplies = posts.reduce((sum, post) => sum + (post.replyCount || 0), 0)
+    }
+    
     const uniqueAuthors = new Set(posts.map(post => post.authorId)).size
 
     setStats({

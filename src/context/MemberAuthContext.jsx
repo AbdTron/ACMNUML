@@ -365,10 +365,36 @@ export const MemberAuthProvider = ({ children }) => {
       throw new Error('Password must be at least 6 characters long.')
     }
     
-    await updatePassword(currentUser, newPassword)
+    // Check if user has password provider
+    const hasPassword = currentUser.providerData?.some(provider => provider.providerId === 'password')
+    
+    if (hasPassword) {
+      // User already has password, just update it
+      await updatePassword(currentUser, newPassword)
+    } else {
+      // User doesn't have password (e.g., Google sign-in)
+      // For Google users, we need to link email/password provider
+      // Since user is recently authenticated (just signed in), we can try updatePassword
+      // If it fails, we'll provide a helpful error message
+      try {
+        await updatePassword(currentUser, newPassword)
+      } catch (error) {
+        // If updatePassword fails, it's likely because user needs re-authentication
+        if (error.code === 'auth/requires-recent-login') {
+          // For Google users, we can't easily re-authenticate without popup
+          // So we'll provide a helpful message
+          throw new Error('To set a password, please sign out and sign in again, then try setting your password.')
+        }
+        // For other errors, try to provide helpful message
+        if (error.code === 'auth/weak-password') {
+          throw new Error('Password is too weak. Please choose a stronger password.')
+        }
+        throw error
+      }
+    }
     
     // Log activity
-    await logActivity(currentUser.uid, ACTIVITY_TYPES.PROFILE_UPDATED, 'User password updated')
+    await logActivity(currentUser.uid, ACTIVITY_TYPES.PROFILE_UPDATED, 'User password updated/set')
   }
 
   const hasPasswordProvider = () => {

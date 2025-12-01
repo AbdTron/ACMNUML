@@ -567,73 +567,70 @@ const MemberProfile = () => {
               )}
             </div>
 
-            {/* Password Change Section */}
-            {hasPasswordProvider() && (
-              <div className="form-group">
-                <div className="password-change-header">
-                  <label>
-                    <FiLock />
-                    Password
-                  </label>
-                  {!showPasswordChange && (
-                    <button
-                      type="button"
-                      onClick={() => setShowPasswordChange(true)}
-                      className="btn btn-secondary btn-small"
-                    >
-                      Change Password
-                    </button>
-                  )}
-                </div>
-                {showPasswordChange && (
-                  <div className="password-change-form">
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                      disabled={changingPassword}
-                      style={{ marginBottom: '0.75rem' }}
-                    />
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                      disabled={changingPassword}
-                      style={{ marginBottom: '0.75rem' }}
-                    />
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        type="button"
-                        onClick={handlePasswordChange}
-                        className="btn btn-primary btn-small"
-                        disabled={changingPassword || !newPassword || !confirmPassword}
-                      >
-                        {changingPassword ? 'Updating...' : 'Update Password'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowPasswordChange(false)
-                          setNewPassword('')
-                          setConfirmPassword('')
-                          setError(null)
-                        }}
-                        className="btn btn-secondary btn-small"
-                        disabled={changingPassword}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                    <small>Password must be at least 6 characters long. No current password required.</small>
-                  </div>
-                )}
+            {/* Password Change Section - Show for all users */}
+            <div className="form-group">
+              <div className="password-change-header">
+                <label>
+                  <FiLock />
+                  Password
+                </label>
                 {!showPasswordChange && (
-                  <small>You can set or change your password here. No current password required.</small>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordChange(true)}
+                    className="btn btn-secondary btn-small"
+                  >
+                    {hasPasswordProvider() ? 'Change Password' : 'Set Password'}
+                  </button>
                 )}
               </div>
-            )}
+              {showPasswordChange && (
+                <div className="password-change-form">
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    disabled={changingPassword}
+                    style={{ marginBottom: '0.75rem' }}
+                  />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    disabled={changingPassword}
+                    style={{ marginBottom: '0.75rem' }}
+                  />
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={handlePasswordChange}
+                      className="btn btn-primary btn-small"
+                      disabled={changingPassword || !newPassword || !confirmPassword}
+                    >
+                      {changingPassword ? 'Updating...' : (hasPasswordProvider() ? 'Update Password' : 'Set Password')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordChange(false)
+                        setNewPassword('')
+                        setConfirmPassword('')
+                        setError(null)
+                      }}
+                      className="btn btn-secondary btn-small"
+                      disabled={changingPassword}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <small style={{ display: 'block', marginTop: '0.5rem', color: 'var(--text-light)' }}>
+                    Password must be at least 6 characters long.
+                  </small>
+                </div>
+              )}
+            </div>
 
             <div className="form-group">
               <label>
