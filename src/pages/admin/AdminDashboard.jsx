@@ -16,14 +16,14 @@ import {
   FiMessageCircle,
   FiShield
 } from 'react-icons/fi'
-import { isMainAdmin } from '../../utils/permissions'
+import { isMainAdmin, ROLES } from '../../utils/permissions'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useState, useEffect } from 'react'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
-  const { currentUser, logout } = useAuth()
+  const { currentUser, logout, userRole } = useAuth()
   const navigate = useNavigate()
   const [stats, setStats] = useState({
     events: 0,
@@ -165,7 +165,7 @@ const AdminDashboard = () => {
   ]
 
   // Add Admin Permissions card only for main admin
-  if (currentUser && isMainAdmin(currentUser.email)) {
+  if (currentUser && isMainAdmin(userRole)) {
     quickActions.push({
       icon: FiShield,
       title: 'Admin Permissions',

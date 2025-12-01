@@ -101,23 +101,27 @@ const ForumPost = () => {
             setPostAuthorAvatar(userProfile.avatar)
           }
           
-          // Check if user is admin
+          // Check if user is admin and get role
           let isAdmin = false
+          let adminRole = null
           try {
             const adminDoc = await getDoc(doc(db, 'admins', post.authorId))
-            isAdmin = adminDoc.exists()
+            if (adminDoc.exists()) {
+              isAdmin = true
+              adminRole = adminDoc.data().role || 'admin'
+            }
           } catch (err) {
             // Ignore errors
           }
 
-          // Generate flairs if post doesn't have them
+          // Generate flairs if post doesn't have them (pass role if admin)
           if (!post.authorFlairs || post.authorFlairs.length === 0) {
             const flairs = generateFlairs({
               acmRole: userProfile.acmRole || post.authorRole,
               role: userProfile.role,
               degree: userProfile.degree || post.authorDegree,
               semester: userProfile.semester || post.authorSemester
-            }, isAdmin || post.authorIsAdmin || false)
+            }, adminRole || isAdmin || post.authorIsAdmin || false)
             
             setPostAuthorFlairs(flairs)
           }
@@ -172,9 +176,13 @@ const ForumPost = () => {
               const userProfile = userDoc.data()
               
               let isAdmin = false
+              let adminRole = null
               try {
                 const adminDoc = await getDoc(doc(db, 'admins', reply.authorId))
-                isAdmin = adminDoc.exists()
+                if (adminDoc.exists()) {
+                  isAdmin = true
+                  adminRole = adminDoc.data().role || 'admin'
+                }
               } catch (err) {
                 // Ignore errors
               }
@@ -184,7 +192,7 @@ const ForumPost = () => {
                 role: userProfile.role,
                 degree: userProfile.degree || reply.authorDegree,
                 semester: userProfile.semester || reply.authorSemester
-              }, isAdmin || reply.authorIsAdmin || false)
+              }, adminRole || isAdmin || reply.authorIsAdmin || false)
               
               flairsMap[reply.id] = flairs
             } else {

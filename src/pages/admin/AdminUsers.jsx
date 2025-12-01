@@ -22,7 +22,7 @@ import {
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminUsers.css'
-import { ROLES, isSuperAdmin, isMainAdmin, MAIN_ADMIN_EMAIL } from '../../utils/permissions'
+import { ROLES, isSuperAdmin, isMainAdmin } from '../../utils/permissions'
 import { logRoleChanged, logUserUpdated, logActivity, ACTIVITY_TYPES } from '../../utils/activityLogger'
 import { getAvatarUrlOrDefault } from '../../utils/avatarUtils'
 
@@ -55,13 +55,28 @@ const AdminUsers = () => {
       const q = query(usersRef, orderBy('joinDate', 'desc'))
       const querySnapshot = await getDocs(q)
       const usersData = []
+      
+      // Fetch all admin roles in parallel
+      const adminRolesMap = new Map()
+      try {
+        const adminsRef = collection(db, 'admins')
+        const adminsSnap = await getDocs(adminsRef)
+        adminsSnap.forEach((adminDoc) => {
+          adminRolesMap.set(adminDoc.id, adminDoc.data().role || 'admin')
+        })
+      } catch (err) {
+        console.error('Error fetching admin roles:', err)
+      }
+      
       querySnapshot.forEach((doc) => {
         const data = doc.data()
-        const isMainAdminUser = data.email?.toLowerCase() === MAIN_ADMIN_EMAIL.toLowerCase()
+        const adminRole = adminRolesMap.get(doc.id)
+        const isMainAdminUser = adminRole === ROLES.MAIN_ADMIN
         usersData.push({
           id: doc.id,
           ...data,
           isMainAdmin: isMainAdminUser,
+          adminRole: adminRole, // Store admin role if exists
           joinDate: data.joinDate?.toDate ? data.joinDate.toDate() : (data.joinDate ? new Date(data.joinDate) : null)
         })
       })
@@ -165,7 +180,7 @@ const AdminUsers = () => {
 
   const canEditUser = (user) => {
     // Only main admin can edit other admins
-    if (!isMainAdmin(currentUser?.email)) {
+    if (!isMainAdmin(userRole)) {
       // Non-main admins can only edit regular users
       return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
@@ -182,7 +197,7 @@ const AdminUsers = () => {
     if (user.id === currentUser.uid) return false
     
     // Only main admin can delete admins
-    if (!isMainAdmin(currentUser?.email)) {
+    if (!isMainAdmin(userRole)) {
       // Non-main admins can only delete regular users
       return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
@@ -256,17 +271,20 @@ const AdminUsers = () => {
                       value={formData.role}
                       onChange={handleInputChange}
                       required
-                      disabled={editingUser?.isMainAdmin && !isMainAdmin(currentUser?.email)}
+                      disabled={editingUser?.isMainAdmin && !isMainAdmin(userRole)}
                     >
                       <option value={ROLES.USER}>User</option>
-                      {isMainAdmin(currentUser?.email) && (
+                      {isMainAdmin(userRole) && (
                         <option value={ROLES.ADMIN}>Admin</option>
                       )}
-                      {isMainAdmin(currentUser?.email) && (
+                      {isMainAdmin(userRole) && (
                         <option value={ROLES.SUPERADMIN}>Super Admin</option>
                       )}
+                      {isMainAdmin(userRole) && (
+                        <option value={ROLES.MAIN_ADMIN}>Main Admin</option>
+                      )}
                     </select>
-                    {editingUser?.isMainAdmin && !isMainAdmin(currentUser?.email) && (
+                    {editingUser?.isMainAdmin && !isMainAdmin(userRole) && (
                       <small style={{ color: '#dc2626' }}>
                         Only Main Admin can modify Main Admin permissions
                       </small>

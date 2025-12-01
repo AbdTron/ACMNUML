@@ -133,11 +133,15 @@ const ProfileOnboarding = () => {
     setLoading(true)
 
     try {
-      // Check if user is admin
+      // Check if user is admin and get role
       let isAdmin = false
+      let adminRole = null
       try {
         const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
-        isAdmin = adminDoc.exists()
+        if (adminDoc.exists()) {
+          isAdmin = true
+          adminRole = adminDoc.data().role || 'admin'
+        }
       } catch (err) {
         // Ignore errors checking admin status
       }
@@ -158,8 +162,8 @@ const ProfileOnboarding = () => {
         createdAt: serverTimestamp()
       }
 
-      // Compute flairs based on profile data
-      const flairs = computeFlairsForStorage(profileData, isAdmin)
+      // Compute flairs based on profile data (pass role if admin)
+      const flairs = computeFlairsForStorage(profileData, adminRole || isAdmin)
       profileData.flairs = flairs
 
       // Update user profile in Firestore

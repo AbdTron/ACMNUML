@@ -60,11 +60,15 @@ export const MemberAuthProvider = ({ children }) => {
         // Fetch user profile from Firestore
         if (db) {
           try {
-            // Check if user is admin
+            // Check if user is admin and get role
             let isAdmin = false
+            let adminRole = null
             try {
               const adminDoc = await getDoc(doc(db, 'admins', user.uid))
-              isAdmin = adminDoc.exists()
+              if (adminDoc.exists()) {
+                isAdmin = true
+                adminRole = adminDoc.data().role || 'admin'
+              }
             } catch (err) {
               // Ignore errors checking admin status
             }
@@ -73,8 +77,8 @@ export const MemberAuthProvider = ({ children }) => {
             if (userDoc.exists()) {
               const profileData = userDoc.data()
               
-              // Compute and update flairs if profile data changed
-              const flairs = computeFlairsForStorage(profileData, isAdmin)
+              // Compute and update flairs if profile data changed (pass role if admin)
+              const flairs = computeFlairsForStorage(profileData, adminRole || isAdmin)
               
               // Update emailVerified status from auth and flairs
               const updatedProfile = {
@@ -362,11 +366,15 @@ export const MemberAuthProvider = ({ children }) => {
       throw new Error('User not authenticated')
     }
     
-    // Check if user is admin
+    // Check if user is admin and get role
     let isAdmin = false
+    let adminRole = null
     try {
       const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
-      isAdmin = adminDoc.exists()
+      if (adminDoc.exists()) {
+        isAdmin = true
+        adminRole = adminDoc.data().role || 'admin'
+      }
     } catch (err) {
       // Ignore errors checking admin status
     }
@@ -374,8 +382,8 @@ export const MemberAuthProvider = ({ children }) => {
     // Merge updates with current profile to compute flairs
     const mergedProfile = { ...userProfile, ...updates }
     
-    // Recompute flairs based on updated profile
-    const flairs = computeFlairsForStorage(mergedProfile, isAdmin)
+    // Recompute flairs based on updated profile (pass role if admin)
+    const flairs = computeFlairsForStorage(mergedProfile, adminRole || isAdmin)
     
     const updatedData = {
       ...updates,

@@ -58,23 +58,27 @@ const ForumPostCard = ({ post, showCategory = true }) => {
               setAuthorAvatar(userProfile.avatar)
             }
             
-            // Check if user is admin
+            // Check if user is admin and get role
             let isAdmin = false
+            let adminRole = null
             try {
               const adminDoc = await getDoc(doc(db, 'admins', post.authorId))
-              isAdmin = adminDoc.exists()
+              if (adminDoc.exists()) {
+                isAdmin = true
+                adminRole = adminDoc.data().role || 'admin'
+              }
             } catch (err) {
               // Ignore errors checking admin status
             }
 
-            // Generate flairs from current profile if post doesn't have them
+            // Generate flairs from current profile if post doesn't have them (pass role if admin)
             if (!post.authorFlairs || post.authorFlairs.length === 0) {
               const flairs = generateFlairs({
                 acmRole: userProfile.acmRole || post.authorRole,
                 role: userProfile.role,
                 degree: userProfile.degree || post.authorDegree,
                 semester: userProfile.semester || post.authorSemester
-              }, isAdmin || post.authorIsAdmin || false)
+              }, adminRole || isAdmin || post.authorIsAdmin || false)
               
               setAuthorFlairs(flairs)
             }

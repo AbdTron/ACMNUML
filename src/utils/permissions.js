@@ -11,16 +11,13 @@ export const ROLES = {
   MAIN_ADMIN: 'mainadmin'
 }
 
-// Main admin email - only this user can be main admin
-export const MAIN_ADMIN_EMAIL = 'abdullah.irshad@hotmail.com'
-
 /**
  * Check if user is the main admin
- * @param {string} email - User's email
+ * @param {string} role - User's role from admins collection
  * @returns {boolean}
  */
-export const isMainAdmin = (email) => {
-  return email && email.toLowerCase() === MAIN_ADMIN_EMAIL.toLowerCase()
+export const isMainAdmin = (role) => {
+  return role === ROLES.MAIN_ADMIN
 }
 
 /**
@@ -35,19 +32,20 @@ export const hasRole = (userRole, requiredRole) => {
   const roleHierarchy = {
     [ROLES.USER]: 1,
     [ROLES.ADMIN]: 2,
-    [ROLES.SUPERADMIN]: 3
+    [ROLES.SUPERADMIN]: 3,
+    [ROLES.MAIN_ADMIN]: 4
   }
   
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole]
 }
 
 /**
- * Check if user is admin or superadmin
+ * Check if user is admin, superadmin, or main admin
  * @param {string} userRole - User's role
  * @returns {boolean}
  */
 export const isAdmin = (userRole) => {
-  return userRole === ROLES.ADMIN || userRole === ROLES.SUPERADMIN
+  return userRole === ROLES.ADMIN || userRole === ROLES.SUPERADMIN || userRole === ROLES.MAIN_ADMIN
 }
 
 /**
@@ -68,8 +66,8 @@ export const isSuperAdmin = (userRole) => {
  * @returns {boolean}
  */
 export const canPerformAction = (userRole, action, resourceOwnerId = null, currentUserId = null) => {
-  // Superadmin can do everything
-  if (isSuperAdmin(userRole)) return true
+  // Main admin and superadmin can do everything
+  if (isMainAdmin(userRole) || isSuperAdmin(userRole)) return true
   
   // Admin can do most things
   if (isAdmin(userRole)) {

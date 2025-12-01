@@ -56,10 +56,10 @@ export const getDegreeAcronym = (degreeName) => {
  * @param {string} userData.role - User role (admin, user, etc.)
  * @param {string} userData.degree - Degree name
  * @param {string} userData.semester - Semester number
- * @param {boolean} isAdmin - Whether user is admin (from admins collection)
+ * @param {boolean|string} isAdminOrRole - Whether user is admin (boolean) or admin role (string) from admins collection
  * @returns {Array} Array of flair objects with { text, class }
  */
-export const generateFlairs = (userData, isAdmin = false) => {
+export const generateFlairs = (userData, isAdminOrRole = false) => {
   const flairs = []
   
   // 1. ACM Role (if exists)
@@ -79,11 +79,12 @@ export const generateFlairs = (userData, isAdmin = false) => {
   }
   
   // 2. Main Admin or Admin (if admin and not already shown as ACM role)
-  // Check if user is main admin by email
-  const userEmail = userData?.email || ''
-  const isMainAdmin = userEmail.toLowerCase() === 'abdullah.irshad@hotmail.com'
+  // Check if user is main admin by role from admins collection
+  const adminRole = typeof isAdminOrRole === 'string' ? isAdminOrRole : null
+  const isMainAdminUser = adminRole === 'mainadmin'
+  const isAdminUser = isAdminOrRole === true || adminRole === 'admin' || adminRole === 'superadmin' || userData?.role === 'admin' || userData?.role === 'superadmin'
   
-  if (isMainAdmin) {
+  if (isMainAdminUser) {
     // Main Admin gets highest priority flair
     if (flairs.length < 2) {
       flairs.unshift({ text: 'Main Admin', class: 'flair-main-admin' })
@@ -91,7 +92,7 @@ export const generateFlairs = (userData, isAdmin = false) => {
       // Replace first flair with Main Admin if we have 2 flairs
       flairs[0] = { text: 'Main Admin', class: 'flair-main-admin' }
     }
-  } else if (isAdmin || userData?.role === 'admin' || userData?.role === 'superadmin') {
+  } else if (isAdminUser) {
     // Only add if we don't already have 2 flairs (to leave room for degree+sem)
     if (flairs.length < 2) {
       flairs.push({ text: 'Admin', class: 'flair-admin' })
@@ -117,11 +118,11 @@ export const generateFlairs = (userData, isAdmin = false) => {
  * Compute and return flairs array for storage in user profile
  * This function checks admin status from Firestore
  * @param {Object} userData - User profile data
- * @param {boolean} isAdminFromFirestore - Whether user exists in admins collection
+ * @param {boolean|string} isAdminOrRoleFromFirestore - Whether user exists in admins collection (boolean) or admin role (string)
  * @returns {Array} Array of flair objects ready to store
  */
-export const computeFlairsForStorage = (userData, isAdminFromFirestore = false) => {
-  return generateFlairs(userData, isAdminFromFirestore)
+export const computeFlairsForStorage = (userData, isAdminOrRoleFromFirestore = false) => {
+  return generateFlairs(userData, isAdminOrRoleFromFirestore)
 }
 
 

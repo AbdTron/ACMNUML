@@ -12,7 +12,7 @@ import {
   FiUser,
   FiMail
 } from 'react-icons/fi'
-import { isMainAdmin, MAIN_ADMIN_EMAIL } from '../../utils/permissions'
+import { isMainAdmin, ROLES } from '../../utils/permissions'
 import './AdminPermissions.css'
 
 const AdminPermissions = () => {
@@ -38,13 +38,34 @@ const AdminPermissions = () => {
   ]
 
   useEffect(() => {
-    // Check if user is main admin
-    if (!currentUser || !isMainAdmin(currentUser.email)) {
+    // Check if user is main admin - need to check role from admins collection
+    if (!currentUser) {
       navigate('/admin')
       return
     }
-    fetchAdmins()
+    checkMainAdminAndFetch()
   }, [currentUser, navigate])
+
+  const checkMainAdminAndFetch = async () => {
+    if (!db || !currentUser) {
+      navigate('/admin')
+      return
+    }
+    
+    try {
+      // Check if user is main admin by checking their role in admins collection
+      const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
+      if (!adminDoc.exists() || adminDoc.data().role !== ROLES.MAIN_ADMIN) {
+        navigate('/admin')
+        return
+      }
+      // User is main admin, fetch admins
+      fetchAdmins()
+    } catch (error) {
+      console.error('Error checking main admin status:', error)
+      navigate('/admin')
+    }
+  }
 
   const fetchAdmins = async () => {
     if (!db) {
@@ -75,7 +96,7 @@ const AdminPermissions = () => {
           console.error('Error fetching user data:', err)
         }
 
-        const isMainAdminUser = userData?.email?.toLowerCase() === MAIN_ADMIN_EMAIL.toLowerCase()
+        const isMainAdminUser = adminData?.role === ROLES.MAIN_ADMIN
         
         adminsList.push({
           id: adminId,
@@ -96,7 +117,8 @@ const AdminPermissions = () => {
       setPermissions(permissionsMap)
     } catch (error) {
       console.error('Error fetching admins:', error)
-      alert('Error loading admins')
+      console.error('Current user:', currentUser?.uid)
+      alert(`Error loading admins: ${error.message}. Please ensure you have Main Admin role and that Firestore rules have been deployed.`)
     } finally {
       setLoading(false)
     }
@@ -181,7 +203,7 @@ const AdminPermissions = () => {
             <FiShield />
             <p>
               As Main Admin, you can control which features each admin can access. 
-              Main Admin (abdullah.irshad@hotmail.com) always has full access to all features.
+              Main Admin always has full access to all features.
             </p>
           </div>
 
