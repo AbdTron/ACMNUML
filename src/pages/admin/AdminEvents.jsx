@@ -14,6 +14,7 @@ import {
 import { db } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   FiPlus, 
   FiEdit2, 
@@ -35,6 +36,7 @@ import FormBuilder from '../../components/FormBuilder'
 const AdminEvents = () => {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
+  useAdminPermission() // Check permission for this route
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

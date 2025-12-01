@@ -12,6 +12,8 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   FiPlus, 
   FiEdit2, 
@@ -26,7 +28,9 @@ import { format } from 'date-fns'
 import './AdminNotifications.css'
 
 const AdminNotifications = () => {
+  const { currentUser } = useAuth()
   const navigate = useNavigate()
+  useAdminPermission() // Check permission for this route
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

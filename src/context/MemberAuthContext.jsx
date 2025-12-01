@@ -163,6 +163,13 @@ export const MemberAuthProvider = ({ children }) => {
       throw new Error('Firebase is not configured')
     }
     
+    // Check if email is banned
+    const { isEmailBanned } = await import('../utils/banListUtils')
+    const emailBanned = await isEmailBanned(email)
+    if (emailBanned) {
+      throw new Error('This email address has been banned and cannot be used to create an account.')
+    }
+    
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
 
@@ -212,9 +219,20 @@ export const MemberAuthProvider = ({ children }) => {
       throw new Error('Firebase is not configured')
     }
     
+    // Check if email is banned before attempting sign-in
+    // Note: We can't check before popup, but we'll check after and delete if banned
     const provider = new GoogleAuthProvider()
     const userCredential = await signInWithPopup(auth, provider)
     const user = userCredential.user
+    
+    // Check if email is banned
+    const { isEmailBanned } = await import('../utils/banListUtils')
+    const emailBanned = await isEmailBanned(user.email)
+    if (emailBanned) {
+      // Sign out and delete the account
+      await signOut(auth)
+      throw new Error('This email address has been banned and cannot be used to create an account.')
+    }
 
     // Check if user profile exists
     const userDoc = await getDoc(doc(db, 'users', user.uid))

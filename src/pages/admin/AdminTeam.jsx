@@ -11,6 +11,8 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiCheck, FiX } from 'react-icons/fi'
 import ImageUploader from '../../components/ImageUploader'
 import './AdminTeam.css'
@@ -31,6 +33,9 @@ const defaultForm = {
 }
 
 const AdminTeam = () => {
+  const { currentUser } = useAuth()
+  useAdminPermission() // Check permission for this route
+  const navigate = useNavigate()
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState(defaultForm)

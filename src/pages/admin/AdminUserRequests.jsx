@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   collection, 
   query, 
@@ -29,6 +31,10 @@ import {
 import './AdminUserRequests.css'
 
 const AdminUserRequests = () => {
+  const { currentUser } = useAuth()
+  const navigate = useNavigate()
+  useAdminPermission() // Check permission for this route
+  
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all') // all, pending, approved, rejected
@@ -36,8 +42,10 @@ const AdminUserRequests = () => {
   const [selectedRequest, setSelectedRequest] = useState(null)
 
   useEffect(() => {
-    fetchRequests()
-  }, [filter])
+    if (currentUser) {
+      fetchRequests()
+    }
+  }, [filter, currentUser])
 
   const fetchRequests = async () => {
     setLoading(true)

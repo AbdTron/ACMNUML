@@ -11,6 +11,8 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { useAdminPermission } from '../../hooks/useAdminPermission'
 import { 
   FiPlus, 
   FiEdit2, 
@@ -26,7 +28,9 @@ import './AdminFormTemplates.css'
 import FormBuilder from '../../components/FormBuilder'
 
 const AdminFormTemplates = () => {
+  const { currentUser } = useAuth()
   const navigate = useNavigate()
+  useAdminPermission() // Check permission for this route
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

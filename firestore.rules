@@ -249,5 +249,17 @@ service cloud.firestore {
       // Only admins can delete feedback
       allow delete: if request.auth != null && isAdmin();
     }
+
+    // Banned users collection - admins can read/write, public can read for checking during signup
+    match /bannedUsers/{banId} {
+      // Anyone can read to check if email/roll number is banned (needed for signup)
+      allow read: if true;
+      // Allow list/query operations for everyone (needed for checking during signup)
+      allow list: if true;
+      // Only admins can create/update/delete ban entries
+      allow create: if request.auth != null && isAdmin();
+      allow update: if request.auth != null && isAdmin();
+      allow delete: if request.auth != null && isAdmin();
+    }
   }
 }

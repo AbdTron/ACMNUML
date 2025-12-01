@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { 
@@ -17,14 +17,17 @@ import {
   FiShield
 } from 'react-icons/fi'
 import { isMainAdmin, ROLES } from '../../utils/permissions'
+import { hasFeaturePermission } from '../../utils/adminPermissions'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useState, useEffect } from 'react'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
-  const { currentUser, logout, userRole } = useAuth()
+  const { currentUser, logout, userRole, adminPermissions } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [errorMessage, setErrorMessage] = useState(null)
   const [stats, setStats] = useState({
     events: 0,
     notifications: 0,
@@ -75,7 +78,13 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchStats()
-  }, [])
+    // Check for error message from navigation state
+    if (location.state?.error) {
+      setErrorMessage(location.state.error)
+      // Clear the state to prevent showing the error again on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -91,78 +100,98 @@ const AdminDashboard = () => {
     }
   }
 
-  const quickActions = [
+  const allQuickActions = [
     {
       icon: FiCalendar,
       title: 'Manage Events',
       description: 'Add, edit, or move events',
       link: '/admin/events',
-      color: '#2563eb'
+      color: '#2563eb',
+      featureId: 'manageEvents'
     },
     {
       icon: FiUsers,
       title: 'Team Profiles',
       description: 'Showcase and edit team members',
       link: '/admin/team',
-      color: '#10b981'
+      color: '#10b981',
+      featureId: 'teamProfiles'
     },
     {
       icon: FiBell,
       title: 'Notifications',
       description: 'Create and manage popup notifications',
       link: '/admin/notifications',
-      color: '#7c3aed'
+      color: '#7c3aed',
+      featureId: 'notifications'
     },
     {
       icon: FiImage,
       title: 'Galleries',
       description: 'Manage photo galleries and images',
       link: '/admin/gallery',
-      color: '#10b981'
+      color: '#10b981',
+      featureId: 'galleries'
     },
     {
       icon: FiSettings,
       title: 'Settings',
       description: 'Update form links and site details',
       link: '/admin/settings',
-      color: '#f59e0b'
+      color: '#f59e0b',
+      featureId: 'settings'
     },
     {
       icon: FiUsers,
       title: 'User Management',
       description: 'Manage member accounts and permissions',
       link: '/admin/users',
-      color: '#6366f1'
+      color: '#6366f1',
+      featureId: 'userManagement'
     },
     {
       icon: FiFileText,
       title: 'Form Templates',
       description: 'Create and manage reusable form templates',
       link: '/admin/form-templates',
-      color: '#8b5cf6'
+      color: '#8b5cf6',
+      featureId: 'formTemplates'
     },
     {
       icon: FiUserCheck,
       title: 'User Requests',
       description: 'Review profile change requests',
       link: '/admin/user-requests',
-      color: '#f97316'
+      color: '#f97316',
+      featureId: 'userRequests'
     },
     {
       icon: FiMessageSquare,
       title: 'Feedback',
       description: 'View and manage user feedback',
       link: '/admin/feedback',
-      color: '#14b8a6'
+      color: '#14b8a6',
+      featureId: 'feedback'
     },
     {
       icon: FiMessageCircle,
       title: 'Forum Moderation',
       description: 'Moderate forum posts and discussions',
       link: '/admin/forum',
-      color: '#8b5cf6'
+      color: '#8b5cf6',
+      featureId: 'forumModeration'
     },
   ]
+
+  // Filter actions based on permissions
+  const quickActions = allQuickActions.filter(action => {
+    // Main admin can see all actions
+    if (isMainAdmin(userRole)) {
+      return true
+    }
+    // Regular admins can only see actions they have permission for
+    return hasFeaturePermission(userRole, adminPermissions, action.featureId)
+  })
 
   // Add Admin Permissions card only for main admin
   if (currentUser && isMainAdmin(userRole)) {
@@ -171,7 +200,8 @@ const AdminDashboard = () => {
       title: 'Admin Permissions',
       description: 'Manage admin feature access and permissions',
       link: '/admin/permissions',
-      color: '#dc2626'
+      color: '#dc2626',
+      featureId: 'adminPermissions'
     })
   }
 
@@ -204,6 +234,20 @@ const AdminDashboard = () => {
 
       <div className="admin-content">
         <div className="container">
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="error-message" style={{
+              padding: '1rem',
+              marginBottom: '1.5rem',
+              backgroundColor: '#fee2e2',
+              border: '1px solid #fca5a5',
+              borderRadius: '0.5rem',
+              color: '#dc2626'
+            }}>
+              {errorMessage}
+            </div>
+          )}
+          
           {/* Stats */}
           <div className="stats-grid">
             <div className="stat-card">

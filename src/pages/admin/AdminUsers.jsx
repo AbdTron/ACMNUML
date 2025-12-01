@@ -20,7 +20,8 @@ import {
   FiUser,
   FiMail,
   FiCalendar,
-  FiShield
+  FiShield,
+  FiXCircle
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminUsers.css'
@@ -28,10 +29,13 @@ import { ROLES, isMainAdmin } from '../../utils/permissions'
 import { logRoleChanged, logUserUpdated, logActivity, ACTIVITY_TYPES } from '../../utils/activityLogger'
 import { getAvatarUrlOrDefault } from '../../utils/avatarUtils'
 import { computeFlairsForStorage } from '../../utils/flairUtils'
+import { addToBanList } from '../../utils/banListUtils'
+import { useAdminPermission } from '../../hooks/useAdminPermission'
 
 const AdminUsers = () => {
   const { currentUser, userRole } = useAuth()
   const navigate = useNavigate()
+  useAdminPermission() // Check permission for this route
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingUser, setEditingUser] = useState(null)
@@ -204,21 +208,153 @@ const AdminUsers = () => {
     }
   }
 
-  const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
+  const handleDeleteUser = async (userId, userData) => {
+    const userName = userData.name || userData.email || 'User'
+    if (!window.confirm(`Are you sure you want to delete ${userName}? This will permanently delete all their data from the website and database. This action cannot be undone.`)) {
       return
     }
 
     if (!db) return
 
     try {
+      // Delete all user-related data
+      // 1. Delete forum posts
+      const forumPostsRef = collection(db, 'forumPosts')
+      const postsQuery = query(forumPostsRef, where('authorId', '==', userId))
+      const postsSnapshot = await getDocs(postsQuery)
+      const deletePostsPromises = postsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deletePostsPromises)
+
+      // 2. Delete forum replies
+      const forumRepliesRef = collection(db, 'forumReplies')
+      const repliesQuery = query(forumRepliesRef, where('authorId', '==', userId))
+      const repliesSnapshot = await getDocs(repliesQuery)
+      const deleteRepliesPromises = repliesSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteRepliesPromises)
+
+      // 3. Delete event registrations
+      const registrationsRef = collection(db, 'eventRegistrations')
+      const registrationsQuery = query(registrationsRef, where('userId', '==', userId))
+      const registrationsSnapshot = await getDocs(registrationsQuery)
+      const deleteRegistrationsPromises = registrationsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteRegistrationsPromises)
+
+      // 4. Delete profile change requests
+      const changeRequestsRef = collection(db, 'profileChangeRequests')
+      const requestsQuery = query(changeRequestsRef, where('userId', '==', userId))
+      const requestsSnapshot = await getDocs(requestsQuery)
+      const deleteRequestsPromises = requestsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteRequestsPromises)
+
+      // 5. Delete activity logs
+      const activityLogsRef = collection(db, 'activityLogs')
+      const logsQuery = query(activityLogsRef, where('userId', '==', userId))
+      const logsSnapshot = await getDocs(logsQuery)
+      const deleteLogsPromises = logsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteLogsPromises)
+
+      // 6. Delete from admins collection if they were an admin
+      try {
+        await deleteDoc(doc(db, 'admins', userId))
+      } catch (err) {
+        // Ignore if not an admin
+      }
+
+      // 7. Delete user profile
       await deleteDoc(doc(db, 'users', userId))
-      await logActivity(currentUser.uid, ACTIVITY_TYPES.USER_DELETED, `User deleted: ${userName}`, { userId, userName })
+
+      // 8. Delete Firebase Auth user (if possible - requires admin SDK in production)
+      // Note: This requires Firebase Admin SDK, so we'll log it for manual deletion
+      console.log(`Firebase Auth user ${userId} should be deleted manually via Firebase Console`)
+
+      await logActivity(currentUser.uid, ACTIVITY_TYPES.USER_DELETED, `User deleted: ${userName}`, { userId, userName, email: userData.email })
       fetchUsers()
-      alert('User deleted successfully')
+      alert('User and all their data deleted successfully')
     } catch (error) {
       console.error('Error deleting user:', error)
-      alert('Error deleting user')
+      alert('Error deleting user: ' + error.message)
+    }
+  }
+
+  const handleBanUser = async (userId, userData) => {
+    const userName = userData.name || userData.email || 'User'
+    const reason = window.prompt(`Enter reason for banning ${userName} (optional):`)
+    if (reason === null) return // User cancelled
+
+    if (!window.confirm(`Are you sure you want to BAN ${userName}? This will:\n1. Delete their account and all data\n2. Add their email and roll number to ban list\n3. Prevent them from creating a new account\n\nThis action cannot be undone.`)) {
+      return
+    }
+
+    if (!db) return
+
+    try {
+      // 1. Add to ban list before deleting
+      await addToBanList(
+        userData.email || '',
+        userData.rollNumber || null,
+        reason || '',
+        currentUser.uid
+      )
+
+      // 2. Delete all user data (same as handleDeleteUser)
+      // Delete forum posts
+      const forumPostsRef = collection(db, 'forumPosts')
+      const postsQuery = query(forumPostsRef, where('authorId', '==', userId))
+      const postsSnapshot = await getDocs(postsQuery)
+      const deletePostsPromises = postsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deletePostsPromises)
+
+      // Delete forum replies
+      const forumRepliesRef = collection(db, 'forumReplies')
+      const repliesQuery = query(forumRepliesRef, where('authorId', '==', userId))
+      const repliesSnapshot = await getDocs(repliesQuery)
+      const deleteRepliesPromises = repliesSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteRepliesPromises)
+
+      // Delete event registrations
+      const registrationsRef = collection(db, 'eventRegistrations')
+      const registrationsQuery = query(registrationsRef, where('userId', '==', userId))
+      const registrationsSnapshot = await getDocs(registrationsQuery)
+      const deleteRegistrationsPromises = registrationsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteRegistrationsPromises)
+
+      // Delete profile change requests
+      const changeRequestsRef = collection(db, 'profileChangeRequests')
+      const requestsQuery = query(changeRequestsRef, where('userId', '==', userId))
+      const requestsSnapshot = await getDocs(requestsQuery)
+      const deleteRequestsPromises = requestsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteRequestsPromises)
+
+      // Delete activity logs
+      const activityLogsRef = collection(db, 'activityLogs')
+      const logsQuery = query(activityLogsRef, where('userId', '==', userId))
+      const logsSnapshot = await getDocs(logsQuery)
+      const deleteLogsPromises = logsSnapshot.docs.map(doc => deleteDoc(doc.ref))
+      await Promise.all(deleteLogsPromises)
+
+      // Delete from admins collection if they were an admin
+      try {
+        await deleteDoc(doc(db, 'admins', userId))
+      } catch (err) {
+        // Ignore if not an admin
+      }
+
+      // Delete user profile
+      await deleteDoc(doc(db, 'users', userId))
+
+      await logActivity(currentUser.uid, ACTIVITY_TYPES.USER_DELETED, `User banned and deleted: ${userName}`, { 
+        userId, 
+        userName, 
+        email: userData.email,
+        rollNumber: userData.rollNumber,
+        reason: reason || 'No reason provided'
+      })
+      
+      fetchUsers()
+      alert('User banned and deleted successfully. They cannot create a new account with this email or roll number.')
+    } catch (error) {
+      console.error('Error banning user:', error)
+      alert('Error banning user: ' + error.message)
     }
   }
 
@@ -474,13 +610,23 @@ const AdminUsers = () => {
                               </button>
                             )}
                             {canDeleteUser(user) && (
-                              <button
-                                onClick={() => handleDeleteUser(user.id, user.name)}
-                                className="btn-icon btn-delete"
-                                title="Delete user"
-                              >
-                                <FiTrash2 />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleDeleteUser(user.id, user)}
+                                  className="btn-icon btn-delete"
+                                  title="Delete user"
+                                >
+                                  <FiTrash2 />
+                                </button>
+                                <button
+                                  onClick={() => handleBanUser(user.id, user)}
+                                  className="btn-icon btn-ban"
+                                  title="Ban user (delete + prevent re-registration)"
+                                  style={{ color: '#dc2626' }}
+                                >
+                                  <FiXCircle />
+                                </button>
+                              </>
                             )}
                             {!canEditUser(user) && !canDeleteUser(user) && (
                               <span className="text-muted">No actions</span>

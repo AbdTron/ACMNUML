@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '../config/firebase'
+import { doc, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { signOut } from 'firebase/auth'
+import { db, auth } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
 import { FiUser, FiHash, FiBookOpen, FiUsers, FiClock, FiArrowRight, FiSun, FiMoon, FiAward } from 'react-icons/fi'
 import { DEPARTMENTS, DEGREES_BY_DEPARTMENT, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../utils/universityData'
 import { computeFlairsForStorage } from '../utils/flairUtils.js'
+import { isRollNumberBanned } from '../utils/banListUtils'
 import './ProfileOnboarding.css'
 
 const ProfileOnboarding = () => {
@@ -125,14 +127,36 @@ const ProfileOnboarding = () => {
       return
     }
 
-    if (!formData.shift) {
-      setError('Shift is required')
-      return
-    }
+                if (!formData.shift) {
+                  setError('Shift is required')
+                  return
+                }
 
-    setLoading(true)
+                // Check if roll number is banned
+                const rollNumberBanned = await isRollNumberBanned(formData.rollNumber.trim().toUpperCase())
+                if (rollNumberBanned) {
+                  setError('This roll number has been banned. Your account will be deleted. Please contact an administrator if you believe this is an error.')
+                  
+                  // Delete the user account since roll number is banned
+                  try {
+                    // Delete user profile
+                    await deleteDoc(doc(db, 'users', currentUser.uid))
+                    // Sign out the user
+                    await signOut(auth)
+                    // Redirect to login after a delay
+                    setTimeout(() => {
+                      navigate('/member/login')
+                    }, 3000)
+                  } catch (deleteError) {
+                    console.error('Error deleting banned user account:', deleteError)
+                  }
+                  
+                  return
+                }
 
-    try {
+                setLoading(true)
+
+                try {
       // Check if user is admin and get role
       let isAdmin = false
       let adminRole = null
