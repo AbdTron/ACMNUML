@@ -104,7 +104,6 @@
   padding-bottom: 1.5rem;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
-  text-decoration: none;
   color: var(--text-dark);
   transition: all 0.2s ease;
   display: flex;
@@ -112,6 +111,16 @@
   align-items: center;
   text-align: center;
   position: relative;
+}
+
+.member-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 1;
 }
 
 .member-card:hover {
@@ -165,6 +174,7 @@
   position: relative;
   z-index: 10;
   pointer-events: auto;
+  margin-top: auto;
 }
 
 .member-card-admin-acm:hover {

@@ -177,13 +177,13 @@ service cloud.firestore {
         request.auth.uid == request.resource.data.authorId;
       // Users can update their own posts, admins can update any
       // Authenticated users can also update posts for voting (upvotes/downvotes fields)
-      // We check that authorId hasn't changed to prevent unauthorized edits
-      // This allows voting while preventing content changes by non-authors
+      // We allow updates if user is authenticated and authorId hasn't changed
+      // This enables voting while preventing unauthorized content edits
       allow update: if request.auth != null && (
         resource.data.authorId == request.auth.uid ||
         isAdmin() ||
-        // Allow authenticated users to update if authorId remains unchanged
-        // This enables voting (upvotes/downvotes) while protecting content
+        // Allow any authenticated user to update if authorId remains the same
+        // This allows voting (upvotes/downvotes) while protecting against content changes
         // Application code ensures only vote fields are updated by non-authors
         request.resource.data.authorId == resource.data.authorId
       );

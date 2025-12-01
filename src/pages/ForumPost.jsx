@@ -719,7 +719,7 @@ const ForumPost = () => {
                   </button>
                   <div className="reply-count">
                     <FiMessageSquare />
-                    <span>{post.replyCount || 0} {post.replyCount === 1 ? 'reply' : 'replies'}</span>
+                    <span>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
                     {(post?.repliesDisabled || post?.isDeletedByUser) && (
                       <span className="disabled-badge">(Disabled)</span>
                     )}

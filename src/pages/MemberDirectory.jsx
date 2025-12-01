@@ -159,74 +159,77 @@ const MemberDirectory = () => {
                 }
                 
                 return (
-                <Link
+                <div
                   key={member.id}
-                  to={`/members/${member.id}`}
                   className={cardClass}
                 >
-                  <div className="member-avatar">
-                    {(() => {
-                      const avatarUrl = getAvatarUrlOrDefault(member.avatar || member.photoURL)
-                      return avatarUrl ? (
-                        <img src={avatarUrl} alt={member.name} />
+                  <Link
+                    to={`/members/${member.id}`}
+                    className="member-card-link"
+                  >
+                    <div className="member-avatar">
+                      {(() => {
+                        const avatarUrl = getAvatarUrlOrDefault(member.avatar || member.photoURL)
+                        return avatarUrl ? (
+                          <img src={avatarUrl} alt={member.name} />
+                        ) : (
+                          <span>{member.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                        )
+                      })()}
+                    </div>
+                    <div className="member-info">
+                      <h3>{member.name || 'User'}</h3>
+                      {(member.role === ROLES.ADMIN || member.role === ROLES.SUPERADMIN) && (
+                        <span className="admin-badge">
+                          <FiShield />
+                          Admin
+                        </span>
+                      )}
+                      {member.acmRole && (
+                        <p className="member-acm-role">{member.acmRole}</p>
+                      )}
+                      {/* Show contact based on user preference, or default to account email */}
+                      {member.showContactOnDirectory ? (
+                        <>
+                          {member.contactType === 'email' && member.email && (
+                            <p className="member-email">
+                              <FiMail />
+                              {member.email}
+                            </p>
+                          )}
+                          {member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified && (
+                            <p className="member-email">
+                              <FiMail />
+                              {member.displayEmail}
+                            </p>
+                          )}
+                          {member.contactType === 'phone' && member.phone && (
+                            <p className="member-phone">
+                              <FiPhone />
+                              {member.phone}
+                            </p>
+                          )}
+                        </>
                       ) : (
-                        <span>{member.name?.charAt(0)?.toUpperCase() || '?'}</span>
-                      )
-                    })()}
-                  </div>
-                  <div className="member-info">
-                    <h3>{member.name || 'User'}</h3>
-                    {(member.role === ROLES.ADMIN || member.role === ROLES.SUPERADMIN) && (
-                      <span className="admin-badge">
-                        <FiShield />
-                        Admin
-                      </span>
-                    )}
-                    {member.acmRole && (
-                      <p className="member-acm-role">{member.acmRole}</p>
-                    )}
-                    {/* Show contact based on user preference, or default to account email */}
-                    {member.showContactOnDirectory ? (
-                      <>
-                        {member.contactType === 'email' && member.email && (
+                        // Default: show account email if not explicitly disabled
+                        member.email && (
                           <p className="member-email">
                             <FiMail />
                             {member.email}
                           </p>
-                        )}
-                        {member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified && (
-                          <p className="member-email">
-                            <FiMail />
-                            {member.displayEmail}
-                          </p>
-                        )}
-                        {member.contactType === 'phone' && member.phone && (
-                          <p className="member-phone">
-                            <FiPhone />
-                            {member.phone}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      // Default: show account email if not explicitly disabled
-                      member.email && (
-                        <p className="member-email">
-                          <FiMail />
-                          {member.email}
-                        </p>
-                      )
-                    )}
-                    {member.bio && (
-                      <p className="member-bio">{member.bio}</p>
-                    )}
-                  </div>
+                        )
+                      )}
+                      {member.bio && (
+                        <p className="member-bio">{member.bio}</p>
+                      )}
+                    </div>
+                  </Link>
                   <div className="member-social">
                     {member.website && (
                       <a
                         href={member.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
                         className="social-link"
                         title="Website"
                       >
@@ -238,7 +241,6 @@ const MemberDirectory = () => {
                         href={member.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
                         className="social-link"
                         title="LinkedIn"
                       >
@@ -250,7 +252,6 @@ const MemberDirectory = () => {
                         href={member.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
                         className="social-link"
                         title="GitHub"
                       >
@@ -262,7 +263,6 @@ const MemberDirectory = () => {
                         href={member.twitter}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
                         className="social-link"
                         title="Twitter"
                       >
@@ -270,7 +270,7 @@ const MemberDirectory = () => {
                       </a>
                     )}
                   </div>
-                </Link>
+                </div>
                 )
               })}
             </div>
