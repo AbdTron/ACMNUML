@@ -522,7 +522,21 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   align-items: flex-start;
-  justify-content: space-between;
+  width: 100%;
+}
+
+.reply-header > .author-avatar {
+  flex-shrink: 0;
+}
+
+.reply-header > .reply-author-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.reply-header > .reply-actions {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .reply-author-info {
@@ -548,7 +562,7 @@
   color: var(--text-dark);
   font-size: 1rem;
   line-height: 1.7;
-  padding-left: 3.25rem;
+  margin-left: 3.25rem;
 }
 
 .reply-actions {
@@ -857,6 +871,18 @@
 
   .reply-header {
     margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .reply-header > .reply-actions {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+
+  .reply-content {
+    margin-left: 0;
+    margin-top: 0.5rem;
   }
 
   .edit-post-form {

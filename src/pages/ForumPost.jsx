@@ -262,30 +262,32 @@ const ForumPost = () => {
     try {
       const postRef = doc(db, 'forumPosts', postId)
       
+      // Prepare updates object with only vote fields
+      const updates = {}
+      
       if (userVote === voteType) {
-        // Remove vote
-        await updateDoc(postRef, {
-          [voteType === 'up' ? 'upvotes' : 'downvotes']: increment(-1)
-        })
+        // Remove vote - decrement the current vote type
+        updates[voteType === 'up' ? 'upvotes' : 'downvotes'] = increment(-1)
         setUserVote(null)
       } else {
         // Add or change vote
-        const updates = {}
         if (userVote) {
           // Remove previous vote
           updates[userVote === 'up' ? 'upvotes' : 'downvotes'] = increment(-1)
         }
         // Add new vote
         updates[voteType === 'up' ? 'upvotes' : 'downvotes'] = increment(1)
-        
-        await updateDoc(postRef, updates)
         setUserVote(voteType)
       }
+      
+      // Only update vote fields - this ensures other fields remain unchanged
+      await updateDoc(postRef, updates)
 
       // Refresh post data
       fetchPost()
     } catch (error) {
       console.error('Error voting:', error)
+      alert('Failed to vote. Please try again.')
     }
   }
 
