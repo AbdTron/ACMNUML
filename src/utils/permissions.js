@@ -1,17 +1,18 @@
 /**
  * Role-based permission system
- * Supports: user, admin, mainadmin roles
+ * Supports: user, admin, mainadmin (Super Admin) roles
  * Note: "Member" is for ACM Society role (handled by acmRole field), not user role
+ * Note: "mainadmin" is the database value, but displayed as "Super Admin" in UI
  */
 
 export const ROLES = {
   USER: 'user',
   ADMIN: 'admin',
-  MAIN_ADMIN: 'mainadmin'
+  MAIN_ADMIN: 'mainadmin' // Database value, displayed as "Super Admin" in UI
 }
 
 /**
- * Check if user is the main admin
+ * Check if user is the super admin (mainadmin role)
  * @param {string} role - User's role from admins collection
  * @returns {boolean}
  */
@@ -38,7 +39,7 @@ export const hasRole = (userRole, requiredRole) => {
 }
 
 /**
- * Check if user is admin or main admin
+ * Check if user is admin or super admin
  * @param {string} userRole - User's role
  * @returns {boolean}
  */
@@ -55,7 +56,7 @@ export const isAdmin = (userRole) => {
  * @returns {boolean}
  */
 export const canPerformAction = (userRole, action, resourceOwnerId = null, currentUserId = null) => {
-  // Main admin can do everything
+  // Super admin can do everything
   if (isMainAdmin(userRole)) return true
   
   // Admin can do most things

@@ -14,7 +14,8 @@ import {
   FiUserCheck,
   FiMessageSquare,
   FiMessageCircle,
-  FiShield
+  FiShield,
+  FiEdit3
 } from 'react-icons/fi'
 import { isMainAdmin, ROLES } from '../../utils/permissions'
 import { collection, getDocs } from 'firebase/firestore'
@@ -184,6 +185,14 @@ const AdminDashboard = () => {
       color: '#8b5cf6',
       featureId: 'forumModeration'
     },
+    {
+      icon: FiEdit3,
+      title: 'Default Post',
+      description: 'Manage the default post shown when no events are available',
+      link: '/admin/default-post',
+      color: '#ec4899',
+      featureId: 'settings' // Use settings permission since it's a general site setting
+    },
   ]
 
   // Filter actions based on permissions (main admin sees all)
@@ -195,7 +204,7 @@ const AdminDashboard = () => {
     return permissions[action.featureId] === true
   })
 
-  // Add Admin Permissions card only for main admin
+  // Add Admin Permissions card only for super admin
   if (currentUser && isMainAdmin(userRole)) {
     quickActions.push({
       icon: FiShield,
@@ -306,7 +315,7 @@ const AdminDashboard = () => {
             <div className="actions-grid">
               {quickActions.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1' }}>
-                  <p>No actions available. Contact Main Admin to grant permissions.</p>
+                  <p>No actions available. Contact Super Admin to grant permissions.</p>
                 </div>
               ) : (
                 quickActions.map((action, index) => {

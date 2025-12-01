@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { FiSearch, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiShield, FiPhone } from 'react-icons/fi'
 import { ROLES } from '../utils/permissions'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
+import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
 import './MemberDirectory.css'
 
 const MemberDirectory = () => {
@@ -193,37 +194,58 @@ const MemberDirectory = () => {
                       {(!member.flairs || member.flairs.length === 0) && member.acmRole && (
                         <p className="member-acm-role">{member.acmRole}</p>
                       )}
-                      {/* Show contact based on user preference, or default to account email */}
-                      {member.showContactOnDirectory ? (
-                        <>
-                          {member.contactType === 'email' && member.email && (
-                            <p className="member-email">
-                              <FiMail />
-                              {member.email}
-                            </p>
-                          )}
-                          {member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified && (
-                            <p className="member-email">
-                              <FiMail />
-                              {member.displayEmail}
-                            </p>
-                          )}
-                          {member.contactType === 'phone' && member.phone && (
-                            <p className="member-phone">
-                              <FiPhone />
-                              {member.phone}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        // Default: show account email if not explicitly disabled
-                        member.email && (
+                      {/* Show contact based on user preferences - prioritize phone number */}
+                      <div className="member-contact">
+                        {/* Priority 1: Show phone if enabled */}
+                        {member.showPhone && member.phone ? (
+                          <a 
+                            href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="member-phone whatsapp-link"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <FiPhone />
+                            {member.phone}
+                          </a>
+                        ) : member.showEmail ? (
+                          /* Priority 2: Show email if phone not available */
                           <p className="member-email">
                             <FiMail />
-                            {member.email}
+                            {member.emailType === 'display' && member.displayEmail && member.displayEmailVerified 
+                              ? member.displayEmail 
+                              : member.email}
                           </p>
-                        )
-                      )}
+                        ) : null}
+                        
+                        {/* Fallback: if old data structure, show based on contactType */}
+                        {!member.showEmail && !member.showPhone && member.showContactOnDirectory && (
+                          <>
+                            {member.contactType === 'phone' && member.phone ? (
+                              <a 
+                                href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="member-phone whatsapp-link"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <FiPhone />
+                                {member.phone}
+                              </a>
+                            ) : member.contactType === 'email' && member.email ? (
+                              <p className="member-email">
+                                <FiMail />
+                                {member.email}
+                              </p>
+                            ) : member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified ? (
+                              <p className="member-email">
+                                <FiMail />
+                                {member.displayEmail}
+                              </p>
+                            ) : null}
+                          </>
+                        )}
+                      </div>
                       {member.bio && (
                         <p className="member-bio">{member.bio}</p>
                       )}

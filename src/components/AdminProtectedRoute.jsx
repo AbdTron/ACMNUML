@@ -23,7 +23,7 @@ const AdminProtectedRoute = ({ children, featureId }) => {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
   }
 
-  // Main admin always has access
+  // Super admin always has access
   if (isMainAdmin(userRole)) {
     return children
   }

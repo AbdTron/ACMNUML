@@ -36,6 +36,16 @@
   align-items: start;
 }
 
+/* When there's no poster, make content full width */
+.event-detail-layout.no-poster {
+  grid-template-columns: 1fr;
+}
+
+.event-detail-layout.no-poster .event-detail-content {
+  grid-column: 1;
+  max-width: 100%;
+}
+
 /* Ensure content is on left, poster on right */
 .event-detail-content {
   grid-column: 1;
@@ -117,8 +127,8 @@
 }
 
 .registration-success-card {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  border: 2px solid #10b981;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border: 2px solid #3b82f6;
   border-radius: 1rem;
   padding: 2rem;
   margin: 2rem 0;
@@ -135,29 +145,29 @@
 
 .success-header svg {
   font-size: 2rem;
-  color: #10b981;
+  color: #3b82f6;
 }
 
 .success-header h3 {
   margin: 0;
-  color: #065f46;
+  color: #1e40af;
   font-size: 1.5rem;
 }
 
 .registration-success-card p {
-  color: #065f46;
+  color: #1e40af;
   margin-bottom: 0.5rem;
 }
 
 .registration-success-card strong {
   text-transform: capitalize;
-  color: #047857;
+  color: #2563eb;
 }
 
 .qr-code-section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 2px solid #10b981;
+  border-top: 2px solid #3b82f6;
 }
 
 .qr-code-section p {
@@ -167,7 +177,7 @@
 
 .qr-instructions {
   font-size: 0.875rem;
-  color: #047857;
+  color: #2563eb;
   margin-top: 1rem;
   font-style: italic;
 }

@@ -39,8 +39,9 @@ const MemberProfile = () => {
     github: '',
     twitter: '',
     showInDirectory: false,
-    showContactOnDirectory: false,
-    contactType: 'email',
+    showEmail: false,
+    showPhone: false,
+    emailType: 'account', // 'account' or 'display'
     avatar: ''
   })
   const [displayEmailVerificationSent, setDisplayEmailVerificationSent] = useState(false)
@@ -128,8 +129,9 @@ const MemberProfile = () => {
         github: userProfile.github || '',
         twitter: userProfile.twitter || '',
         showInDirectory: userProfile.showInDirectory || false,
-        showContactOnDirectory: userProfile.showContactOnDirectory || false,
-        contactType: userProfile.contactType || 'email',
+        showEmail: userProfile.showEmail !== undefined ? userProfile.showEmail : (userProfile.showContactOnDirectory && (userProfile.contactType === 'email' || userProfile.contactType === 'displayEmail')),
+        showPhone: userProfile.showPhone !== undefined ? userProfile.showPhone : (userProfile.showContactOnDirectory && userProfile.contactType === 'phone'),
+        emailType: userProfile.emailType || (userProfile.contactType === 'displayEmail' ? 'display' : 'account'),
         avatar: userProfile.avatar || ''
       })
       
@@ -390,21 +392,34 @@ const MemberProfile = () => {
     setSuccess(false)
 
     try {
-      // Validate contact type requirements
-      if (formData.showContactOnDirectory) {
-        if (formData.contactType === 'displayEmail') {
-          const displayEmailVerified = userProfile?.displayEmailVerified || false
-          if (!displayEmailVerified || !formData.displayEmail) {
-            setError('Display email must be verified before it can be shown on the members page.')
+      // Validate email settings
+      if (formData.showEmail) {
+        if (formData.emailType === 'display') {
+          if (!formData.displayEmail.trim()) {
+            setError('Display email is required when showing email on members page')
+            setSaving(false)
+            return
+          }
+          if (!userProfile?.displayEmailVerified) {
+            setError('Display email must be verified before it can be shown on members page')
             setSaving(false)
             return
           }
         }
-        if (formData.contactType === 'phone' && !formData.phone.trim()) {
-          setError('Phone number is required when showing contact on members page')
-          setSaving(false)
-          return
-        }
+      }
+      
+      // Validate phone settings
+      if (formData.showPhone && !formData.phone.trim()) {
+        setError('Phone number is required when showing phone on members page')
+        setSaving(false)
+        return
+      }
+      
+      // At least one contact method should be enabled if showing in directory
+      if (formData.showInDirectory && !formData.showEmail && !formData.showPhone) {
+        setError('Please enable at least one contact method (Email or Phone) to show in directory')
+        setSaving(false)
+        return
       }
 
       const userRef = doc(db, 'users', currentUser.uid)
@@ -420,8 +435,12 @@ const MemberProfile = () => {
         github: formData.github.trim() || null,
         twitter: formData.twitter.trim() || null,
         showInDirectory: formData.showInDirectory,
-        showContactOnDirectory: formData.showContactOnDirectory,
-        contactType: formData.contactType,
+        showEmail: formData.showEmail,
+        showPhone: formData.showPhone,
+        emailType: formData.emailType,
+        // Keep old fields for backward compatibility
+        showContactOnDirectory: formData.showEmail || formData.showPhone,
+        contactType: formData.showPhone ? 'phone' : (formData.emailType === 'display' ? 'displayEmail' : 'email'),
         avatar: formData.avatar || null,
         updatedAt: new Date().toISOString()
       }
@@ -950,66 +969,76 @@ const MemberProfile = () => {
               <small>When enabled, other members can find and view your public profile</small>
             </div>
 
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="showContactOnDirectory"
-                  checked={formData.showContactOnDirectory}
-                  onChange={handleChange}
-                  disabled={!formData.showInDirectory}
-                />
-                <span>Show contact on Users page</span>
-              </label>
-              <small>When enabled, your selected contact method will be displayed on your member card</small>
-            </div>
+            <div className="form-group">
+              <label>Contact Information Display</label>
+              <small>Choose which contact methods to show on your public profile and member card</small>
+              
+              <div className="checkbox-group" style={{ marginTop: '1rem' }}>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="showEmail"
+                    checked={formData.showEmail}
+                    onChange={handleChange}
+                    disabled={!formData.showInDirectory}
+                  />
+                  <span>Show Email</span>
+                </label>
+              </div>
+              
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="showPhone"
+                    checked={formData.showPhone}
+                    onChange={handleChange}
+                    disabled={!formData.showInDirectory}
+                  />
+                  <span>Show Phone Number</span>
+                </label>
+              </div>
 
-            {formData.showContactOnDirectory && (
-              <div className="form-group radio-group">
-                <label>Contact Type</label>
-                <div className="radio-options">
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      name="contactType"
-                      value="email"
-                      checked={formData.contactType === 'email'}
-                      onChange={handleChange}
-                    />
-                    <span>Account Email (no verification needed)</span>
-                  </label>
-                  {formData.displayEmail && (
+              {formData.showEmail && (
+                <div className="form-group radio-group" style={{ marginTop: '1rem', marginLeft: '1.5rem' }}>
+                  <label>Email Type</label>
+                  <div className="radio-options">
                     <label className="radio-label">
                       <input
                         type="radio"
-                        name="contactType"
-                        value="displayEmail"
-                        checked={formData.contactType === 'displayEmail'}
+                        name="emailType"
+                        value="account"
+                        checked={formData.emailType === 'account'}
                         onChange={handleChange}
-                        disabled={!userProfile?.displayEmailVerified}
                       />
-                      <span>Display Email {!userProfile?.displayEmailVerified && '(must be verified)'}</span>
+                      <span>Account Email (no verification needed)</span>
                     </label>
+                    {formData.displayEmail && (
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="emailType"
+                          value="display"
+                          checked={formData.emailType === 'display'}
+                          onChange={handleChange}
+                          disabled={!userProfile?.displayEmailVerified}
+                        />
+                        <span>Display Email {!userProfile?.displayEmailVerified && '(must be verified)'}</span>
+                      </label>
+                    )}
+                  </div>
+                  {formData.emailType === 'display' && !userProfile?.displayEmailVerified && (
+                    <small className="error-text">Please verify your display email first</small>
                   )}
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      name="contactType"
-                      value="phone"
-                      checked={formData.contactType === 'phone'}
-                      onChange={handleChange}
-                    />
-                    <span>Phone Number</span>
-                  </label>
                 </div>
-                {formData.contactType === 'displayEmail' && !userProfile?.displayEmailVerified && (
-                  <small className="error-text">Please verify your display email first</small>
-                )}
-                {formData.contactType === 'phone' && !formData.phone && (
-                  <small className="error-text">Please enter your phone number first</small>
-                )}
-              </div>
-            )}
+              )}
+              
+              {formData.showPhone && !formData.phone && (
+                <small className="error-text" style={{ marginLeft: '1.5rem', display: 'block', marginTop: '0.5rem' }}>
+                  Please enter your phone number above
+                </small>
+              )}
+            </div>
           </div>
 
           <div className="form-actions">

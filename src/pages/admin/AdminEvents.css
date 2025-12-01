@@ -248,6 +248,20 @@
 .btn-icon.btn-danger:hover {
   background: #dc2626;
   border-color: #dc2626;
+}
+
+.btn-icon.btn-move-past {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #f59e0b;
+}
+
+.btn-icon.btn-move-past:hover {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+}
+  border-color: #dc2626;
   color: white;
 }
 

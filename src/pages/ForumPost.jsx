@@ -300,9 +300,9 @@ const ForumPost = () => {
         content: editContent.trim(),
         editedAt: serverTimestamp(),
         editedBy: currentUser.uid,
-        isAdminEdit: isAdmin && !isMainAdmin, // Track if admin (but not main admin) edited
-        isMainAdminEdit: isMainAdmin, // Track if main admin edited
-        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not main admin)
+        isAdminEdit: isAdmin && !isMainAdmin, // Track if admin (but not super admin) edited
+        isMainAdminEdit: isMainAdmin, // Track if super admin edited
+        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not super admin)
       })
 
       setPost({ 
@@ -398,9 +398,9 @@ const ForumPost = () => {
         content: editReplyContent.trim(),
         editedAt: serverTimestamp(),
         editedBy: currentUser.uid,
-        isAdminEdit: isAdmin && !isMainAdmin, // Track if admin (but not main admin) edited
-        isMainAdminEdit: isMainAdmin, // Track if main admin edited
-        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not main admin)
+        isAdminEdit: isAdmin && !isMainAdmin, // Track if admin (but not super admin) edited
+        isMainAdminEdit: isMainAdmin, // Track if super admin edited
+        editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not super admin)
       })
 
       // Refresh replies
@@ -683,7 +683,7 @@ const ForumPost = () => {
                   </div>
                 )}
 
-                {/* Edited label - show for regular users, show with admin name for admins, hide for main admin */}
+                {/* Edited label - show for regular users, show with admin name for admins, hide for super admin */}
                 {post.editedAt && !post.isMainAdminEdit && (
                   <div className="edited-label">
                     {post.isAdminEdit && post.editedByAdminName ? (

@@ -28,6 +28,8 @@ import AdminNotifications from './pages/admin/AdminNotifications'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminTeam from './pages/admin/AdminTeam'
 import AdminUsers from './pages/admin/AdminUsers'
+import AdminDefaultPost from './pages/admin/AdminDefaultPost'
+import DefaultPostDetail from './pages/DefaultPostDetail'
 import AdminEventRegistrations from './pages/admin/AdminEventRegistrations'
 import AdminCheckIn from './pages/admin/AdminCheckIn'
 import AdminFormTemplates from './pages/admin/AdminFormTemplates'
@@ -132,6 +134,15 @@ function App() {
                   </AdminProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/default-post"
+                element={
+                  <AdminProtectedRoute featureId="settings">
+                    <AdminDefaultPost />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route path="/default-post" element={<DefaultPostDetail />} />
               <Route
                 path="/admin/team"
                 element={

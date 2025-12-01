@@ -11,7 +11,7 @@ import {
   FiChevronLeft,
   FiChevronRight
 } from 'react-icons/fi'
-import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, Timestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useEffect, useState, useRef } from 'react'
 import { getCropBackgroundStyle } from '../utils/cropStyles'
@@ -22,6 +22,7 @@ const Home = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [pastEvents, setPastEvents] = useState([])
+  const [defaultPost, setDefaultPost] = useState(null)
   const [showGallery, setShowGallery] = useState(true)
   const [cabinetMembers, setCabinetMembers] = useState([])
   const [teamHead, setTeamHead] = useState(null)
@@ -87,8 +88,22 @@ const Home = () => {
       }
     }
 
+    const fetchDefaultPost = async () => {
+      if (!db) return
+      try {
+        const defaultPostRef = doc(db, 'settings', 'defaultPost')
+        const defaultPostSnap = await getDoc(defaultPostRef)
+        if (defaultPostSnap.exists()) {
+          setDefaultPost(defaultPostSnap.data())
+        }
+      } catch (error) {
+        console.error('Error fetching default post:', error)
+      }
+    }
+
     fetchUpcomingEvents()
     fetchPastEvents()
+    fetchDefaultPost()
   }, [])
 
   useEffect(() => {
@@ -412,15 +427,60 @@ const Home = () => {
                 </div>
               </Link>
                   )
+                })() : defaultPost ? (() => {
+                  let imageUrl = typeof defaultPost.coverUrl === 'string' ? defaultPost.coverUrl : (defaultPost.coverUrl?.url || '')
+                  if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
+                    imageUrl = ''
+                  }
+                  let cropData = defaultPost.coverCrop
+                  if (cropData && typeof cropData === 'object' && cropData.cover) {
+                    cropData = cropData.cover
+                  }
+                  const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
+                  const hasValidImage = imageUrl && titleBgStyle.backgroundImage
+                  return (
+                    <Link to="/default-post" className="hero-card hero-card-link">
+                      <div className={`hero-card-header ${hasValidImage ? 'hero-card-header-with-bg' : ''}`} style={hasValidImage ? titleBgStyle : {}}>
+                        <span className="hero-card-label">Coming Soon</span>
+                        <h3>
+                          <span className="hero-card-title-text">{defaultPost.title || 'New Events Coming Soon'}</span>
+                        </h3>
+                      </div>
+                      <div className="hero-card-content">
+                        <p>
+                          {truncateText(
+                            defaultPost.description ||
+                              'We\'re working on exciting new workshops, competitions, and visits. Keep an eye out for updates!',
+                            120
+                          )}
+                        </p>
+                        {defaultPost.enableButton && defaultPost.buttonText && defaultPost.buttonUrl && (
+                          <a
+                            href={defaultPost.buttonUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn hero-register-btn"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              window.open(defaultPost.buttonUrl, '_blank', 'noopener,noreferrer')
+                            }}
+                          >
+                            {defaultPost.buttonText}
+                          </a>
+                        )}
+                      </div>
+                      <div className="hero-card-footer">
+                        <span>View Details</span>
+                        <FiArrowRight />
+                      </div>
+                    </Link>
+                  )
                 })() : (
               <div className="hero-card">
-                <span className="hero-card-label">Next Up</span>
-                <h3>Founders Bootcamp</h3>
-                <p>Prototype sprint • limited seats • collaboration focused</p>
-                <div className="hero-card-footer">
-                  <span>Feb 10 • Innovation Lab</span>
-                  <FiArrowRight />
-                </div>
+                <span className="hero-card-label">Coming Soon</span>
+                <h3>New Events Coming Soon</h3>
+                <p>We're working on exciting new workshops, competitions, and visits. Keep an eye out for updates!</p>
               </div>
             )}
           </div>
@@ -512,7 +572,9 @@ const Home = () => {
             </div>
           ) : (
             <div className="no-events">
-              <p>No upcoming events at the moment. Check back soon!</p>
+              <FiCalendar style={{ fontSize: '3rem', color: 'var(--text-light)', marginBottom: '1rem' }} />
+              <h3>New Events Coming Soon</h3>
+              <p>We're working on exciting new workshops, competitions, and visits. Keep an eye out for updates!</p>
             </div>
           )}
         </div>

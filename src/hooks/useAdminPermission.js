@@ -22,7 +22,7 @@ export const useAdminPermission = (featureId) => {
         return
       }
 
-      // Main admin always has all permissions
+      // Super admin always has all permissions
       if (isMainAdmin(userRole)) {
         setHasPermission(true)
         setLoading(false)
@@ -78,7 +78,7 @@ export const useAdminPermissions = () => {
         return
       }
 
-      // Main admin always has all permissions
+      // Super admin always has all permissions
       if (isMainAdmin(userRole)) {
         // Return all features as true for main admin
         const allFeatures = [

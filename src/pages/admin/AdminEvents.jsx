@@ -23,7 +23,8 @@ import {
   FiCheck,
   FiX,
   FiUsers,
-  FiCamera
+  FiCamera,
+  FiClock
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminEvents.css'
@@ -312,15 +313,19 @@ const AdminEvents = () => {
   }
 
   const handleMoveToPast = async (event) => {
-    if (!window.confirm('Move this event to past events?')) return
+    if (!window.confirm('Mark this event as finished and move it to past events?')) return
 
     try {
+      // Set date to yesterday to move it to past events
+      // This works for both upcoming and today's events
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
+      yesterday.setHours(23, 59, 59, 999) // Set to end of yesterday
+      
       await updateDoc(doc(db, 'events', event.id), {
         date: Timestamp.fromDate(yesterday)
       })
-      alert('Event moved to past events!')
+      alert('Event marked as finished and moved to past events!')
       fetchEvents()
     } catch (error) {
       console.error('Error moving event:', error)
@@ -734,13 +739,13 @@ const AdminEvents = () => {
                             >
                               <FiEdit2 />
                             </button>
-                            {status === 'upcoming' && (
+                            {(status === 'upcoming' || status === 'today') && (
                               <button
                                 onClick={() => handleMoveToPast(event)}
-                                className="btn-icon"
-                                title="Move to Past"
+                                className="btn-icon btn-move-past"
+                                title="Mark as Finished & Move to Past"
                               >
-                                Move to Past
+                                <FiClock />
                               </button>
                             )}
                             <button

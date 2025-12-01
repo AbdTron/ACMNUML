@@ -1,6 +1,6 @@
 /**
  * Admin permission checking utilities
- * Main Admin always has all permissions
+ * Super Admin always has all permissions
  */
 
 import { isMainAdmin, MAIN_ADMIN_EMAIL } from './permissions'
@@ -15,7 +15,7 @@ import { db } from '../config/firebase'
  * @returns {Promise<boolean>} - True if admin has permission
  */
 export const hasAdminPermission = async (currentUserEmail, currentUserId, featureId) => {
-  // Main admin always has all permissions
+  // Super admin always has all permissions
   if (isMainAdmin(currentUserEmail)) {
     return true
   }

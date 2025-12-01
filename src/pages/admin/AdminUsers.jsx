@@ -135,7 +135,7 @@ const AdminUsers = () => {
       let newAdminRole = null
       
       if (formData.role === ROLES.ADMIN || formData.role === ROLES.MAIN_ADMIN) {
-        // User is being set to Admin or Main Admin - create/update admin document
+        // User is being set to Admin or Super Admin - create/update admin document
         const adminData = {
           role: formData.role,
           email: formData.email,
@@ -155,10 +155,10 @@ const AdminUsers = () => {
           newAdminRole = formData.role
         }
       } else if ((oldRole === ROLES.ADMIN || oldRole === ROLES.MAIN_ADMIN) && formData.role === ROLES.USER) {
-        // User was Admin/Main Admin but is being changed to User - remove from admins collection
-        // Prevent deleting main admin documents (main admin cannot be demoted)
-        if (oldRole === ROLES.MAIN_ADMIN) {
-          alert('Cannot demote Main Admin. Only Main Admin can change their own role.')
+        // User was Admin/Super Admin but is being changed to User - remove from admins collection
+      // Prevent deleting super admin documents (super admin cannot be demoted)
+      if (oldRole === ROLES.MAIN_ADMIN) {
+        alert('Cannot demote Super Admin. Only Super Admin can change their own role.')
           return
         }
         
@@ -373,21 +373,21 @@ const AdminUsers = () => {
   }
 
   const canEditUser = (user) => {
-    // Only main admin can edit other admins
+    // Only super admin can edit other admins
     if (!isMainAdmin(userRole)) {
-      // Non-main admins can only edit regular users
+      // Non-super admins can only edit regular users
       return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
     
-    // Main admin can edit anyone except themselves (to prevent accidental self-modification)
+    // Super admin can edit anyone except themselves (to prevent accidental self-modification)
     if (user.id === currentUser.uid) return false
     
-    // Main admin can edit all users including other admins
+    // Super admin can edit all users including other admins
     return true
   }
 
   const canDeleteUser = (user) => {
-    // Only main admin can delete/ban users
+    // Only super admin can delete/ban users
     if (!isMainAdmin(userRole)) {
       return false
     }
@@ -395,7 +395,7 @@ const AdminUsers = () => {
     // Can't delete yourself
     if (user.id === currentUser.uid) return false
     
-    // Prevent deleting main admin
+    // Prevent deleting super admin
     if (user.isMainAdmin) return false
     
     return true
@@ -470,12 +470,12 @@ const AdminUsers = () => {
                         <option value={ROLES.ADMIN}>Admin</option>
                       )}
                       {isMainAdmin(userRole) && (
-                        <option value={ROLES.MAIN_ADMIN}>Main Admin</option>
+                        <option value={ROLES.MAIN_ADMIN}>Super Admin</option>
                       )}
                     </select>
                     {editingUser?.isMainAdmin && !isMainAdmin(userRole) && (
                       <small style={{ color: '#dc2626' }}>
-                        Only Main Admin can modify Main Admin permissions
+                        Only Super Admin can modify Super Admin permissions
                       </small>
                     )}
                   </div>
@@ -573,7 +573,7 @@ const AdminUsers = () => {
                         <td>
                           <span className={user.isMainAdmin ? 'role-badge role-badge-main-admin' : getRoleBadgeClass(user.role)}>
                             <FiShield />
-                            {user.isMainAdmin ? 'Main Admin' : (user.role === 'member' ? 'User' : (user.role || 'User'))}
+                            {user.isMainAdmin ? 'Super Admin' : (user.role === 'member' ? 'User' : (user.role || 'User'))}
                           </span>
                         </td>
                         <td>

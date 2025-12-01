@@ -79,6 +79,7 @@ const MemberDashboard = () => {
       let waitlistCount = 0
       let checkedInCount = 0
 
+      // First, collect all registrations
       registrationsSnap.forEach((doc) => {
         const data = doc.data()
         const registration = {
@@ -87,10 +88,6 @@ const MemberDashboard = () => {
           registeredAt: data.registeredAt?.toDate ? data.registeredAt.toDate() : (data.registeredAt ? new Date(data.registeredAt) : null)
         }
         registrations.push(registration)
-        
-        if (data.status === 'confirmed') confirmedCount++
-        if (data.status === 'waitlist') waitlistCount++
-        if (data.checkedIn) checkedInCount++
       })
 
       // Sort by registeredAt descending (most recent first)
@@ -101,9 +98,9 @@ const MemberDashboard = () => {
         return b.registeredAt.getTime() - a.registeredAt.getTime()
       })
 
-      // Fetch event details for recent registrations
-      const recentWithEvents = await Promise.all(
-        registrations.slice(0, 5).map(async (reg) => {
+      // Verify which events still exist and count stats only for existing events
+      const registrationsWithEvents = await Promise.all(
+        registrations.map(async (reg) => {
           try {
             const eventRef = doc(db, 'events', reg.eventId)
             const eventSnap = await getDoc(eventRef)
@@ -115,19 +112,46 @@ const MemberDashboard = () => {
                   id: eventSnap.id,
                   ...eventData,
                   date: eventData.date?.toDate ? eventData.date.toDate() : new Date(eventData.date)
-                }
+                },
+                eventExists: true
               }
             }
-            return reg
+            // Event doesn't exist
+            return {
+              ...reg,
+              eventExists: false
+            }
           } catch (error) {
             console.error('Error fetching event:', error)
-            return reg
+            return {
+              ...reg,
+              eventExists: false
+            }
           }
         })
       )
 
+      // Filter to only registrations with existing events for stats
+      const validRegistrations = registrationsWithEvents.filter(reg => reg.eventExists)
+      
+      // Count stats only for registrations where event exists
+      validRegistrations.forEach((reg) => {
+        if (reg.status === 'confirmed') confirmedCount++
+        if (reg.status === 'waitlist') waitlistCount++
+        if (reg.checkedIn) checkedInCount++
+      })
+
+      // Fetch event details for recent registrations (only existing events)
+      const recentWithEvents = registrationsWithEvents
+        .filter(reg => reg.eventExists)
+        .slice(0, 5)
+        .map(reg => ({
+          ...reg,
+          event: reg.event // event already attached above
+        }))
+
       setStats({
-        totalRegistrations: registrations.length,
+        totalRegistrations: validRegistrations.length, // Only count registrations with existing events
         confirmedEvents: confirmedCount,
         waitlistEvents: waitlistCount,
         checkedInEvents: checkedInCount
@@ -265,33 +289,35 @@ const MemberDashboard = () => {
               </div>
               <div className="registrations-list">
                 {recentRegistrations.map((registration) => (
-                  <div key={registration.id} className="registration-card">
-                    <div className="registration-info">
-                      <h3>{registration.event?.title || 'Event'}</h3>
-                      {registration.event?.date && (
-                        <p className="event-date">
-                          <FiCalendar />
-                          {format(registration.event.date, 'MMM dd, yyyy')}
-                        </p>
-                      )}
-                      <div className="registration-meta">
-                        <span className={`status-badge ${getStatusBadge(registration.status).class}`}>
-                          {getStatusBadge(registration.status).label}
-                        </span>
-                        {registration.checkedIn && (
-                          <span className="checked-in-badge">
-                            <FiCheckCircle /> Checked In
-                          </span>
+                  registration.event && (
+                    <div key={registration.id} className="registration-card">
+                      <div className="registration-info">
+                        <h3>{registration.event.title}</h3>
+                        {registration.event.date && (
+                          <p className="event-date">
+                            <FiCalendar />
+                            {format(registration.event.date, 'MMM dd, yyyy')}
+                          </p>
                         )}
+                        <div className="registration-meta">
+                          <span className={`status-badge ${getStatusBadge(registration.status).class}`}>
+                            {getStatusBadge(registration.status).label}
+                          </span>
+                          {registration.checkedIn && (
+                            <span className="checked-in-badge">
+                              <FiCheckCircle /> Checked In
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      <Link 
+                        to={`/events/${registration.eventId}`} 
+                        className="btn-view-event"
+                      >
+                        View Event
+                      </Link>
                     </div>
-                    <Link 
-                      to={`/events/${registration.eventId}`} 
-                      className="btn-view-event"
-                    >
-                      View Event
-                    </Link>
-                  </div>
+                  )
                 ))}
               </div>
             </div>

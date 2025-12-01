@@ -78,19 +78,19 @@ export const generateFlairs = (userData, isAdminOrRole = false) => {
     }
   }
   
-  // 2. Main Admin or Admin (if admin and not already shown as ACM role)
-  // Check if user is main admin by role from admins collection
+  // 2. Super Admin or Admin (if admin and not already shown as ACM role)
+  // Check if user is super admin by role from admins collection
   const adminRole = typeof isAdminOrRole === 'string' ? isAdminOrRole : null
   const isMainAdminUser = adminRole === 'mainadmin'
   const isAdminUser = isAdminOrRole === true || adminRole === 'admin' || userData?.role === 'admin'
   
   if (isMainAdminUser) {
-    // Main Admin gets highest priority flair
+    // Super Admin gets highest priority flair
     if (flairs.length < 2) {
-      flairs.unshift({ text: 'Main Admin', class: 'flair-main-admin' })
+      flairs.unshift({ text: 'Super Admin', class: 'flair-main-admin' })
     } else {
-      // Replace first flair with Main Admin if we have 2 flairs
-      flairs[0] = { text: 'Main Admin', class: 'flair-main-admin' }
+      // Replace first flair with Super Admin if we have 2 flairs
+      flairs[0] = { text: 'Super Admin', class: 'flair-main-admin' }
     }
   } else if (isAdminUser) {
     // Only add if we don't already have 2 flairs (to leave room for degree+sem)

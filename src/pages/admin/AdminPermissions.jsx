@@ -56,16 +56,16 @@ const AdminPermissions = () => {
     }
     
     try {
-      // Check if user is main admin by checking their role in admins collection
+      // Check if user is super admin by checking their role in admins collection
       const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
       if (!adminDoc.exists() || adminDoc.data().role !== ROLES.MAIN_ADMIN) {
         navigate('/admin')
         return
       }
-      // User is main admin, fetch admins
+      // User is super admin, fetch admins
       fetchAdmins()
     } catch (error) {
-      console.error('Error checking main admin status:', error)
+        console.error('Error checking super admin status:', error)
       navigate('/admin')
     }
   }
@@ -121,17 +121,17 @@ const AdminPermissions = () => {
     } catch (error) {
       console.error('Error fetching admins:', error)
       console.error('Current user:', currentUser?.uid)
-      alert(`Error loading admins: ${error.message}. Please ensure you have Main Admin role and that Firestore rules have been deployed.`)
+      alert(`Error loading admins: ${error.message}. Please ensure you have Super Admin role and that Firestore rules have been deployed.`)
     } finally {
       setLoading(false)
     }
   }
 
   const handlePermissionToggle = (adminId, featureId) => {
-    // Don't allow changing main admin permissions
+    // Don't allow changing super admin permissions
     const admin = admins.find(a => a.id === adminId)
     if (admin?.isMainAdmin) {
-      alert('Main Admin has all permissions and cannot be modified.')
+      alert('Super Admin has all permissions and cannot be modified.')
       return
     }
 
@@ -205,8 +205,8 @@ const AdminPermissions = () => {
           <div className="permissions-info">
             <FiShield />
             <p>
-              As Main Admin, you can control which features each admin can access. 
-              Main Admin always has full access to all features.
+              As Super Admin, you can control which features each admin can access. 
+              Super Admin always has full access to all features.
             </p>
           </div>
 
@@ -233,7 +233,7 @@ const AdminPermissions = () => {
                           {admin.isMainAdmin && (
                             <span className="main-admin-badge">
                               <FiShield />
-                              Main Admin
+                              Super Admin
                             </span>
                           )}
                         </div>

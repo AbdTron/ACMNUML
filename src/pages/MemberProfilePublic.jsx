@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { FiArrowLeft, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiCalendar } from 'react-icons/fi'
+import { FiArrowLeft, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiCalendar, FiPhone } from 'react-icons/fi'
 import { format } from 'date-fns'
+import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
+import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
 import './MemberProfilePublic.css'
 
 const MemberProfilePublic = () => {
@@ -93,7 +95,14 @@ const MemberProfilePublic = () => {
         <div className="profile-card">
           <div className="profile-header">
             <div className="profile-avatar">
-              {member.name?.charAt(0)?.toUpperCase() || '?'}
+              {(() => {
+                const avatarUrl = getAvatarUrlOrDefault(member.avatar || member.photoURL)
+                return avatarUrl ? (
+                  <img src={avatarUrl} alt={member.name || 'Member'} />
+                ) : (
+                  <span>{member.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                )
+              })()}
             </div>
             <div className="profile-info">
               <h1>{member.name || 'Member'}</h1>
@@ -110,14 +119,79 @@ const MemberProfilePublic = () => {
           </div>
 
           <div className="profile-details">
-            {member.email && (
+            {/* Show email if enabled (new structure) */}
+            {member.showEmail && (
               <div className="detail-item">
                 <FiMail />
                 <div>
                   <label>Email</label>
-                  <a href={`mailto:${member.email}`}>{member.email}</a>
+                  <a href={`mailto:${member.emailType === 'display' && member.displayEmail && member.displayEmailVerified ? member.displayEmail : member.email}`}>
+                    {member.emailType === 'display' && member.displayEmail && member.displayEmailVerified ? member.displayEmail : member.email}
+                  </a>
                 </div>
               </div>
+            )}
+            
+            {/* Show phone if enabled (new structure) */}
+            {member.showPhone && member.phone && (
+              <div className="detail-item">
+                <FiPhone />
+                <div>
+                  <label>Phone</label>
+                  <a 
+                    href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="whatsapp-link"
+                  >
+                    {member.phone}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Fallback: Show contact based on old data structure if new structure not used */}
+            {!member.showEmail && !member.showPhone && member.showContactOnDirectory && (
+              <>
+                {member.contactType === 'email' && member.email && (
+                  <div className="detail-item">
+                    <FiMail />
+                    <div>
+                      <label>Email</label>
+                      <a href={`mailto:${member.email}`}>
+                        {member.email}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified && (
+                  <div className="detail-item">
+                    <FiMail />
+                    <div>
+                      <label>Email</label>
+                      <a href={`mailto:${member.displayEmail}`}>
+                        {member.displayEmail}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {member.contactType === 'phone' && member.phone && (
+                  <div className="detail-item">
+                    <FiPhone />
+                    <div>
+                      <label>Phone</label>
+                      <a 
+                        href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="whatsapp-link"
+                      >
+                        {member.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {(member.website || member.linkedin || member.github || member.twitter) && (

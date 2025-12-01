@@ -7,7 +7,7 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
     
-    // Helper function to check if user is main admin
+    // Helper function to check if user is super admin (mainadmin role)
     // Checks the role field in the admins collection
     function isMainAdmin() {
       return request.auth != null && 
@@ -73,12 +73,12 @@ service cloud.firestore {
       // Check if user exists in admins collection
       allow list: if request.auth != null && 
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
-      // Main admin can create admin documents (when promoting users to admin)
+      // Super admin can create admin documents (when promoting users to admin)
       allow create: if request.auth != null && isMainAdmin();
-      // Main admin can update admin documents (for permissions management)
+      // Super admin can update admin documents (for permissions management)
       allow update: if request.auth != null && isMainAdmin();
-      // Main admin can delete admin documents (when demoting admins to users)
-      // Note: Application code should prevent deleting main admin documents
+      // Super admin can delete admin documents (when demoting admins to users)
+      // Note: Application code should prevent deleting super admin documents
       allow delete: if request.auth != null && isMainAdmin();
     }
     

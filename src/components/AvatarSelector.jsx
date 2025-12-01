@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { FiUser, FiCheck } from 'react-icons/fi'
+import { FiUser, FiCheck, FiX } from 'react-icons/fi'
 import { getAvailableAvatarFolders, getAvatarUrl } from '../utils/avatarUtils'
 import './AvatarSelector.css'
 
 /**
  * Avatar Selector Component
  * Allows users to select an avatar based on their role
+ * Opens in a modal with tabs for better UX
  */
 const AvatarSelector = ({ 
   currentAvatar, 
@@ -17,6 +18,8 @@ const AvatarSelector = ({
   const [availableAvatars, setAvailableAvatars] = useState([])
   const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar || '')
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('')
 
   useEffect(() => {
     setSelectedAvatar(currentAvatar || '')
@@ -59,6 +62,11 @@ const AvatarSelector = ({
         }
         
         setAvailableAvatars(avatars)
+        
+        // Set initial active tab to first available folder
+        if (folders.length > 0) {
+          setActiveTab(folders[0])
+        }
       } catch (error) {
         console.error('Error loading avatars:', error)
         setAvailableAvatars([])
@@ -129,6 +137,8 @@ const AvatarSelector = ({
     if (onSelect) {
       onSelect(avatarPath)
     }
+    // Close modal after selection
+    setShowModal(false)
   }
 
   const handleClear = () => {
@@ -136,24 +146,8 @@ const AvatarSelector = ({
     if (onSelect) {
       onSelect('')
     }
-  }
-
-  if (loading) {
-    return (
-      <div className={`avatar-selector ${className}`}>
-        <div className="avatar-selector-loading">Loading avatars...</div>
-      </div>
-    )
-  }
-
-  if (availableAvatars.length === 0) {
-    return (
-      <div className={`avatar-selector ${className}`}>
-        <div className="avatar-selector-empty">
-          <p>No avatars available. Please add avatars to the AvatarCollection folders.</p>
-        </div>
-      </div>
-    )
+    // Close modal after selection
+    setShowModal(false)
   }
 
   // Group avatars by folder
@@ -165,75 +159,176 @@ const AvatarSelector = ({
     avatarsByFolder[avatar.folder].push(avatar)
   })
 
-  return (
-    <div className={`avatar-selector ${className}`}>
-      <label className="avatar-selector-label">Profile Avatar</label>
-      <p className="avatar-selector-description">
-        Choose an avatar to display on your profile and forum posts
-      </p>
-      
-      {/* Default option */}
-      <div className="avatar-option-group">
-        <div 
-          className={`avatar-option ${!selectedAvatar ? 'selected' : ''}`}
-          onClick={handleClear}
-        >
-          <div className="avatar-preview default">
-            <FiUser />
-          </div>
-          <span className="avatar-option-name">Default</span>
-          {!selectedAvatar && (
-            <div className="avatar-check">
-              <FiCheck />
-            </div>
-          )}
+  // Get available folders
+  const folders = getAvailableAvatarFolders(acmRole, isAdmin)
+
+  // Get current avatar display
+  const getCurrentAvatarDisplay = () => {
+    if (!selectedAvatar) {
+      return (
+        <div className="avatar-current-preview default">
+          <FiUser />
         </div>
+      )
+    }
+    const avatarUrl = getAvatarUrl(selectedAvatar)
+    return (
+      <div className="avatar-current-preview">
+        <img src={avatarUrl} alt="Current avatar" />
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className={`avatar-selector-trigger ${className}`}>
+        <label className="avatar-selector-label">Profile Avatar</label>
+        <p className="avatar-selector-description">
+          Choose an avatar to display on your profile and forum posts
+        </p>
+        <button
+          type="button"
+          className="avatar-selector-button"
+          onClick={() => setShowModal(true)}
+        >
+          <div className="avatar-button-content">
+            {getCurrentAvatarDisplay()}
+            <div className="avatar-button-info">
+              <span className="avatar-button-text">
+                {selectedAvatar ? 'Change Avatar' : 'Select Avatar'}
+              </span>
+              <span className="avatar-button-subtext">
+                {selectedAvatar ? selectedAvatar.split('/').pop() : 'Click to choose'}
+              </span>
+            </div>
+          </div>
+        </button>
       </div>
 
-      {/* Avatars grouped by folder */}
-      {Object.keys(avatarsByFolder).map(folder => (
-        <div key={folder} className="avatar-option-group">
-          <h4 className="avatar-folder-name">{folder} Avatars</h4>
-          <div className="avatar-grid">
-            {avatarsByFolder[folder].map(avatar => {
-              const avatarUrl = getAvatarUrl(avatar.path)
-              const isSelected = selectedAvatar === avatar.path
-              
-              return (
-                <div
-                  key={avatar.path}
-                  className={`avatar-option ${isSelected ? 'selected' : ''}`}
-                  onClick={() => handleSelect(avatar.path)}
-                >
-                  <div className="avatar-preview">
-                    <img 
-                      src={avatarUrl} 
-                      alt={avatar.filename}
-                      onError={(e) => {
-                        // Hide broken images
-                        e.target.style.display = 'none'
-                      }}
-                    />
-                  </div>
-                  <span className="avatar-option-name">{avatar.filename}</span>
-                  {isSelected && (
-                    <div className="avatar-check">
-                      <FiCheck />
+      {/* Modal */}
+      {showModal && (
+        <div 
+          className="avatar-modal-overlay"
+          onClick={() => setShowModal(false)}
+        >
+          <div 
+            className="avatar-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="avatar-modal-header">
+              <h2>Select Avatar</h2>
+              <button 
+                className="avatar-modal-close"
+                onClick={() => setShowModal(false)}
+                aria-label="Close"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="avatar-modal-loading">
+                <p>Loading avatars...</p>
+              </div>
+            ) : availableAvatars.length === 0 ? (
+              <div className="avatar-modal-empty">
+                <p>No avatars available. Please add avatars to the AvatarCollection folders.</p>
+              </div>
+            ) : (
+              <div className="avatar-modal-body">
+                {/* Tabs */}
+                <div className="avatar-modal-tabs">
+                  <button
+                    className={`avatar-tab ${!activeTab || activeTab === 'default' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('default')}
+                  >
+                    Default
+                  </button>
+                  {folders.map(folder => (
+                    <button
+                      key={folder}
+                      className={`avatar-tab ${activeTab === folder ? 'active' : ''}`}
+                      onClick={() => setActiveTab(folder)}
+                    >
+                      {folder} {avatarsByFolder[folder] && `(${avatarsByFolder[folder].length})`}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab Content */}
+                <div className="avatar-modal-tab-content">
+                  {/* Default Tab */}
+                  {(!activeTab || activeTab === 'default') && (
+                    <div className="avatar-tab-panel">
+                      <div className="avatar-grid">
+                        <div 
+                          className={`avatar-option ${!selectedAvatar ? 'selected' : ''}`}
+                          onClick={handleClear}
+                        >
+                          <div className="avatar-preview default">
+                            <FiUser />
+                          </div>
+                          <span className="avatar-option-name">Default</span>
+                          {!selectedAvatar && (
+                            <div className="avatar-check">
+                              <FiCheck />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
+
+                  {/* Folder Tabs */}
+                  {folders.map(folder => (
+                    activeTab === folder && (
+                      <div key={folder} className="avatar-tab-panel">
+                        <div className="avatar-grid">
+                          {avatarsByFolder[folder]?.map(avatar => {
+                            const avatarUrl = getAvatarUrl(avatar.path)
+                            const isSelected = selectedAvatar === avatar.path
+                            
+                            return (
+                              <div
+                                key={avatar.path}
+                                className={`avatar-option ${isSelected ? 'selected' : ''}`}
+                                onClick={() => handleSelect(avatar.path)}
+                              >
+                                <div className="avatar-preview">
+                                  <img 
+                                    src={avatarUrl} 
+                                    alt={avatar.filename}
+                                    onError={(e) => {
+                                      // Hide broken images
+                                      e.target.style.display = 'none'
+                                    }}
+                                  />
+                                </div>
+                                <span className="avatar-option-name" title={avatar.filename}>
+                                  {avatar.filename.length > 15 
+                                    ? avatar.filename.substring(0, 15) + '...' 
+                                    : avatar.filename}
+                                </span>
+                                {isSelected && (
+                                  <div className="avatar-check">
+                                    <FiCheck />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  ))}
                 </div>
-              )
-            })}
+              </div>
+            )}
           </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   )
 }
 
 export default AvatarSelector
-
-
-
-
-

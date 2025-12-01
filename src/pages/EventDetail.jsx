@@ -99,6 +99,7 @@ const EventDetail = () => {
   const shareUrl = `${window.location.origin}/events/${event.id}`
   const shareImage = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
   const shareDescription = event.longDescription || event.description || `Join us for ${event.title} on ${format(new Date(event.date), 'MMMM dd, yyyy')}`
+  const hasCoverImage = shareImage && shareImage.trim() !== ''
 
   return (
     <>
@@ -120,7 +121,7 @@ const EventDetail = () => {
 
         <section className="section event-detail-section">
           <div className="container">
-            <div className="event-detail-layout">
+            <div className={`event-detail-layout ${!hasCoverImage ? 'no-poster' : ''}`}>
               <div className="event-detail-content">
                 <h1>{event.title}</h1>
                 
@@ -264,7 +265,7 @@ const EventDetail = () => {
               )}
             </div>
 
-            {event.coverUrl && (
+            {hasCoverImage && (
               <div className="event-detail-poster">
                 {imageLoading && (
                   <div className="image-loading-placeholder">
