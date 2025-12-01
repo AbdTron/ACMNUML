@@ -13,8 +13,10 @@ import {
   FiFileText,
   FiUserCheck,
   FiMessageSquare,
-  FiMessageCircle
+  FiMessageCircle,
+  FiShield
 } from 'react-icons/fi'
+import { isMainAdmin } from '../../utils/permissions'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useState, useEffect } from 'react'
@@ -161,6 +163,17 @@ const AdminDashboard = () => {
       color: '#8b5cf6'
     },
   ]
+
+  // Add Admin Permissions card only for main admin
+  if (currentUser && isMainAdmin(currentUser.email)) {
+    quickActions.push({
+      icon: FiShield,
+      title: 'Admin Permissions',
+      description: 'Manage admin feature access and permissions',
+      link: '/admin/permissions',
+      color: '#dc2626'
+    })
+  }
 
   return (
     <div className="admin-dashboard">

@@ -7,7 +7,20 @@
 export const ROLES = {
   USER: 'user',
   ADMIN: 'admin',
-  SUPERADMIN: 'superadmin'
+  SUPERADMIN: 'superadmin',
+  MAIN_ADMIN: 'mainadmin'
+}
+
+// Main admin email - only this user can be main admin
+export const MAIN_ADMIN_EMAIL = 'abdullah.irshad@hotmail.com'
+
+/**
+ * Check if user is the main admin
+ * @param {string} email - User's email
+ * @returns {boolean}
+ */
+export const isMainAdmin = (email) => {
+  return email && email.toLowerCase() === MAIN_ADMIN_EMAIL.toLowerCase()
 }
 
 /**

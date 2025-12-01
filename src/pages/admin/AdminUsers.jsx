@@ -22,7 +22,7 @@ import {
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminUsers.css'
-import { ROLES, isSuperAdmin } from '../../utils/permissions'
+import { ROLES, isSuperAdmin, isMainAdmin, MAIN_ADMIN_EMAIL } from '../../utils/permissions'
 import { logRoleChanged, logUserUpdated, logActivity, ACTIVITY_TYPES } from '../../utils/activityLogger'
 import { getAvatarUrlOrDefault } from '../../utils/avatarUtils'
 
@@ -162,29 +162,34 @@ const AdminUsers = () => {
   }
 
   const canEditUser = (user) => {
-    // Superadmins can edit anyone except other superadmins
-    if (isSuperAdmin(userRole)) {
-      return user.role !== ROLES.SUPERADMIN || user.id === currentUser.uid
-    }
-    // Admins can edit users only
-    if (userRole === ROLES.ADMIN) {
+    // Only main admin can edit other admins
+    if (!isMainAdmin(currentUser?.email)) {
+      // Non-main admins can only edit regular users
       return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
-    return false
+    
+    // Main admin can edit anyone except themselves (to prevent accidental self-modification)
+    if (user.id === currentUser.uid) return false
+    
+    // Main admin can edit all users including other admins
+    return true
   }
 
   const canDeleteUser = (user) => {
     // Can't delete yourself
     if (user.id === currentUser.uid) return false
-    // Superadmins can delete anyone except other superadmins
-    if (isSuperAdmin(userRole)) {
-      return user.role !== ROLES.SUPERADMIN
-    }
-    // Admins can delete users only
-    if (userRole === ROLES.ADMIN) {
+    
+    // Only main admin can delete admins
+    if (!isMainAdmin(currentUser?.email)) {
+      // Non-main admins can only delete regular users
       return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
-    return false
+    
+    // Main admin can delete anyone (except themselves, already checked above)
+    // But prevent deleting main admin
+    if (user.isMainAdmin) return false
+    
+    return true
   }
 
   return (
@@ -249,15 +254,21 @@ const AdminUsers = () => {
                       value={formData.role}
                       onChange={handleInputChange}
                       required
+                      disabled={editingUser?.isMainAdmin && !isMainAdmin(currentUser?.email)}
                     >
                       <option value={ROLES.USER}>User</option>
-                      {(isSuperAdmin(userRole) || userRole === ROLES.ADMIN) && (
+                      {isMainAdmin(currentUser?.email) && (
                         <option value={ROLES.ADMIN}>Admin</option>
                       )}
-                      {isSuperAdmin(userRole) && (
+                      {isMainAdmin(currentUser?.email) && (
                         <option value={ROLES.SUPERADMIN}>Super Admin</option>
                       )}
                     </select>
+                    {editingUser?.isMainAdmin && !isMainAdmin(currentUser?.email) && (
+                      <small style={{ color: '#dc2626' }}>
+                        Only Main Admin can modify Main Admin permissions
+                      </small>
+                    )}
                   </div>
                   <div className="form-group">
                     <label>ACM Society Role (Optional)</label>
@@ -351,9 +362,9 @@ const AdminUsers = () => {
                           </div>
                         </td>
                         <td>
-                          <span className={getRoleBadgeClass(user.role)}>
+                          <span className={user.isMainAdmin ? 'role-badge role-badge-main-admin' : getRoleBadgeClass(user.role)}>
                             <FiShield />
-                            {user.role === 'member' ? 'User' : (user.role || 'User')}
+                            {user.isMainAdmin ? 'Main Admin' : (user.role === 'member' ? 'User' : (user.role || 'User'))}
                           </span>
                         </td>
                         <td>

@@ -47,6 +47,7 @@ import CreateForumPost from './pages/CreateForumPost'
 import AdminFeedback from './pages/admin/AdminFeedback'
 import AdminForum from './pages/admin/AdminForum'
 import AdminUserRequests from './pages/admin/AdminUserRequests'
+import AdminPermissions from './pages/admin/AdminPermissions'
 import ProfileOnboarding from './pages/ProfileOnboarding'
 
 function App() {
@@ -216,6 +217,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AdminUserRequests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/permissions"
+                element={
+                  <ProtectedRoute>
+                    <AdminPermissions />
                   </ProtectedRoute>
                 }
               />

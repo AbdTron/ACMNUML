@@ -78,8 +78,20 @@ export const generateFlairs = (userData, isAdmin = false) => {
     }
   }
   
-  // 2. Admin (if admin and not already shown as ACM role)
-  if (isAdmin || userData?.role === 'admin' || userData?.role === 'superadmin') {
+  // 2. Main Admin or Admin (if admin and not already shown as ACM role)
+  // Check if user is main admin by email
+  const userEmail = userData?.email || ''
+  const isMainAdmin = userEmail.toLowerCase() === 'abdullah.irshad@hotmail.com'
+  
+  if (isMainAdmin) {
+    // Main Admin gets highest priority flair
+    if (flairs.length < 2) {
+      flairs.unshift({ text: 'Main Admin', class: 'flair-main-admin' })
+    } else {
+      // Replace first flair with Main Admin if we have 2 flairs
+      flairs[0] = { text: 'Main Admin', class: 'flair-main-admin' }
+    }
+  } else if (isAdmin || userData?.role === 'admin' || userData?.role === 'superadmin') {
     // Only add if we don't already have 2 flairs (to leave room for degree+sem)
     if (flairs.length < 2) {
       flairs.push({ text: 'Admin', class: 'flair-admin' })
@@ -111,6 +123,7 @@ export const generateFlairs = (userData, isAdmin = false) => {
 export const computeFlairsForStorage = (userData, isAdminFromFirestore = false) => {
   return generateFlairs(userData, isAdminFromFirestore)
 }
+
 
 
 

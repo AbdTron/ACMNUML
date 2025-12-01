@@ -10,7 +10,8 @@ import {
   sendEmailVerification,
   applyActionCode,
   updateEmail,
-  verifyBeforeUpdateEmail
+  verifyBeforeUpdateEmail,
+  updatePassword
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../config/firebase'
@@ -28,6 +29,8 @@ const MemberAuthContext = createContext({
   logout: async () => {},
   updateProfile: async () => {},
   updateUserEmail: async () => {},
+  updateUserPassword: async () => {},
+  hasPasswordProvider: () => false,
   resetPassword: async () => {},
   sendVerificationEmail: async () => {},
   verifyEmail: async () => {},
@@ -330,6 +333,30 @@ export const MemberAuthProvider = ({ children }) => {
     // The email will be updated automatically after verification
   }
 
+  const updateUserPassword = async (newPassword) => {
+    if (!auth || !currentUser) {
+      throw new Error('User not authenticated')
+    }
+    
+    // Validate password length
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('Password must be at least 6 characters long.')
+    }
+    
+    await updatePassword(currentUser, newPassword)
+    
+    // Log activity
+    await logActivity(currentUser.uid, ACTIVITY_TYPES.PROFILE_UPDATED, 'User password updated')
+  }
+
+  const hasPasswordProvider = () => {
+    if (!currentUser || !currentUser.providerData) {
+      return false
+    }
+    // Check if user has password provider
+    return currentUser.providerData.some(provider => provider.providerId === 'password')
+  }
+
   const updateProfile = async (updates) => {
     if (!db || !currentUser) {
       throw new Error('User not authenticated')
@@ -418,6 +445,8 @@ export const MemberAuthProvider = ({ children }) => {
     logout,
     updateProfile,
     updateUserEmail,
+    updateUserPassword,
+    hasPasswordProvider,
     resetPassword,
     sendVerificationEmail,
     verifyEmail,

@@ -33,8 +33,25 @@ const MemberDashboard = () => {
       navigate('/member/login')
       return
     }
+    
+    // Check if profile is incomplete and redirect to onboarding
+    if (userProfile && !userProfile.profileComplete) {
+      // Check if user has required academic fields
+      const hasRequiredFields = userProfile.rollNumber && 
+                                userProfile.department && 
+                                userProfile.degree && 
+                                userProfile.semester && 
+                                userProfile.section && 
+                                userProfile.shift
+      
+      if (!hasRequiredFields) {
+        navigate('/member/onboarding')
+        return
+      }
+    }
+    
     fetchDashboardData()
-  }, [currentUser, navigate])
+  }, [currentUser, userProfile, navigate])
 
   const fetchDashboardData = async () => {
     if (!db || !currentUser) {

@@ -45,3 +45,4 @@ The rules allow:
 - ✅ Admins to update/delete any post
 - ✅ **Authenticated users to vote on posts** (as long as authorId doesn't change)
 
+
