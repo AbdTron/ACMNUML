@@ -5,6 +5,8 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
+  getDoc,
+  setDoc,
   query,
   orderBy
 } from 'firebase/firestore'
@@ -22,9 +24,10 @@ import {
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminUsers.css'
-import { ROLES, isSuperAdmin, isMainAdmin } from '../../utils/permissions'
+import { ROLES, isMainAdmin } from '../../utils/permissions'
 import { logRoleChanged, logUserUpdated, logActivity, ACTIVITY_TYPES } from '../../utils/activityLogger'
 import { getAvatarUrlOrDefault } from '../../utils/avatarUtils'
+import { computeFlairsForStorage } from '../../utils/flairUtils'
 
 const AdminUsers = () => {
   const { currentUser, userRole } = useAuth()
@@ -125,6 +128,63 @@ const AdminUsers = () => {
         updatedAt: new Date().toISOString()
       }
 
+      // Manage admins collection based on role changes
+      const adminRef = doc(db, 'admins', editingUser.id)
+      let newAdminRole = null
+      
+      if (formData.role === ROLES.ADMIN || formData.role === ROLES.MAIN_ADMIN) {
+        // User is being set to Admin or Main Admin - create/update admin document
+        const adminData = {
+          role: formData.role,
+          email: formData.email,
+          updatedAt: new Date().toISOString()
+        }
+        
+        // Check if admin document exists
+        const adminDoc = await getDoc(adminRef)
+        if (adminDoc.exists()) {
+          // Update existing admin document
+          await updateDoc(adminRef, adminData)
+          newAdminRole = formData.role
+        } else {
+          // Create new admin document
+          adminData.createdAt = new Date().toISOString()
+          await setDoc(adminRef, adminData)
+          newAdminRole = formData.role
+        }
+      } else if ((oldRole === ROLES.ADMIN || oldRole === ROLES.MAIN_ADMIN) && formData.role === ROLES.USER) {
+        // User was Admin/Main Admin but is being changed to User - remove from admins collection
+        // Prevent deleting main admin documents (main admin cannot be demoted)
+        if (oldRole === ROLES.MAIN_ADMIN) {
+          alert('Cannot demote Main Admin. Only Main Admin can change their own role.')
+          return
+        }
+        
+        // Only allow deleting regular admin documents
+        if (oldRole === ROLES.ADMIN) {
+          try {
+            await deleteDoc(adminRef)
+            newAdminRole = null
+          } catch (err) {
+            console.error('Error removing from admins collection:', err)
+            // Don't fail the whole operation if this fails
+          }
+        }
+      }
+
+      // Get current user profile to recompute flairs
+      const currentUserDoc = await getDoc(userRef)
+      const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {}
+      
+      // Merge updates with current profile
+      const mergedProfile = { ...currentUserData, ...updates }
+      
+      // Recompute flairs based on updated profile and admin role
+      const flairs = computeFlairsForStorage(mergedProfile, newAdminRole || (formData.role === ROLES.ADMIN || formData.role === ROLES.MAIN_ADMIN ? formData.role : false))
+      
+      // Add flairs to updates
+      updates.flairs = flairs
+
       await updateDoc(userRef, updates)
 
       // Log role change if role was changed
@@ -164,8 +224,8 @@ const AdminUsers = () => {
 
   const getRoleBadgeClass = (role) => {
     switch (role) {
-      case ROLES.SUPERADMIN:
-        return 'role-badge role-badge-superadmin'
+      case ROLES.MAIN_ADMIN:
+        return 'role-badge role-badge-main-admin'
       case ROLES.ADMIN:
         return 'role-badge role-badge-admin'
       case ROLES.USER:
@@ -276,9 +336,6 @@ const AdminUsers = () => {
                       <option value={ROLES.USER}>User</option>
                       {isMainAdmin(userRole) && (
                         <option value={ROLES.ADMIN}>Admin</option>
-                      )}
-                      {isMainAdmin(userRole) && (
-                        <option value={ROLES.SUPERADMIN}>Super Admin</option>
                       )}
                       {isMainAdmin(userRole) && (
                         <option value={ROLES.MAIN_ADMIN}>Main Admin</option>

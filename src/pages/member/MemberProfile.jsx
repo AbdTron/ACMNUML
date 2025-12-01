@@ -704,7 +704,7 @@ const MemberProfile = () => {
             <AvatarSelector
               currentAvatar={formData.avatar}
               acmRole={userProfile?.acmRole}
-              isAdmin={userProfile?.role === 'admin' || userProfile?.role === 'superadmin'}
+              isAdmin={userProfile?.role === 'admin' || userProfile?.role === 'mainadmin'}
               onSelect={(avatarPath) => {
                 setFormData(prev => ({
                   ...prev,

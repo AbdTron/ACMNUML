@@ -145,7 +145,7 @@ const MemberDirectory = () => {
           ) : (
             <div className="members-grid">
               {filteredMembers.map((member) => {
-                const isAdmin = member.role === ROLES.ADMIN || member.role === ROLES.SUPERADMIN
+                const isAdmin = member.role === ROLES.ADMIN || member.role === ROLES.MAIN_ADMIN
                 const isAcmMember = member.acmRole && member.acmRole.trim() !== ''
                 
                 // Determine card class based on role and ACM membership
@@ -179,13 +179,18 @@ const MemberDirectory = () => {
                     </div>
                     <div className="member-info">
                       <h3>{member.name || 'User'}</h3>
-                      {(member.role === ROLES.ADMIN || member.role === ROLES.SUPERADMIN) && (
-                        <span className="admin-badge">
-                          <FiShield />
-                          Admin
-                        </span>
+                      {/* Display flairs from stored user profile */}
+                      {member.flairs && member.flairs.length > 0 && (
+                        <div className="member-flairs">
+                          {member.flairs.map((flair, index) => (
+                            <span key={index} className={`flair ${flair.class || ''}`}>
+                              {flair.text}
+                            </span>
+                          ))}
+                        </div>
                       )}
-                      {member.acmRole && (
+                      {/* Fallback: Show ACM role if no flairs stored (backward compatibility) */}
+                      {(!member.flairs || member.flairs.length === 0) && member.acmRole && (
                         <p className="member-acm-role">{member.acmRole}</p>
                       )}
                       {/* Show contact based on user preference, or default to account email */}

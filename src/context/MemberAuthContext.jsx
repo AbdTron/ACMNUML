@@ -460,7 +460,7 @@ export const MemberAuthProvider = ({ children }) => {
     verifyEmail,
     refreshProfile,
     isMember: userProfile?.role === ROLES.USER || userProfile?.role === 'member', // Backward compatibility
-    isAdmin: userProfile?.role === ROLES.ADMIN || userProfile?.role === ROLES.SUPERADMIN
+    isAdmin: userProfile?.role === ROLES.ADMIN || userProfile?.role === ROLES.MAIN_ADMIN
   }
 
   return (

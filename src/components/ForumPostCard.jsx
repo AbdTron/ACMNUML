@@ -71,41 +71,15 @@ const ForumPostCard = ({ post, showCategory = true }) => {
               // Ignore errors checking admin status
             }
 
-            // Generate flairs from current profile if post doesn't have them (pass role if admin)
+            // Use stored flairs from user profile (computed and stored when profile changes)
             if (!post.authorFlairs || post.authorFlairs.length === 0) {
-              const flairs = generateFlairs({
-                acmRole: userProfile.acmRole || post.authorRole,
-                role: userProfile.role,
-                degree: userProfile.degree || post.authorDegree,
-                semester: userProfile.semester || post.authorSemester
-              }, adminRole || isAdmin || post.authorIsAdmin || false)
-              
-              setAuthorFlairs(flairs)
-            }
-          } else {
-            // Fallback to old post data if profile doesn't exist
-            if (!post.authorFlairs || post.authorFlairs.length === 0) {
-              const flairs = generateFlairs({
-                acmRole: post.authorRole,
-                role: post.authorRole,
-                degree: post.authorDegree,
-                semester: post.authorSemester
-              }, post.authorIsAdmin || false)
-              setAuthorFlairs(flairs)
+              if (userProfile.flairs && userProfile.flairs.length > 0) {
+                setAuthorFlairs(userProfile.flairs)
+              }
             }
           }
         } catch (error) {
           console.error('Error loading author data:', error)
-          // Fallback to old post data
-          if (!post.authorFlairs || post.authorFlairs.length === 0) {
-            const flairs = generateFlairs({
-              acmRole: post.authorRole,
-              role: post.authorRole,
-              degree: post.authorDegree,
-              semester: post.authorSemester
-            }, post.authorIsAdmin || false)
-            setAuthorFlairs(flairs)
-          }
         }
       } else {
         // Fallback to old post data

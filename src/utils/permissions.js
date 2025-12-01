@@ -1,13 +1,12 @@
 /**
  * Role-based permission system
- * Supports: user, admin, superadmin roles
+ * Supports: user, admin, mainadmin roles
  * Note: "Member" is for ACM Society role (handled by acmRole field), not user role
  */
 
 export const ROLES = {
   USER: 'user',
   ADMIN: 'admin',
-  SUPERADMIN: 'superadmin',
   MAIN_ADMIN: 'mainadmin'
 }
 
@@ -32,29 +31,19 @@ export const hasRole = (userRole, requiredRole) => {
   const roleHierarchy = {
     [ROLES.USER]: 1,
     [ROLES.ADMIN]: 2,
-    [ROLES.SUPERADMIN]: 3,
-    [ROLES.MAIN_ADMIN]: 4
+    [ROLES.MAIN_ADMIN]: 3
   }
   
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole]
 }
 
 /**
- * Check if user is admin, superadmin, or main admin
+ * Check if user is admin or main admin
  * @param {string} userRole - User's role
  * @returns {boolean}
  */
 export const isAdmin = (userRole) => {
-  return userRole === ROLES.ADMIN || userRole === ROLES.SUPERADMIN || userRole === ROLES.MAIN_ADMIN
-}
-
-/**
- * Check if user is superadmin
- * @param {string} userRole - User's role
- * @returns {boolean}
- */
-export const isSuperAdmin = (userRole) => {
-  return userRole === ROLES.SUPERADMIN
+  return userRole === ROLES.ADMIN || userRole === ROLES.MAIN_ADMIN
 }
 
 /**
@@ -66,12 +55,12 @@ export const isSuperAdmin = (userRole) => {
  * @returns {boolean}
  */
 export const canPerformAction = (userRole, action, resourceOwnerId = null, currentUserId = null) => {
-  // Main admin and superadmin can do everything
-  if (isMainAdmin(userRole) || isSuperAdmin(userRole)) return true
+  // Main admin can do everything
+  if (isMainAdmin(userRole)) return true
   
   // Admin can do most things
   if (isAdmin(userRole)) {
-    // Admins can manage users (except superadmins)
+    // Admins can manage users
     if (action === 'manage_users') return true
     // Admins can manage content
     if (action === 'manage_content') return true

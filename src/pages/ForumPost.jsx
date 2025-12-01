@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
-import { generateFlairs } from '../utils/flairUtils.js'
+// Flairs are now stored in user profiles and fetched directly
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { 
   FiArrowLeft, 
@@ -114,40 +114,15 @@ const ForumPost = () => {
             // Ignore errors
           }
 
-          // Generate flairs if post doesn't have them (pass role if admin)
+          // Use stored flairs from user profile (computed and stored when profile changes)
           if (!post.authorFlairs || post.authorFlairs.length === 0) {
-            const flairs = generateFlairs({
-              acmRole: userProfile.acmRole || post.authorRole,
-              role: userProfile.role,
-              degree: userProfile.degree || post.authorDegree,
-              semester: userProfile.semester || post.authorSemester
-            }, adminRole || isAdmin || post.authorIsAdmin || false)
-            
-            setPostAuthorFlairs(flairs)
-          }
-        } else {
-          // Fallback
-          if (!post.authorFlairs || post.authorFlairs.length === 0) {
-            const flairs = generateFlairs({
-              acmRole: post.authorRole,
-              role: post.authorRole,
-              degree: post.authorDegree,
-              semester: post.authorSemester
-            }, post.authorIsAdmin || false)
-            setPostAuthorFlairs(flairs)
+            if (userProfile.flairs && userProfile.flairs.length > 0) {
+              setPostAuthorFlairs(userProfile.flairs)
+            }
           }
         }
       } catch (error) {
         console.error('Error loading post author data:', error)
-        if (!post.authorFlairs || post.authorFlairs.length === 0) {
-          const flairs = generateFlairs({
-            acmRole: post.authorRole,
-            role: post.authorRole,
-            degree: post.authorDegree,
-            semester: post.authorSemester
-          }, post.authorIsAdmin || false)
-          setPostAuthorFlairs(flairs)
-        }
       }
     }
 
@@ -187,31 +162,13 @@ const ForumPost = () => {
                 // Ignore errors
               }
 
-              const flairs = generateFlairs({
-                acmRole: userProfile.acmRole || reply.authorRole,
-                role: userProfile.role,
-                degree: userProfile.degree || reply.authorDegree,
-                semester: userProfile.semester || reply.authorSemester
-              }, adminRole || isAdmin || reply.authorIsAdmin || false)
-              
-              flairsMap[reply.id] = flairs
-            } else {
-              // Fallback
-              flairsMap[reply.id] = generateFlairs({
-                acmRole: reply.authorRole,
-                role: reply.authorRole,
-                degree: reply.authorDegree,
-                semester: reply.authorSemester
-              }, reply.authorIsAdmin || false)
+              // Use stored flairs from user profile (computed and stored when profile changes)
+              if (userProfile.flairs && userProfile.flairs.length > 0) {
+                flairsMap[reply.id] = userProfile.flairs
+              }
             }
           } catch (error) {
             console.error('Error loading reply author flairs:', error)
-            flairsMap[reply.id] = generateFlairs({
-              acmRole: reply.authorRole,
-              role: reply.authorRole,
-              degree: reply.authorDegree,
-              semester: reply.authorSemester
-            }, reply.authorIsAdmin || false)
           }
         }
       }

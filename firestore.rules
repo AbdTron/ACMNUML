@@ -63,18 +63,23 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // Admins collection - admins can read all (for role checking), main admin can update permissions
+    // Admins collection - admins can read all (for role checking), main admin can manage admins
     match /admins/{adminId} {
       // Any admin can read admin documents (needed for role checking in User Management)
-      // Main admin can read all, regular admins can read all for role checking
-      allow read: if request.auth != null && isAdmin();
-      // Allow list/query operations for all admins (needed for role checking)
-      allow list: if request.auth != null && isAdmin();
+      // Check if user exists in admins collection - this allows reading any admin document
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      // Allow list/query operations for all admins (needed for role checking and Admin Permissions page)
+      // Check if user exists in admins collection
+      allow list: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      // Main admin can create admin documents (when promoting users to admin)
+      allow create: if request.auth != null && isMainAdmin();
       // Main admin can update admin documents (for permissions management)
       allow update: if request.auth != null && isMainAdmin();
-      // Create/delete still restricted (only via Firebase Console or Admin SDK)
-      allow create: if false;
-      allow delete: if false;
+      // Main admin can delete admin documents (when demoting admins to users)
+      // Note: Application code should prevent deleting main admin documents
+      allow delete: if request.auth != null && isMainAdmin();
     }
     
     // FCM Tokens collection - allow anyone to create/update their own token

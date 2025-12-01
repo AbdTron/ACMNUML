@@ -10,7 +10,9 @@ import {
   FiX,
   FiSave,
   FiUser,
-  FiMail
+  FiMail,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi'
 import { isMainAdmin, ROLES } from '../../utils/permissions'
 import './AdminPermissions.css'
@@ -22,6 +24,7 @@ const AdminPermissions = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [permissions, setPermissions] = useState({}) // { adminId: { feature: true/false } }
+  const [expandedAdmins, setExpandedAdmins] = useState({}) // { adminId: true/false }
 
   // Define all admin features
   const adminFeatures = [
@@ -235,23 +238,41 @@ const AdminPermissions = () => {
                           )}
                         </div>
                       </div>
+                      {!admin.isMainAdmin && (
+                        <button
+                          className="permissions-toggle-btn"
+                          onClick={() => setExpandedAdmins(prev => ({
+                            ...prev,
+                            [admin.id]: !prev[admin.id]
+                          }))}
+                        >
+                          {expandedAdmins[admin.id] ? (
+                            <>
+                              <span>Hide Permissions</span>
+                              <FiChevronUp />
+                            </>
+                          ) : (
+                            <>
+                              <span>Show Permissions</span>
+                              <FiChevronDown />
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
 
-                    <div className="permissions-list">
-                      {adminFeatures.map((feature) => {
-                        const hasPermission = admin.isMainAdmin 
-                          ? true 
-                          : permissions[admin.id]?.[feature.id] || false
-                        const canToggle = !admin.isMainAdmin
+                    {(!admin.isMainAdmin && expandedAdmins[admin.id]) && (
+                      <div className="permissions-list">
+                        {adminFeatures.map((feature) => {
+                          const hasPermission = permissions[admin.id]?.[feature.id] || false
 
-                        return (
-                          <div key={feature.id} className="permission-item">
-                            <div className="permission-info">
-                              <h4>{feature.label}</h4>
-                              <p>{feature.description}</p>
-                            </div>
-                            <div className="permission-toggle">
-                              {canToggle ? (
+                          return (
+                            <div key={feature.id} className="permission-item">
+                              <div className="permission-info">
+                                <h4>{feature.label}</h4>
+                                <p>{feature.description}</p>
+                              </div>
+                              <div className="permission-toggle">
                                 <label className="toggle-switch">
                                   <input
                                     type="checkbox"
@@ -260,17 +281,12 @@ const AdminPermissions = () => {
                                   />
                                   <span className="toggle-slider"></span>
                                 </label>
-                              ) : (
-                                <span className="permission-locked">
-                                  <FiCheck />
-                                  Always Enabled
-                                </span>
-                              )}
+                              </div>
                             </div>
-                          </div>
-                        )
-                      })}
-                    </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -82,7 +82,7 @@ export const generateFlairs = (userData, isAdminOrRole = false) => {
   // Check if user is main admin by role from admins collection
   const adminRole = typeof isAdminOrRole === 'string' ? isAdminOrRole : null
   const isMainAdminUser = adminRole === 'mainadmin'
-  const isAdminUser = isAdminOrRole === true || adminRole === 'admin' || adminRole === 'superadmin' || userData?.role === 'admin' || userData?.role === 'superadmin'
+  const isAdminUser = isAdminOrRole === true || adminRole === 'admin' || userData?.role === 'admin'
   
   if (isMainAdminUser) {
     // Main Admin gets highest priority flair
