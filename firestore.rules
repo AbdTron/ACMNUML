@@ -7,6 +7,15 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
     
+    // Helper function to check if user is main admin
+    // Checks the user's email from the users collection
+    function isMainAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email.toLowerCase() == 'abdullah.irshad@hotmail.com';
+    }
+    
     // Events collection - read only for public
     match /events/{eventId} {
       allow read: if true;
@@ -55,10 +64,20 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // Admins collection - only admins can read
+    // Admins collection - admins can read their own, main admin can read all and update permissions
     match /admins/{adminId} {
-      allow read: if request.auth != null && request.auth.uid == adminId;
-      allow write: if false; // Only set via Firebase Console or Admin SDK
+      // Admins can read their own document, main admin can read all
+      allow read: if request.auth != null && (
+        request.auth.uid == adminId ||
+        isMainAdmin()
+      );
+      // Allow list/query operations for main admin (needed to list all admins)
+      allow list: if request.auth != null && isMainAdmin();
+      // Main admin can update admin documents (for permissions management)
+      allow update: if request.auth != null && isMainAdmin();
+      // Create/delete still restricted (only via Firebase Console or Admin SDK)
+      allow create: if false;
+      allow delete: if false;
     }
     
     // FCM Tokens collection - allow anyone to create/update their own token

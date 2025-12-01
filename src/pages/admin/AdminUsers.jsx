@@ -57,9 +57,11 @@ const AdminUsers = () => {
       const usersData = []
       querySnapshot.forEach((doc) => {
         const data = doc.data()
+        const isMainAdminUser = data.email?.toLowerCase() === MAIN_ADMIN_EMAIL.toLowerCase()
         usersData.push({
           id: doc.id,
           ...data,
+          isMainAdmin: isMainAdminUser,
           joinDate: data.joinDate?.toDate ? data.joinDate.toDate() : (data.joinDate ? new Date(data.joinDate) : null)
         })
       })
