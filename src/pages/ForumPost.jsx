@@ -16,8 +16,10 @@ import {
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
+import { useAuth } from '../context/AuthContext'
 // Flairs are now stored in user profiles and fetched directly
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
+import { getAuthorData, getAuthorDataBatch } from '../utils/authorDataCache'
 import { 
   FiArrowLeft, 
   FiThumbsUp, 
@@ -50,93 +52,45 @@ const ForumPost = () => {
   const [replyAuthorsFlairs, setReplyAuthorsFlairs] = useState({}) // Map of replyId -> flairs
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
-  const [isAdmin, setIsAdmin] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [requestingDeletion, setRequestingDeletion] = useState(false)
   const [editingReplyId, setEditingReplyId] = useState(null)
   const [editReplyContent, setEditReplyContent] = useState('')
+  
+  // Use AuthContext for admin status (already cached)
+  const { isAdmin: isAdminUser, userRole, isMainAdmin: isMainAdminUser } = useAuth()
+  const isAdmin = isAdminUser
+  const isMainAdmin = isMainAdminUser
+  const adminName = userProfile?.name || currentUser?.email?.split('@')[0] || 'Admin'
 
   useEffect(() => {
     fetchPost()
     fetchReplies()
-    checkAdminStatus()
   }, [postId, currentUser])
 
-  const checkAdminStatus = async () => {
-    if (!currentUser || !db) {
-      setIsAdmin(false)
-      setIsMainAdmin(false)
-      setAdminName(null)
-      return
-    }
-    try {
-      const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
-      if (adminDoc.exists()) {
-        const adminData = adminDoc.data()
-        const adminRole = adminData.role || 'admin'
-        setIsAdmin(true)
-        setIsMainAdmin(adminRole === 'mainadmin')
-        
-        // Get admin name from users collection
-        try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
-          if (userDoc.exists()) {
-            setAdminName(userDoc.data().name || currentUser.email?.split('@')[0] || 'Admin')
-          } else {
-            setAdminName(currentUser.email?.split('@')[0] || 'Admin')
-          }
-        } catch (err) {
-          setAdminName(currentUser.email?.split('@')[0] || 'Admin')
-        }
-      } else {
-        setIsAdmin(false)
-        setIsMainAdmin(false)
-        setAdminName(null)
-      }
-    } catch (error) {
-      setIsAdmin(false)
-      setIsMainAdmin(false)
-      setAdminName(null)
-    }
-  }
-
-  // Load author flairs for the post
+  // Load author flairs for the post using cached data
   useEffect(() => {
     const loadPostAuthorFlairs = async () => {
       if (!post || !post.authorId || !db) return
 
-      // If post already has stored flairs, use them
+      // If post already has stored flairs, use them (preferred - no query needed)
       if (post.authorFlairs && post.authorFlairs.length > 0) {
         setPostAuthorFlairs(post.authorFlairs)
       }
 
-      // If post has authorAvatar, use it
+      // If post has authorAvatar, use it (preferred - no query needed)
       if (post.authorAvatar) {
         setPostAuthorAvatar(post.authorAvatar)
       }
 
-      // For backward compatibility: fetch author's current profile
+      // For backward compatibility: fetch author's current profile using cached data
       try {
-        const userDoc = await getDoc(doc(db, 'users', post.authorId))
-        if (userDoc.exists()) {
-          const userProfile = userDoc.data()
-          
+        const { userData: userProfile, adminRole } = await getAuthorData(post.authorId)
+        
+        if (userProfile) {
           // Get avatar from current profile if post doesn't have it
           if (!post.authorAvatar && userProfile.avatar) {
             setPostAuthorAvatar(userProfile.avatar)
-          }
-          
-          // Check if user is admin and get role
-          let isAdmin = false
-          let adminRole = null
-          try {
-            const adminDoc = await getDoc(doc(db, 'admins', post.authorId))
-            if (adminDoc.exists()) {
-              isAdmin = true
-              adminRole = adminDoc.data().role || 'admin'
-            }
-          } catch (err) {
-            // Ignore errors
           }
 
           // Use stored flairs from user profile (computed and stored when profile changes)
@@ -154,48 +108,54 @@ const ForumPost = () => {
     loadPostAuthorFlairs()
   }, [post])
 
-  // Load author flairs for replies
+  // Load author flairs for replies using batch fetch with cache
   useEffect(() => {
     const loadReplyAuthorsFlairs = async () => {
       if (!replies.length || !db) return
 
       const flairsMap = {}
       
-      for (const reply of replies) {
-        // If reply already has stored flairs, use them
-        if (reply.authorFlairs && reply.authorFlairs.length > 0) {
-          flairsMap[reply.id] = reply.authorFlairs
-          continue
-        }
-
-        // For backward compatibility: fetch author's current profile
-        if (reply.authorId) {
-          try {
-            const userDoc = await getDoc(doc(db, 'users', reply.authorId))
-            if (userDoc.exists()) {
-              const userProfile = userDoc.data()
-              
-              let isAdmin = false
-              let adminRole = null
-              try {
-                const adminDoc = await getDoc(doc(db, 'admins', reply.authorId))
-                if (adminDoc.exists()) {
-                  isAdmin = true
-                  adminRole = adminDoc.data().role || 'admin'
+      // Get unique author IDs that need data fetching
+      const authorIdsNeedingData = replies
+        .filter(reply => reply.authorId && (!reply.authorFlairs || reply.authorFlairs.length === 0))
+        .map(reply => reply.authorId)
+      
+      // Remove duplicates
+      const uniqueAuthorIds = [...new Set(authorIdsNeedingData)]
+      
+      // Batch fetch all author data at once (uses cache)
+      if (uniqueAuthorIds.length > 0) {
+        try {
+          const authorsData = await getAuthorDataBatch(uniqueAuthorIds)
+          
+          // Map author data to replies
+          replies.forEach(reply => {
+            // If reply already has stored flairs, use them
+            if (reply.authorFlairs && reply.authorFlairs.length > 0) {
+              flairsMap[reply.id] = reply.authorFlairs
+              return
+            }
+            
+            if (reply.authorId && authorsData.has(reply.authorId)) {
+              const { userData, adminRole } = authorsData.get(reply.authorId)
+              if (userData) {
+                // Use stored flairs from user profile
+                if (userData.flairs && userData.flairs.length > 0) {
+                  flairsMap[reply.id] = userData.flairs
                 }
-              } catch (err) {
-                // Ignore errors
-              }
-
-              // Use stored flairs from user profile (computed and stored when profile changes)
-              if (userProfile.flairs && userProfile.flairs.length > 0) {
-                flairsMap[reply.id] = userProfile.flairs
               }
             }
-          } catch (error) {
-            console.error('Error loading reply author flairs:', error)
-          }
+          })
+        } catch (error) {
+          console.error('Error loading reply author flairs:', error)
         }
+      } else {
+        // All replies already have flairs stored
+        replies.forEach(reply => {
+          if (reply.authorFlairs && reply.authorFlairs.length > 0) {
+            flairsMap[reply.id] = reply.authorFlairs
+          }
+        })
       }
 
       setReplyAuthorsFlairs(flairsMap)
@@ -450,8 +410,11 @@ const ForumPost = () => {
       })
 
       setReplyContent('')
-      fetchReplies()
-      fetchPost()
+      // Refresh both replies and post to get updated replyCount
+      await Promise.all([
+        fetchReplies(),
+        fetchPost() // This ensures replyCount is updated
+      ])
     } catch (error) {
       console.error('Error submitting reply:', error)
       alert('Failed to submit reply')

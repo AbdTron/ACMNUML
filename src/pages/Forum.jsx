@@ -49,11 +49,6 @@ const Forum = () => {
     liked: [],
     disliked: []
   })
-  const [stats, setStats] = useState({
-    totalPosts: 0,
-    totalReplies: 0,
-    activeUsers: 0
-  })
 
   useEffect(() => {
     fetchPosts()
@@ -64,10 +59,6 @@ const Forum = () => {
       fetchUserInteractions()
     }
   }, [showMyPosts, currentUser])
-
-  useEffect(() => {
-    calculateStats()
-  }, [posts])
 
   const fetchPosts = async () => {
     setLoading(true)
@@ -151,26 +142,6 @@ const Forum = () => {
     }
   }
 
-  const calculateStats = async () => {
-    // Count all replies from the forumReplies collection for accurate count
-    let totalReplies = 0
-    try {
-      const repliesSnapshot = await getDocs(collection(db, 'forumReplies'))
-      totalReplies = repliesSnapshot.size
-    } catch (error) {
-      console.error('Error counting replies:', error)
-      // Fallback to post.replyCount if query fails
-      totalReplies = posts.reduce((sum, post) => sum + (post.replyCount || 0), 0)
-    }
-    
-    const uniqueAuthors = new Set(posts.map(post => post.authorId)).size
-
-    setStats({
-      totalPosts: posts.length,
-      totalReplies,
-      activeUsers: uniqueAuthors
-    })
-  }
 
   const filteredPosts = posts.filter(post => {
     // Don't show hidden posts
@@ -237,35 +208,6 @@ const Forum = () => {
               <Link to="/member/login">Login</Link> to create posts and participate in discussions
             </p>
           )}
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="forum-stats-section">
-        <div className="container">
-          <div className="forum-stats-grid">
-            <div className="forum-stat-card">
-              <FiMessageSquare />
-              <div className="stat-info">
-                <span className="stat-value">{stats.totalPosts}</span>
-                <span className="stat-label">Posts</span>
-              </div>
-            </div>
-            <div className="forum-stat-card">
-              <FiTrendingUp />
-              <div className="stat-info">
-                <span className="stat-value">{stats.totalReplies}</span>
-                <span className="stat-label">Replies</span>
-              </div>
-            </div>
-            <div className="forum-stat-card">
-              <FiClock />
-              <div className="stat-info">
-                <span className="stat-value">{stats.activeUsers}</span>
-                <span className="stat-label">Active Users</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

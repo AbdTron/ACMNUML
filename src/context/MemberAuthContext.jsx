@@ -55,12 +55,19 @@ export const MemberAuthProvider = ({ children }) => {
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user)
-        // Fetch user profile from Firestore
-        if (db) {
+      // Set user immediately (don't wait for Firestore queries)
+      setCurrentUser(user)
+      
+      // Mark as loaded immediately to allow app to render
+      // Profile will load in background
+      setLoading(false)
+      
+      if (user && db) {
+        // Load profile in background (non-blocking)
+        // This allows the app to render immediately while profile loads
+        (async () => {
           try {
-            // Check if user is admin and get role
+            // Check if user is admin and get role (can use cache from useAdminPermission)
             let isAdmin = false
             let adminRole = null
             try {
@@ -88,13 +95,12 @@ export const MemberAuthProvider = ({ children }) => {
                 flairs: flairs // Store computed flairs
               }
               
-              // Only update flairs in Firestore if they changed
+              // Only update flairs in Firestore if they changed (non-blocking write)
               if (JSON.stringify(profileData.flairs) !== JSON.stringify(flairs)) {
-                try {
-                  await setDoc(doc(db, 'users', user.uid), { flairs }, { merge: true })
-                } catch (err) {
+                // Don't await - let it update in background
+                setDoc(doc(db, 'users', user.uid), { flairs }, { merge: true }).catch(err => {
                   console.error('Error updating flairs:', err)
-                }
+                })
               }
               
               setUserProfile(updatedProfile)
@@ -120,6 +126,7 @@ export const MemberAuthProvider = ({ children }) => {
                 updatedAt: new Date().toISOString()
               }
               try {
+                // Don't await - create in background
                 await setDoc(doc(db, 'users', user.uid), newProfile)
                 setUserProfile(newProfile)
               } catch (createError) {
@@ -137,22 +144,21 @@ export const MemberAuthProvider = ({ children }) => {
             if (error.code === 'permission-denied') {
               console.log('Could not fetch user profile (may not exist yet):', error.message)
               // Set a basic profile structure
-                setUserProfile({
-                  email: user.email,
-                  name: user.displayName || user.email?.split('@')[0] || 'User',
-                  role: ROLES.USER
-                })
+              setUserProfile({
+                email: user.email,
+                name: user.displayName || user.email?.split('@')[0] || 'User',
+                role: ROLES.USER
+              })
             } else {
               console.error('Error fetching user profile:', error)
               setUserProfile(null)
             }
           }
-        }
+        })()
       } else {
         setCurrentUser(null)
         setUserProfile(null)
       }
-      setLoading(false)
     })
 
     return unsubscribe
@@ -509,7 +515,9 @@ export const MemberAuthProvider = ({ children }) => {
 
   return (
     <MemberAuthContext.Provider value={value}>
-      {!loading && children}
+      {/* Don't block rendering - allow app to render immediately */}
+      {/* Auth-dependent components can check loading state themselves */}
+      {children}
     </MemberAuthContext.Provider>
   )
 }

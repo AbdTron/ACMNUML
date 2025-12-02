@@ -13,14 +13,21 @@ const AdminProtectedRoute = ({ children, featureId }) => {
   const { currentUser, isAdmin, userRole } = useAuth()
   const { hasPermission, loading } = useAdminPermission(featureId)
 
+  // If user is logged in but we're still checking admin status (userRole is null but currentUser exists)
+  // Wait for the check to complete before making decisions
+  if (currentUser && userRole === null) {
+    // Still loading admin status - show nothing (prevents flashing login page)
+    return null
+  }
+
   // First check if user is logged in and is an admin
   if (!currentUser || !isAdmin) {
     return <Navigate to="/admin/login" replace />
   }
 
-  // If loading, show nothing (or a loading spinner)
+  // If loading permissions, show nothing (or a loading spinner)
   if (loading) {
-    return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
+    return null
   }
 
   // Super admin always has access

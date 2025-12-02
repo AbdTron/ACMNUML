@@ -12,6 +12,31 @@ const NotificationPopup = () => {
   useEffect(() => {
     const fetchActiveNotification = async () => {
       if (!db) return
+      
+      // Check cache first (5 minute expiry)
+      const cacheKey = 'notification_cache'
+      const cacheTime = 'notification_cache_time'
+      const cached = localStorage.getItem(cacheKey)
+      const cachedTime = localStorage.getItem(cacheTime)
+      const now = Date.now()
+      const CACHE_EXPIRY = 5 * 60 * 1000 // 5 minutes
+      
+      if (cached && cachedTime && (now - parseInt(cachedTime)) < CACHE_EXPIRY) {
+        try {
+          const notification = JSON.parse(cached)
+          // Check if dismissed
+          if (notification.persistent !== true) {
+            const dismissed = localStorage.getItem(`notification_${notification.id}_dismissed`)
+            if (dismissed) return
+          }
+          setNotification(notification)
+          setIsVisible(true)
+          return
+        } catch (e) {
+          // Cache invalid, fetch fresh
+        }
+      }
+      
       try {
         const notificationsRef = collection(db, 'notifications')
         const q = query(notificationsRef, where('active', '==', true))
@@ -34,6 +59,10 @@ const NotificationPopup = () => {
 
           if (sorted.length) {
             const latest = sorted[0]
+            // Cache the notification
+            localStorage.setItem(cacheKey, JSON.stringify(latest))
+            localStorage.setItem(cacheTime, now.toString())
+            
             // If notification is persistent, always show it regardless of dismissal
             if (latest.persistent === true) {
               setNotification(latest)

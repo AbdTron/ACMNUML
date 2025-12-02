@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { MemberAuthProvider } from './context/MemberAuthContext'
@@ -12,6 +12,8 @@ import ScrollToTop from './components/ScrollToTop'
 import SplashScreen from './components/SplashScreen'
 import NotificationService from './components/NotificationService'
 import { isPWA } from './utils/isPWA'
+
+// Eagerly loaded pages (critical for initial load / homepage)
 import Home from './pages/Home'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
@@ -21,19 +23,6 @@ import Join from './pages/Join'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import DeveloperProfile from './pages/DeveloperProfile'
-import AdminLogin from './pages/admin/AdminLogin'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminEvents from './pages/admin/AdminEvents'
-import AdminNotifications from './pages/admin/AdminNotifications'
-import AdminSettings from './pages/admin/AdminSettings'
-import AdminTeam from './pages/admin/AdminTeam'
-import AdminUsers from './pages/admin/AdminUsers'
-import AdminDefaultPost from './pages/admin/AdminDefaultPost'
-import DefaultPostDetail from './pages/DefaultPostDetail'
-import AdminEventRegistrations from './pages/admin/AdminEventRegistrations'
-import AdminCheckIn from './pages/admin/AdminCheckIn'
-import AdminFormTemplates from './pages/admin/AdminFormTemplates'
-import AdminGallery from './pages/admin/AdminGallery'
 import MemberLogin from './pages/MemberLogin'
 import EventRegister from './pages/EventRegister'
 import MemberDashboard from './pages/member/MemberDashboard'
@@ -45,14 +34,29 @@ import MemberProfilePublic from './pages/MemberProfilePublic'
 import VerifyEmail from './pages/VerifyEmail'
 import VerifyDisplayEmail from './pages/VerifyDisplayEmail'
 import Feedback from './pages/Feedback'
-import Forum from './pages/Forum'
-import ForumPost from './pages/ForumPost'
-import CreateForumPost from './pages/CreateForumPost'
-import AdminFeedback from './pages/admin/AdminFeedback'
-import AdminForum from './pages/admin/AdminForum'
-import AdminUserRequests from './pages/admin/AdminUserRequests'
-import AdminPermissions from './pages/admin/AdminPermissions'
+import DefaultPostDetail from './pages/DefaultPostDetail'
 import ProfileOnboarding from './pages/ProfileOnboarding'
+
+// Lazy loaded pages (Forum and Admin pages - loaded on demand to reduce initial bundle size)
+const Forum = lazy(() => import('./pages/Forum'))
+const ForumPost = lazy(() => import('./pages/ForumPost'))
+const CreateForumPost = lazy(() => import('./pages/CreateForumPost'))
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminEvents = lazy(() => import('./pages/admin/AdminEvents'))
+const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'))
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminTeam = lazy(() => import('./pages/admin/AdminTeam'))
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminDefaultPost = lazy(() => import('./pages/admin/AdminDefaultPost'))
+const AdminEventRegistrations = lazy(() => import('./pages/admin/AdminEventRegistrations'))
+const AdminCheckIn = lazy(() => import('./pages/admin/AdminCheckIn'))
+const AdminFormTemplates = lazy(() => import('./pages/admin/AdminFormTemplates'))
+const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'))
+const AdminFeedback = lazy(() => import('./pages/admin/AdminFeedback'))
+const AdminForum = lazy(() => import('./pages/admin/AdminForum'))
+const AdminUserRequests = lazy(() => import('./pages/admin/AdminUserRequests'))
+const AdminPermissions = lazy(() => import('./pages/admin/AdminPermissions'))
 
 function App() {
   const [showSplash, setShowSplash] = useState(false)
@@ -90,166 +94,168 @@ function App() {
           <InstallPrompt />
           <NotificationService />
           <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/events/:eventId" element={<EventDetail />} />
-              <Route path="/events/:eventId/register" element={<EventRegister />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/join" element={<Join />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/developer" element={<DeveloperProfile />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/events"
-                element={
-                  <AdminProtectedRoute featureId="manageEvents">
-                    <AdminEvents />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/notifications"
-                element={
-                  <AdminProtectedRoute featureId="notifications">
-                    <AdminNotifications />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/settings"
-                element={
-                  <AdminProtectedRoute featureId="settings">
-                    <AdminSettings />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/default-post"
-                element={
-                  <AdminProtectedRoute featureId="settings">
-                    <AdminDefaultPost />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route path="/default-post" element={<DefaultPostDetail />} />
-              <Route
-                path="/admin/team"
-                element={
-                  <AdminProtectedRoute featureId="teamProfiles">
-                    <AdminTeam />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <AdminProtectedRoute featureId="userManagement">
-                    <AdminUsers />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/registrations"
-                element={
-                  <ProtectedRoute>
-                    <AdminEventRegistrations />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/checkin"
-                element={
-                  <ProtectedRoute>
-                    <AdminCheckIn />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/form-templates"
-                element={
-                  <AdminProtectedRoute featureId="formTemplates">
-                    <AdminFormTemplates />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/gallery"
-                element={
-                  <AdminProtectedRoute featureId="galleries">
-                    <AdminGallery />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route path="/member/login" element={<MemberLogin />} />
-              <Route path="/member/onboarding" element={<ProfileOnboarding />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/verify-display-email" element={<VerifyDisplayEmail />} />
-              <Route
-                path="/member"
-                element={<MemberDashboard />}
-              />
-              <Route
-                path="/member/profile"
-                element={<MemberProfile />}
-              />
-              <Route
-                path="/member/events"
-                element={<MemberEvents />}
-              />
-              <Route
-                path="/member/certificates"
-                element={<MemberCertificates />}
-              />
-              <Route path="/members" element={<MemberDirectory />} />
-              <Route path="/members/:memberId" element={<MemberProfilePublic />} />
-              <Route path="/feedback" element={<Feedback />} />
-              <Route path="/forum" element={<Forum />} />
-              <Route path="/forum/new" element={<CreateForumPost />} />
-              <Route path="/forum/:postId" element={<ForumPost />} />
-              <Route
-                path="/admin/feedback"
-                element={
-                  <AdminProtectedRoute featureId="feedback">
-                    <AdminFeedback />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/forum"
-                element={
-                  <AdminProtectedRoute featureId="forumModeration">
-                    <AdminForum />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/user-requests"
-                element={
-                  <AdminProtectedRoute featureId="userRequests">
-                    <AdminUserRequests />
-                  </AdminProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/permissions"
-                element={
-                  <ProtectedRoute>
-                    <AdminPermissions />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            <Suspense fallback={null}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/events/:eventId" element={<EventDetail />} />
+                <Route path="/events/:eventId/register" element={<EventRegister />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/join" element={<Join />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/developer" element={<DeveloperProfile />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/events"
+                  element={
+                    <AdminProtectedRoute featureId="manageEvents">
+                      <AdminEvents />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/notifications"
+                  element={
+                    <AdminProtectedRoute featureId="notifications">
+                      <AdminNotifications />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings"
+                  element={
+                    <AdminProtectedRoute featureId="settings">
+                      <AdminSettings />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/default-post"
+                  element={
+                    <AdminProtectedRoute featureId="settings">
+                      <AdminDefaultPost />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route path="/default-post" element={<DefaultPostDetail />} />
+                <Route
+                  path="/admin/team"
+                  element={
+                    <AdminProtectedRoute featureId="teamProfiles">
+                      <AdminTeam />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <AdminProtectedRoute featureId="userManagement">
+                      <AdminUsers />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/registrations"
+                  element={
+                    <ProtectedRoute>
+                      <AdminEventRegistrations />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/checkin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminCheckIn />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/form-templates"
+                  element={
+                    <AdminProtectedRoute featureId="formTemplates">
+                      <AdminFormTemplates />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/gallery"
+                  element={
+                    <AdminProtectedRoute featureId="galleries">
+                      <AdminGallery />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route path="/member/login" element={<MemberLogin />} />
+                <Route path="/member/onboarding" element={<ProfileOnboarding />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/verify-display-email" element={<VerifyDisplayEmail />} />
+                <Route
+                  path="/member"
+                  element={<MemberDashboard />}
+                />
+                <Route
+                  path="/member/profile"
+                  element={<MemberProfile />}
+                />
+                <Route
+                  path="/member/events"
+                  element={<MemberEvents />}
+                />
+                <Route
+                  path="/member/certificates"
+                  element={<MemberCertificates />}
+                />
+                <Route path="/members" element={<MemberDirectory />} />
+                <Route path="/members/:memberId" element={<MemberProfilePublic />} />
+                <Route path="/feedback" element={<Feedback />} />
+                <Route path="/forum" element={<Forum />} />
+                <Route path="/forum/new" element={<CreateForumPost />} />
+                <Route path="/forum/:postId" element={<ForumPost />} />
+                <Route
+                  path="/admin/feedback"
+                  element={
+                    <AdminProtectedRoute featureId="feedback">
+                      <AdminFeedback />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/forum"
+                  element={
+                    <AdminProtectedRoute featureId="forumModeration">
+                      <AdminForum />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/user-requests"
+                  element={
+                    <AdminProtectedRoute featureId="userRequests">
+                      <AdminUserRequests />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/permissions"
+                  element={
+                    <ProtectedRoute>
+                      <AdminPermissions />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Suspense>
           </main>
           <Footer />
         </div>

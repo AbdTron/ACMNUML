@@ -18,7 +18,7 @@ import {
   FiEdit3
 } from 'react-icons/fi'
 import { isMainAdmin, ROLES } from '../../utils/permissions'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, query, getCountFromServer } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useState, useEffect } from 'react'
 import { useAdminPermissions } from '../../hooks/useAdminPermission'
@@ -45,34 +45,36 @@ const AdminDashboard = () => {
         return
       }
       try {
-      const [eventsSnap, notificationsSnap, teamSnap, gallerySnap, contactsSnap, usersSnap] = await Promise.all([
-          getDocs(collection(db, 'events')),
-          getDocs(collection(db, 'notifications')),
-          getDocs(collection(db, 'team')),
-          getDocs(collection(db, 'gallery')),
-        getDocs(collection(db, 'contacts')),
-        getDocs(collection(db, 'users'))
+        // Use count aggregation queries instead of fetching all documents
+        // This is much more efficient - only counts, doesn't fetch data
+        const [eventsCount, notificationsCount, teamCount, galleryCount, contactsCount, usersCount] = await Promise.all([
+          getCountFromServer(query(collection(db, 'events'))),
+          getCountFromServer(query(collection(db, 'notifications'))),
+          getCountFromServer(query(collection(db, 'team'))),
+          getCountFromServer(query(collection(db, 'gallery'))),
+          getCountFromServer(query(collection(db, 'contacts'))),
+          getCountFromServer(query(collection(db, 'users')))
         ])
 
         setStats({
-          events: eventsSnap.size,
-          notifications: notificationsSnap.size,
-          teamMembers: teamSnap.size,
-          galleryImages: gallerySnap.size,
-        contacts: contactsSnap.size,
-        users: usersSnap.size
+          events: eventsCount.data().count,
+          notifications: notificationsCount.data().count,
+          teamMembers: teamCount.data().count,
+          galleryImages: galleryCount.data().count,
+          contacts: contactsCount.data().count,
+          users: usersCount.data().count
         })
       } catch (error) {
         console.error('Error fetching stats:', error)
-      // Show more specific error message
-      if (error.code === 'permission-denied') {
-        alert('Permission denied. Please make sure you are logged in as an admin and that Firestore rules are deployed.')
-      } else {
-        alert(`Error loading statistics: ${error.message}. Please refresh the page.`)
-      }
+        // Show more specific error message
+        if (error.code === 'permission-denied') {
+          alert('Permission denied. Please make sure you are logged in as an admin and that Firestore rules are deployed.')
+        } else {
+          alert(`Error loading statistics: ${error.message}. Please refresh the page.`)
+        }
       } finally {
         setLoading(false)
-      setRefreshing(false)
+        setRefreshing(false)
       }
     }
 

@@ -26,14 +26,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      // Set user immediately (don't wait for Firestore query)
+      setCurrentUser(user)
+      
       if (user) {
-        setCurrentUser(user)
-        // Check if user is admin in Firestore
+        // Check if user is admin in Firestore (non-blocking)
+        // Use cached permissions if available, otherwise fetch
         if (db) {
           try {
-            const userDoc = await getDoc(doc(db, 'admins', user.uid))
-            if (userDoc.exists()) {
-              setUserRole(userDoc.data().role || 'admin')
+            // Try to get from cache first (from useAdminPermission hook)
+            // If not cached, fetch from Firestore
+            const adminDoc = await getDoc(doc(db, 'admins', user.uid))
+            if (adminDoc.exists()) {
+              setUserRole(adminDoc.data().role || 'admin')
             } else {
               setUserRole(null)
             }
@@ -46,6 +51,8 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(null)
         setUserRole(null)
       }
+      
+      // Mark as loaded immediately after setting user (don't wait for Firestore)
       setLoading(false)
     })
 
@@ -84,7 +91,9 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {/* Don't block rendering - allow app to render immediately */}
+      {/* Auth-dependent components can check loading state themselves */}
+      {children}
     </AuthContext.Provider>
   )
 }

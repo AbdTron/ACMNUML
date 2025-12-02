@@ -8,10 +8,9 @@ import {
   FiUser,
   FiTag
 } from 'react-icons/fi'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../config/firebase'
 import { generateFlairs } from '../utils/flairUtils'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
+import { getAuthorData } from '../utils/authorDataCache'
 import './ForumPostCard.css'
 
 const ForumPostCard = ({ post, showCategory = true }) => {
@@ -35,54 +34,64 @@ const ForumPostCard = ({ post, showCategory = true }) => {
 
   useEffect(() => {
     const loadAuthorData = async () => {
-      // If post already has stored flairs, use them
+      // If post already has stored flairs, use them (preferred - no query needed)
       if (post.authorFlairs && post.authorFlairs.length > 0) {
         setAuthorFlairs(post.authorFlairs)
       }
 
-      // If post has authorAvatar, use it
+      // If post has authorAvatar, use it (preferred - no query needed)
       if (post.authorAvatar) {
         setAuthorAvatar(post.authorAvatar)
       }
 
-      // For backward compatibility: fetch author's current profile to get accurate flairs and avatar
-      if (post.authorId && db) {
+      // For backward compatibility: fetch author's current profile using cached data
+      // This uses a shared cache to avoid N+1 queries when multiple posts have the same author
+      if (post.authorId) {
         try {
-          // Fetch author's current profile
-          const userDoc = await getDoc(doc(db, 'users', post.authorId))
-          if (userDoc.exists()) {
-            const userProfile = userDoc.data()
-            
+          // Use cached author data (fetches only if not cached or expired)
+          const { userData: userProfile, adminRole } = await getAuthorData(post.authorId)
+          
+          if (userProfile) {
             // Get avatar from current profile if post doesn't have it
             if (!post.authorAvatar && userProfile.avatar) {
               setAuthorAvatar(userProfile.avatar)
-            }
-            
-            // Check if user is admin and get role
-            let isAdmin = false
-            let adminRole = null
-            try {
-              const adminDoc = await getDoc(doc(db, 'admins', post.authorId))
-              if (adminDoc.exists()) {
-                isAdmin = true
-                adminRole = adminDoc.data().role || 'admin'
-              }
-            } catch (err) {
-              // Ignore errors checking admin status
             }
 
             // Use stored flairs from user profile (computed and stored when profile changes)
             if (!post.authorFlairs || post.authorFlairs.length === 0) {
               if (userProfile.flairs && userProfile.flairs.length > 0) {
+                // Use pre-computed flairs from profile
                 setAuthorFlairs(userProfile.flairs)
+              } else {
+                // Generate flairs dynamically from profile data
+                const flairs = generateFlairs(
+                  {
+                    acmRole: userProfile.acmRole,
+                    role: userProfile.role,
+                    degree: userProfile.degree,
+                    semester: userProfile.semester
+                  },
+                  adminRole || false
+                )
+                setAuthorFlairs(flairs)
               }
             }
           }
         } catch (error) {
           console.error('Error loading author data:', error)
+          // Fallback to old post data if fetch fails
+          if (!post.authorFlairs || post.authorFlairs.length === 0) {
+            const flairs = generateFlairs({
+              acmRole: post.authorRole,
+              role: post.authorRole,
+              degree: post.authorDegree,
+              semester: post.authorSemester
+            }, post.authorIsAdmin || false)
+            setAuthorFlairs(flairs)
+          }
         }
       } else {
-        // Fallback to old post data
+        // Fallback to old post data if no authorId
         if (!post.authorFlairs || post.authorFlairs.length === 0) {
           const flairs = generateFlairs({
             acmRole: post.authorRole,
