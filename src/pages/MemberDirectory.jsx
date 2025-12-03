@@ -6,6 +6,7 @@ import { FiSearch, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiS
 import { ROLES } from '../utils/permissions'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
+import ChatButton from '../components/ChatButton'
 import './MemberDirectory.css'
 
 const MemberDirectory = () => {
@@ -252,6 +253,13 @@ const MemberDirectory = () => {
                     </div>
                   </Link>
                   <div className="member-social">
+                    <ChatButton 
+                      userId={member.id} 
+                      userEmail={member.emailType === 'display' && member.displayEmail && member.displayEmailVerified 
+                        ? member.displayEmail 
+                        : member.email}
+                      className="member-chat-button"
+                    />
                     {member.website && (
                       <a
                         href={member.website}

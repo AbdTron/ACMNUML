@@ -4,6 +4,8 @@
   "description": "ACM Society Website for NUML University",
   "private": true,
   "dependencies": {
+    "@cometchat/calls-sdk-javascript": "^4.2.1",
+    "@cometchat/chat-uikit-react": "^6.3.5",
     "@emailjs/browser": "^4.4.1",
     "@supabase/supabase-js": "^2.44.2",
     "date-fns": "^2.30.0",
@@ -17,7 +19,10 @@
     "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.0.0",
     "vite": "^5.0.8"
   },
   "scripts": {

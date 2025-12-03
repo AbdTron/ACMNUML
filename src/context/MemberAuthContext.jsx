@@ -412,6 +412,17 @@ export const MemberAuthProvider = ({ children }) => {
   }
 
   const updateProfile = async (updates) => {
+    // Sync to CometChat if user profile is updated
+    if (currentUser && (updates.name || updates.avatar || updates.photoURL)) {
+      try {
+        // Import CometChat context dynamically to avoid circular dependency
+        const { useCometChat } = await import('./CometChatContext')
+        // Note: We can't use hooks here, so we'll handle sync in CometChatContext
+        // The CometChatContext already watches for userProfile changes
+      } catch (e) {
+        console.warn('Could not sync to CometChat:', e)
+      }
+    }
     if (!db || !currentUser) {
       throw new Error('User not authenticated')
     }

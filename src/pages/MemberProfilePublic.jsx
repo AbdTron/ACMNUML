@@ -6,6 +6,7 @@ import { FiArrowLeft, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, 
 import { format } from 'date-fns'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
+import ChatButton from '../components/ChatButton'
 import './MemberProfilePublic.css'
 
 const MemberProfilePublic = () => {
@@ -105,7 +106,16 @@ const MemberProfilePublic = () => {
               })()}
             </div>
             <div className="profile-info">
-              <h1>{member.name || 'Member'}</h1>
+              <div className="profile-header-row">
+                <h1>{member.name || 'Member'}</h1>
+                <ChatButton 
+                  userId={member.id} 
+                  userEmail={member.emailType === 'display' && member.displayEmail && member.displayEmailVerified 
+                    ? member.displayEmail 
+                    : member.email}
+                  className="profile-chat-button"
+                />
+              </div>
               {member.bio && (
                 <p className="profile-bio">{member.bio}</p>
               )}

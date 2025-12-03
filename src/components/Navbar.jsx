@@ -4,6 +4,7 @@ import { FiMenu, FiX, FiShield, FiMoon, FiSun, FiUser } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useMemberAuth } from '../context/MemberAuthContext'
 import { useTheme } from '../context/ThemeContext'
+import ChatWidget from './ChatWidget'
 import acmLogo from '../assets/acmlog.png'
 import './Navbar.css'
 
@@ -123,6 +124,7 @@ const Navbar = () => {
         </ul>
 
         <div className="navbar-actions">
+          {memberUser && <ChatWidget />}
           <button
             className="theme-toggle"
             onClick={toggleTheme}

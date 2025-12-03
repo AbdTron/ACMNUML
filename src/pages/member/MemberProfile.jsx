@@ -7,6 +7,7 @@ import { sendDisplayEmailVerification } from '../../utils/emailService'
 import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCircle, FiHash, FiBookOpen, FiClock, FiUsers, FiSun, FiMoon, FiAward, FiLock, FiSend } from 'react-icons/fi'
 import { DEPARTMENTS, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../../utils/universityData'
 import AvatarSelector from '../../components/AvatarSelector'
+import ChatSettings from '../../components/ChatSettings'
 import './MemberProfile.css'
 
 const MemberProfile = () => {
@@ -1051,6 +1052,8 @@ const MemberProfile = () => {
             </Link>
           </div>
         </form>
+
+        <ChatSettings />
       </div>
     </div>
   )
