@@ -150,10 +150,19 @@ export const CometChatProvider = ({ children }) => {
       if (Array.isArray(avatarUrl)) {
         avatarUrl = avatarUrl[0]
       }
+
+      let finalAvatar = ''
       if (typeof avatarUrl === 'string' && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))) {
-        user.setAvatar(avatarUrl)
+        finalAvatar = avatarUrl
       } else {
-        user.setAvatar('')
+        // CometChat requires a valid avatar URL - use UI Avatars as default
+        const userName = profile?.name || firebaseUser.displayName || 'User'
+        finalAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=200`
+      }
+
+      console.log('[CometChat] Setting avatar for user:', user.getUid(), 'to:', finalAvatar)
+      if (finalAvatar) {
+        user.setAvatar(finalAvatar)
       }
 
       // Set chat settings in metadata
