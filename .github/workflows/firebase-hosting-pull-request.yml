@@ -18,7 +18,13 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
+      - name: Build with environment variables
+        env:
+          VITE_COMETCHAT_APP_ID: ${{ secrets.VITE_COMETCHAT_APP_ID }}
+          VITE_COMETCHAT_REGION: ${{ secrets.VITE_COMETCHAT_REGION }}
+          VITE_COMETCHAT_AUTH_KEY: ${{ secrets.VITE_COMETCHAT_AUTH_KEY }}
+          VITE_COMETCHAT_REST_API_KEY: ${{ secrets.VITE_COMETCHAT_REST_API_KEY }}
+        run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
