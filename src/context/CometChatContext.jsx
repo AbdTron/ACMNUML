@@ -294,14 +294,24 @@ export const CometChatProvider = ({ children }) => {
     try {
       const user = await CometChat.getUser(uid.toLowerCase())
       if (user && user.metadata) {
-        const metadata = JSON.parse(user.metadata)
-        return {
-          chatEnabled: metadata.chatEnabled !== undefined ? metadata.chatEnabled : true,
-          chatAllowList: Array.isArray(metadata.chatAllowList) ? metadata.chatAllowList : [],
+        try {
+          // Handle case where metadata might not be a string
+          const metadataStr = typeof user.metadata === 'string' ? user.metadata : JSON.stringify(user.metadata)
+          const metadata = JSON.parse(metadataStr)
+          return {
+            chatEnabled: metadata.chatEnabled !== undefined ? metadata.chatEnabled : true,
+            chatAllowList: Array.isArray(metadata.chatAllowList) ? metadata.chatAllowList : [],
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse chat settings metadata for user', uid, '- using defaults')
+          return { chatEnabled: true, chatAllowList: [] }
         }
       }
     } catch (error) {
-      console.error('Failed to get chat settings:', error)
+      // Don't log 404 errors - just means user hasn't been created in CometChat yet
+      if (error.code !== 'ERR_UID_NOT_FOUND') {
+        console.error('Failed to get chat settings:', error)
+      }
     }
     return { chatEnabled: true, chatAllowList: [] }
   }, [isInitialized])
