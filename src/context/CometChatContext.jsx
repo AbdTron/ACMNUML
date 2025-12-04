@@ -128,7 +128,7 @@ export const CometChatProvider = ({ children }) => {
       }
 
       try {
-        existingUser = await CometChat.getUser(firebaseUser.uid)
+        existingUser = await CometChat.getUser(firebaseUser.uid.toLowerCase())
         if (existingUser?.metadata) {
           try {
             const parsed = JSON.parse(existingUser.metadata)
@@ -142,7 +142,9 @@ export const CometChatProvider = ({ children }) => {
         console.log('CometChat user not found, will create new user')
       }
 
-      const user = new CometChat.User(firebaseUser.uid)
+      // CometChat normalizes UIDs to lowercase, so we need to use lowercase Firebase UID
+      const normalizedUid = firebaseUser.uid.toLowerCase()
+      const user = new CometChat.User(normalizedUid)
       user.setName(profile?.name || firebaseUser.displayName || 'Anonymous')
 
       // Ensure avatar is a valid URL string
@@ -160,7 +162,7 @@ export const CometChatProvider = ({ children }) => {
         finalAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=200`
       }
 
-      console.log('[CometChat] Setting avatar for user:', user.getUid(), 'to:', finalAvatar)
+      console.log('[CometChat] Setting avatar for user:', normalizedUid, 'to:', finalAvatar)
       if (finalAvatar) {
         user.setAvatar(finalAvatar)
       }
@@ -203,7 +205,7 @@ export const CometChatProvider = ({ children }) => {
         // Check if already logged in
         try {
           const loggedInUser = await CometChatUIKit.getLoggedinUser()
-          if (loggedInUser && loggedInUser.getUid() === currentUser.uid) {
+          if (loggedInUser && loggedInUser.getUid() === currentUser.uid.toLowerCase()) {
             setIsLoggedIn(true)
             setCometChatUser(loggedInUser)
             console.log('CometChat user already logged in:', currentUser.uid)
@@ -222,8 +224,8 @@ export const CometChatProvider = ({ children }) => {
           return
         }
 
-        // Then login
-        const loginSuccess = await login(currentUser.uid)
+        // Then login (use lowercase UID)
+        const loginSuccess = await login(currentUser.uid.toLowerCase())
         if (!loginSuccess) {
           setIsLoggedIn(false)
           setCometChatUser(null)
@@ -272,7 +274,7 @@ export const CometChatProvider = ({ children }) => {
   const getChatSettings = useCallback(async (uid) => {
     if (!isInitialized) return null
     try {
-      const user = await CometChat.getUser(uid)
+      const user = await CometChat.getUser(uid.toLowerCase())
       if (user && user.metadata) {
         const metadata = JSON.parse(user.metadata)
         return {
@@ -290,7 +292,7 @@ export const CometChatProvider = ({ children }) => {
   const updateChatSettings = useCallback(async (uid, settings) => {
     if (!isInitialized) return false
     try {
-      const user = await CometChat.getUser(uid)
+      const user = await CometChat.getUser(uid.toLowerCase())
       if (user) {
         const currentMetadata = user.metadata ? JSON.parse(user.metadata) : {}
         const newMetadata = { ...currentMetadata, ...settings }
