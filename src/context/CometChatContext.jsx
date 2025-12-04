@@ -174,14 +174,32 @@ export const CometChatProvider = ({ children }) => {
       console.log('[DEBUG] Using REST_API_KEY:', COMETCHAT_CONFIG.REST_API_KEY ? 'Present ✓' : 'Missing ✗')
       console.log('[DEBUG] REST_API_KEY first 10 chars:', COMETCHAT_CONFIG.REST_API_KEY?.substring(0, 10))
 
-      if (existingUser) {
-        console.log('Updating existing CometChat user with REST_API_KEY')
-        await CometChat.updateUser(user, COMETCHAT_CONFIG.REST_API_KEY)
-        console.log('CometChat user updated successfully')
-      } else {
-        console.log('Creating new CometChat user with REST_API_KEY')
-        await CometChat.createUser(user, COMETCHAT_CONFIG.REST_API_KEY)
-        console.log('CometChat user created successfully')
+      // Try to create or update user
+      try {
+        if (existingUser) {
+          console.log('Updating existing CometChat user with REST_API_KEY')
+          await CometChat.updateUser(user, COMETCHAT_CONFIG.REST_API_KEY)
+          console.log('CometChat user updated successfully')
+        } else {
+          console.log('Creating new CometChat user with REST_API_KEY')
+          await CometChat.createUser(user, COMETCHAT_CONFIG.REST_API_KEY)
+          console.log('CometChat user created successfully')
+        }
+      } catch (createUpdateError) {
+        // If user already exists (but we couldn't retrieve it), try updating instead
+        if (createUpdateError.code === 'ERR_UID_ALREADY_EXISTS') {
+          console.log('User already exists, attempting to update instead...')
+          try {
+            await CometChat.updateUser(user, COMETCHAT_CONFIG.REST_API_KEY)
+            console.log('CometChat user updated successfully after existence check')
+          } catch (updateError) {
+            console.error('Failed to update existing user:', updateError)
+            throw updateError
+          }
+        } else {
+          // Re-throw other errors
+          throw createUpdateError
+        }
       }
 
       setCometChatUser(user)
