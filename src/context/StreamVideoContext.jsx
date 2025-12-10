@@ -103,7 +103,13 @@ export const StreamVideoProvider = ({ children }) => {
         if (!videoClient || !currentUser) return null
 
         try {
-            const callId = `${currentUser.uid.toLowerCase()}_${targetUserId.toLowerCase()}_${Date.now()}`
+            // Generate a short call ID (max 64 chars)
+            // Use first 8 chars of each user ID + timestamp
+            const uid1 = currentUser.uid.toLowerCase().slice(0, 10)
+            const uid2 = targetUserId.toLowerCase().slice(0, 10)
+            const ts = Date.now().toString(36) // Base36 for shorter timestamp
+            const callId = `call_${uid1}_${uid2}_${ts}`
+
             const call = videoClient.call(callType, callId)
 
             await call.getOrCreate({

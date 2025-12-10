@@ -14,6 +14,7 @@ import {
     Window,
     useChannelStateContext,
     useMessageInputContext,
+    useChatContext,
     Attachment,
 } from 'stream-chat-react'
 import { FiArrowLeft, FiVideo, FiPhone, FiMic, FiPaperclip, FiSmile, FiSend, FiX, FiSquare, FiMessageSquare } from 'react-icons/fi'
@@ -102,14 +103,14 @@ const CustomChannelHeader = () => {
 // Custom Message Input with Voice Notes, File Upload, and Emoji Picker
 const CustomMessageInput = () => {
     const {
-        text,
+        text = '',
         handleChange,
         handleSubmit,
         uploadNewFiles,
         attachments = [],
         removeAttachments,
         isUploadEnabled,
-    } = useMessageInputContext()
+    } = useMessageInputContext() || {}
 
     const [isRecording, setIsRecording] = useState(false)
     const [recordingTime, setRecordingTime] = useState(0)
@@ -346,13 +347,72 @@ const CustomMessageInput = () => {
     )
 }
 
+// Main Chat Content that uses Stream Chat's context for channel management
+const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) => {
+    const { channel } = useChatContext()
+
+    // Debug log
+    useEffect(() => {
+        console.log('[Stream Chat] Channel from context:', channel?.cid || 'none')
+    }, [channel])
+
+    return (
+        <div className="stream-chat-container">
+            {/* Channel List Sidebar */}
+            <div className={`stream-chat-sidebar ${!channel ? 'show' : showChannelList ? 'show' : 'hide'}`}>
+                <div className="sidebar-header">
+                    <h2>Messages</h2>
+                </div>
+                <ChannelList
+                    filters={{
+                        type: 'messaging',
+                        members: { $in: [client.userID] },
+                    }}
+                    sort={{ last_message_at: -1 }}
+                    options={{ limit: 30 }}
+                    showChannelSearch
+                    additionalChannelSearchProps={{
+                        searchForChannels: true,
+                        searchQueryParams: {
+                            channelFilters: {
+                                filters: { members: { $in: [client.userID] } },
+                            },
+                        },
+                    }}
+                />
+            </div>
+
+            {/* Main Chat Area */}
+            <div className={`stream-chat-main ${channel ? 'show' : 'hide'}`}>
+                {channel ? (
+                    <Channel>
+                        <Window>
+                            <CustomChannelHeader onBack={() => setShowChannelList(true)} />
+                            <MessageList />
+                            <MessageInput />
+                        </Window>
+                        <Thread />
+                    </Channel>
+                ) : (
+                    <div className="no-channel-selected">
+                        <div className="no-channel-content">
+                            <FiMessageSquare className="no-channel-icon" />
+                            <h3>Select a conversation</h3>
+                            <p>Choose a chat from the list or start a new one</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
 const StreamChatPage = () => {
     const { userId } = useParams()
     const { currentUser } = useMemberAuth()
     const { client, isConnected, isLoading } = useStreamChat()
     const { activeCall } = useStreamVideo()
     const navigate = useNavigate()
-    const [activeChannel, setActiveChannel] = useState(null)
     const [showChannelList, setShowChannelList] = useState(true)
 
     // Setup notifications
@@ -403,12 +463,15 @@ const StreamChatPage = () => {
                     return
                 }
 
+                // Create or get the channel
                 const channel = client.channel('messaging', {
                     members: [client.userID, targetUserId],
                 })
 
+                // Watch the channel and let Stream Chat set it as active
                 await channel.watch()
-                setActiveChannel(channel)
+                // The ChatContent component will detect this via useChatContext
+                console.log('[Stream Chat] Direct message channel ready:', channel.cid)
                 setShowChannelList(false)
             } catch (error) {
                 console.error('Failed to open direct message:', error)
@@ -418,18 +481,6 @@ const StreamChatPage = () => {
         openDirectMessage()
     }, [client, isConnected, userId])
 
-    // Handle channel selection
-    const handleChannelSelect = useCallback((channel) => {
-        setActiveChannel(channel)
-        setShowChannelList(false)
-    }, [])
-
-    // Handle back to channel list (mobile)
-    const handleBackToList = useCallback(() => {
-        setActiveChannel(null)
-        setShowChannelList(true)
-        navigate('/chat')
-    }, [navigate])
 
     if (!currentUser) {
         return (
@@ -478,54 +529,12 @@ const StreamChatPage = () => {
     return (
         <div className="stream-chat-page">
             <Chat client={client} theme="str-chat__theme-light">
-                <div className="stream-chat-container">
-                    {/* Channel List Sidebar */}
-                    <div className={`stream-chat-sidebar ${showChannelList ? 'show' : 'hide'}`}>
-                        <div className="sidebar-header">
-                            <h2>Messages</h2>
-                        </div>
-                        <ChannelList
-                            filters={{
-                                type: 'messaging',
-                                members: { $in: [client.userID] },
-                            }}
-                            sort={{ last_message_at: -1 }}
-                            options={{ limit: 30 }}
-                            showChannelSearch
-                            onSelect={handleChannelSelect}
-                            additionalChannelSearchProps={{
-                                searchForChannels: true,
-                                searchQueryParams: {
-                                    channelFilters: {
-                                        filters: { members: { $in: [client.userID] } },
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-
-                    {/* Main Chat Area */}
-                    <div className={`stream-chat-main ${!showChannelList ? 'show' : 'hide'}`}>
-                        {activeChannel ? (
-                            <Channel channel={activeChannel} Input={CustomMessageInput}>
-                                <Window>
-                                    <CustomChannelHeader />
-                                    <MessageList />
-                                    <MessageInput Input={CustomMessageInput} />
-                                </Window>
-                                <Thread />
-                            </Channel>
-                        ) : (
-                            <div className="no-channel-selected">
-                                <div className="no-channel-content">
-                                    <FiMessageSquare className="no-channel-icon" />
-                                    <h3>Select a conversation</h3>
-                                    <p>Choose a chat from the list or start a new one</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <ChatContent
+                    showChannelList={showChannelList}
+                    setShowChannelList={setShowChannelList}
+                    userId={userId}
+                    client={client}
+                />
             </Chat>
         </div>
     )

@@ -702,3 +702,247 @@
     --str-chat__secondary-surface-color: #16213e;
     --str-chat__text-color: #ffffff;
 }
+
+/* Stream Chat MessageInput Overrides - Light Theme */
+.str-chat__message-input {
+    background: #f3f4f6 !important;
+    border-radius: 24px !important;
+    padding: 8px 16px !important;
+    margin: 12px !important;
+}
+
+.str-chat__message-input-inner {
+    background: transparent !important;
+}
+
+.str-chat__message-textarea-container {
+    background: transparent !important;
+}
+
+.str-chat__message-textarea {
+    background: transparent !important;
+    color: #1a1a2e !important;
+    font-size: 15px !important;
+}
+
+.str-chat__message-textarea::placeholder {
+    color: #6b7280 !important;
+}
+
+.str-chat__input-flat {
+    background: #f3f4f6 !important;
+    border-radius: 24px !important;
+}
+
+/* Stream Chat MessageInput Overrides - Dark Theme */
+[data-theme="dark"] .str-chat__message-input {
+    background: #2d2d4a !important;
+}
+
+[data-theme="dark"] .str-chat__message-textarea {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .str-chat__message-textarea::placeholder {
+    color: #9ca3af !important;
+}
+
+[data-theme="dark"] .str-chat__input-flat {
+    background: #2d2d4a !important;
+}
+
+/* Message area background */
+[data-theme="dark"] .str-chat__list {
+    background: #1a1a2e !important;
+}
+
+[data-theme="dark"] .str-chat__main-panel {
+    background: #1a1a2e !important;
+}
+
+/* Channel list dark mode */
+[data-theme="dark"] .str-chat-channel-list {
+    background: #1a1a2e !important;
+}
+
+[data-theme="dark"] .str-chat__channel-list-messenger {
+    background: #1a1a2e !important;
+}
+
+[data-theme="dark"] .str-chat__channel-preview-messenger--active {
+    background: #2d2d4a !important;
+}
+
+[data-theme="dark"] .str-chat__channel-preview-title {
+    color: white !important;
+}
+
+[data-theme="dark"] .str-chat__channel-preview-last-message {
+    color: #a1a1aa !important;
+}
+
+/* Message bubbles dark mode */
+[data-theme="dark"] .str-chat__message-simple-text-inner {
+    background: #2d2d4a !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .str-chat__message--me .str-chat__message-simple-text-inner {
+    background: #6366f1 !important;
+    color: white !important;
+}
+
+/* ===== MESSAGE BUBBLES - Clean styling ===== */
+
+/* Remove weird bubble borders */
+.str-chat__message,
+.str-chat__message-simple {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Light theme message bubbles */
+.str-chat__message-text-inner,
+.str-chat__message-simple-text-inner {
+    background: #f0f2f5 !important;
+    color: #1a1a2e !important;
+    border-radius: 18px !important;
+    padding: 10px 16px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* My messages (right side) - light theme */
+.str-chat__message--me .str-chat__message-text-inner,
+.str-chat__message--me .str-chat__message-simple-text-inner {
+    background: #6366f1 !important;
+    color: white !important;
+}
+
+/* Dark theme message bubbles */
+[data-theme="dark"] .str-chat__message-text-inner,
+[data-theme="dark"] .str-chat__message-simple-text-inner {
+    background: #2d2d4a !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .str-chat__message--me .str-chat__message-text-inner,
+[data-theme="dark"] .str-chat__message--me .str-chat__message-simple-text-inner {
+    background: #6366f1 !important;
+    color: white !important;
+}
+
+/* ===== MESSAGE MENU (3 dots) ===== */
+
+/* Light theme menu */
+.str-chat__message-actions-box {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.str-chat__message-actions-list-item {
+    color: #1a1a2e !important;
+}
+
+.str-chat__message-actions-list-item:hover {
+    background: #f3f4f6 !important;
+}
+
+/* Dark theme menu */
+[data-theme="dark"] .str-chat__message-actions-box {
+    background: #2d2d4a !important;
+    border: 1px solid #3d3d5c !important;
+}
+
+[data-theme="dark"] .str-chat__message-actions-list-item {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .str-chat__message-actions-list-item:hover {
+    background: #3d3d5c !important;
+}
+
+/* ===== DELIVERY STATUS / READ RECEIPTS ===== */
+
+/* Show delivery status indicators */
+.str-chat__message-status {
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+.str-chat__message-status-icon {
+    display: inline-flex !important;
+}
+
+/* Sent/Delivered checkmarks */
+.str-chat__message-status svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: #9ca3af !important;
+}
+
+/* Read checkmarks - blue color */
+.str-chat__message-status--read svg {
+    color: #3b82f6 !important;
+}
+
+/* Make sure double checkmarks show */
+.str-chat__message-status-received svg,
+.str-chat__message-status-delivered svg {
+    color: #9ca3af !important;
+}
+
+/* Message timestamp */
+.str-chat__message-data,
+.str-chat__message-simple-data,
+.str-chat__message-data time {
+    color: #6b7280 !important;
+    font-size: 11px !important;
+}
+
+[data-theme="dark"] .str-chat__message-data,
+[data-theme="dark"] .str-chat__message-simple-data,
+[data-theme="dark"] .str-chat__message-data time {
+    color: #9ca3af !important;
+}
+
+/* ===== REACTION SELECTOR ===== */
+
+.str-chat__reaction-selector {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 24px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="dark"] .str-chat__reaction-selector {
+    background: #2d2d4a !important;
+    border: 1px solid #3d3d5c !important;
+}
+
+/* ===== THREAD STYLING ===== */
+
+.str-chat__thread {
+    background: white !important;
+    border-left: 1px solid #e5e7eb !important;
+}
+
+[data-theme="dark"] .str-chat__thread {
+    background: #1a1a2e !important;
+    border-left: 1px solid #2d2d4a !important;
+}
+
+/* ===== MODAL/DIALOG STYLING ===== */
+
+.str-chat__modal,
+.str-chat__dialog {
+    background: white !important;
+}
+
+[data-theme="dark"] .str-chat__modal,
+[data-theme="dark"] .str-chat__dialog {
+    background: #2d2d4a !important;
+    color: white !important;
+}
