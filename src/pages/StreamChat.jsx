@@ -106,7 +106,7 @@ const CustomMessageInput = () => {
         handleChange,
         handleSubmit,
         uploadNewFiles,
-        attachments,
+        attachments = [],
         removeAttachments,
         isUploadEnabled,
     } = useMessageInputContext()
@@ -201,7 +201,7 @@ const CustomMessageInput = () => {
     // Submit
     const handleFormSubmit = (e) => {
         e.preventDefault()
-        if (text.trim() || attachments.length > 0) {
+        if (text.trim() || (attachments && attachments.length > 0)) {
             handleSubmit(e)
             setShowEmojiPicker(false)
         }
@@ -245,7 +245,7 @@ const CustomMessageInput = () => {
     return (
         <div className="custom-message-input">
             {/* Attachments Preview */}
-            {attachments.length > 0 && (
+            {attachments && attachments.length > 0 && (
                 <div className="attachments-preview">
                     {attachments.map((attachment, index) => (
                         <div key={index} className="attachment-item">
@@ -327,7 +327,7 @@ const CustomMessageInput = () => {
                 </button>
 
                 {/* Voice Note or Send */}
-                {text.trim() || attachments.length > 0 ? (
+                {text.trim() || (attachments && attachments.length > 0) ? (
                     <button type="submit" className="send-btn" title="Send">
                         <FiSend />
                     </button>
