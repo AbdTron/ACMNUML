@@ -24,7 +24,7 @@ import './StreamChat.css'
 
 // Custom Channel Header with Video Call button
 const CustomChannelHeader = () => {
-    const { channel } = useChannelStateContext()
+    const { channel, setActiveChannel } = useChatContext()
     const { startCall, activeCall } = useStreamVideo()
     const { currentUser } = useMemberAuth()
     const navigate = useNavigate()
@@ -32,7 +32,8 @@ const CustomChannelHeader = () => {
 
     // Get the other member in a 1-on-1 chat
     const getOtherMember = () => {
-        const members = Object.values(channel.state.members || {})
+        if (!channel) return null
+        const members = Object.values(channel.state?.members || {})
         return members.find(member => member.user_id !== currentUser?.uid?.toLowerCase())?.user
     }
 
@@ -50,8 +51,12 @@ const CustomChannelHeader = () => {
         }
     }
 
+    // Go back to channel list on mobile
     const handleBack = () => {
-        navigate('/chat')
+        // Clear the active channel to show channel list
+        if (setActiveChannel) {
+            setActiveChannel(null)
+        }
     }
 
     return (
@@ -388,7 +393,10 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
                     <Channel>
                         <Window>
                             <CustomChannelHeader onBack={() => setShowChannelList(true)} />
-                            <MessageList />
+                            <MessageList
+                                disableDateSeparator={false}
+                                messageActions={['react', 'reply', 'quote', 'pin', 'delete', 'edit', 'flag']}
+                            />
                             <MessageInput />
                         </Window>
                         <Thread />
