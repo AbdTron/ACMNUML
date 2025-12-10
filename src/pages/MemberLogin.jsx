@@ -27,13 +27,14 @@ const MemberLogin = () => {
       if (isSignup) {
         await signup(email, password, name)
         setSuccess('Account created! Please check your email to verify your account.')
-        // Don't navigate immediately - let user see success message
+        // Redirect to onboarding to complete profile
         setTimeout(() => {
-          navigate('/')
-        }, 3000)
+          navigate('/member/onboarding')
+        }, 2000)
       } else {
         await login(email, password)
-        navigate('/')
+        // Redirect to member dashboard (MemberProtectedRoute will redirect to onboarding if needed)
+        navigate('/member')
       }
     } catch (err) {
       setError(err.message || `Failed to ${isSignup ? 'sign up' : 'login'}. Please check your credentials.`)
@@ -80,7 +81,8 @@ const MemberLogin = () => {
 
     try {
       await signInWithGoogle()
-      navigate('/')
+      // Redirect to member dashboard (MemberProtectedRoute will redirect to onboarding if needed)
+      navigate('/member')
     } catch (err) {
       setError(err.message || 'Failed to sign in with Google. Please try again.')
     } finally {
@@ -144,6 +146,9 @@ const MemberLogin = () => {
                   placeholder="Enter your full name"
                   disabled={loading}
                 />
+                <small style={{ color: 'var(--text-light)', marginTop: '0.25rem', display: 'block' }}>
+                  ⚠️ Must match the name on your student ID card
+                </small>
               </div>
             )}
 

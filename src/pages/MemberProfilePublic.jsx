@@ -6,7 +6,7 @@ import { FiArrowLeft, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, 
 import { format } from 'date-fns'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
-import ChatButton from '../components/ChatButton'
+import StreamChatButton from '../components/StreamChatButton'
 import './MemberProfilePublic.css'
 
 const MemberProfilePublic = () => {
@@ -28,7 +28,7 @@ const MemberProfilePublic = () => {
     try {
       const userRef = doc(db, 'users', memberId)
       const userSnap = await getDoc(userRef)
-      
+
       if (!userSnap.exists()) {
         setError('User profile not found')
         setLoading(false)
@@ -36,7 +36,7 @@ const MemberProfilePublic = () => {
       }
 
       const userData = userSnap.data()
-      
+
       // Check if member opted into directory
       if (!userData.showInDirectory) {
         setError('This user profile is not available in the directory')
@@ -108,10 +108,10 @@ const MemberProfilePublic = () => {
             <div className="profile-info">
               <div className="profile-header-row">
                 <h1>{member.name || 'Member'}</h1>
-                <ChatButton 
-                  userId={member.id} 
-                  userEmail={member.emailType === 'display' && member.displayEmail && member.displayEmailVerified 
-                    ? member.displayEmail 
+                <StreamChatButton
+                  userId={member.id}
+                  userEmail={member.emailType === 'display' && member.displayEmail && member.displayEmailVerified
+                    ? member.displayEmail
                     : member.email}
                   className="profile-chat-button"
                 />
@@ -141,14 +141,14 @@ const MemberProfilePublic = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Show phone if enabled (new structure) */}
             {member.showPhone && member.phone && (
               <div className="detail-item">
                 <FiPhone />
                 <div>
                   <label>Phone</label>
-                  <a 
+                  <a
                     href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -190,7 +190,7 @@ const MemberProfilePublic = () => {
                     <FiPhone />
                     <div>
                       <label>Phone</label>
-                      <a 
+                      <a
                         href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
                         target="_blank"
                         rel="noopener noreferrer"

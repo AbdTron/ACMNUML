@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { 
+import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -23,18 +23,18 @@ const MemberAuthContext = createContext({
   currentUser: null,
   userProfile: null,
   loading: true,
-  signup: async () => {},
-  login: async () => {},
-  signInWithGoogle: async () => {},
-  logout: async () => {},
-  updateProfile: async () => {},
-  updateUserEmail: async () => {},
-  updateUserPassword: async () => {},
+  signup: async () => { },
+  login: async () => { },
+  signInWithGoogle: async () => { },
+  logout: async () => { },
+  updateProfile: async () => { },
+  updateUserEmail: async () => { },
+  updateUserPassword: async () => { },
   hasPasswordProvider: () => false,
-  resetPassword: async () => {},
-  sendVerificationEmail: async () => {},
-  verifyEmail: async () => {},
-  refreshProfile: async () => {},
+  resetPassword: async () => { },
+  sendVerificationEmail: async () => { },
+  verifyEmail: async () => { },
+  refreshProfile: async () => { },
   isMember: false,
   isAdmin: false
 })
@@ -57,11 +57,11 @@ export const MemberAuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       // Set user immediately (don't wait for Firestore queries)
       setCurrentUser(user)
-      
+
       // Mark as loaded immediately to allow app to render
       // Profile will load in background
       setLoading(false)
-      
+
       if (user && db) {
         // Load profile in background (non-blocking)
         // This allows the app to render immediately while profile loads
@@ -83,10 +83,10 @@ export const MemberAuthProvider = ({ children }) => {
             const userDoc = await getDoc(doc(db, 'users', user.uid))
             if (userDoc.exists()) {
               const profileData = userDoc.data()
-              
+
               // Compute and update flairs if profile data changed (pass role if admin)
               const flairs = computeFlairsForStorage(profileData, adminRole || isAdmin)
-              
+
               // Update emailVerified status from auth and flairs
               const updatedProfile = {
                 ...profileData,
@@ -94,7 +94,7 @@ export const MemberAuthProvider = ({ children }) => {
                 email: user.email, // Sync email from auth
                 flairs: flairs // Store computed flairs
               }
-              
+
               // Only update flairs in Firestore if they changed (non-blocking write)
               if (JSON.stringify(profileData.flairs) !== JSON.stringify(flairs)) {
                 // Don't await - let it update in background
@@ -102,7 +102,7 @@ export const MemberAuthProvider = ({ children }) => {
                   console.error('Error updating flairs:', err)
                 })
               }
-              
+
               setUserProfile(updatedProfile)
             } else {
               // Check if user is admin
@@ -168,14 +168,14 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth || !db) {
       throw new Error('Firebase is not configured')
     }
-    
+
     // Check if email is banned
     const { isEmailBanned } = await import('../utils/banListUtils')
     const emailBanned = await isEmailBanned(email)
     if (emailBanned) {
       throw new Error('This email address has been banned and cannot be used to create an account.')
     }
-    
+
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
     const user = userCredential.user
 
@@ -200,10 +200,10 @@ export const MemberAuthProvider = ({ children }) => {
     }
 
     await setDoc(doc(db, 'users', user.uid), userProfile)
-    
+
     // Log activity
     await logActivity(user.uid, ACTIVITY_TYPES.USER_CREATED, `User account created: ${email}`)
-    
+
     return userCredential
   }
 
@@ -211,12 +211,12 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth) {
       throw new Error('Firebase is not configured')
     }
-    
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password)
-    
+
     // Log activity
     await logActivity(userCredential.user.uid, ACTIVITY_TYPES.LOGIN, 'User logged in via email', { method: 'email' })
-    
+
     return userCredential
   }
 
@@ -224,13 +224,13 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth || !db) {
       throw new Error('Firebase is not configured')
     }
-    
+
     // Check if email is banned before attempting sign-in
     // Note: We can't check before popup, but we'll check after and delete if banned
     const provider = new GoogleAuthProvider()
     const userCredential = await signInWithPopup(auth, provider)
     const user = userCredential.user
-    
+
     // Check if email is banned
     const { isEmailBanned } = await import('../utils/banListUtils')
     const emailBanned = await isEmailBanned(user.email)
@@ -242,7 +242,7 @@ export const MemberAuthProvider = ({ children }) => {
 
     // Check if user profile exists
     const userDoc = await getDoc(doc(db, 'users', user.uid))
-    
+
     if (!userDoc.exists()) {
       // Create user profile for new Google sign-in
       const userProfile = {
@@ -256,7 +256,7 @@ export const MemberAuthProvider = ({ children }) => {
         updatedAt: new Date().toISOString()
       }
       await setDoc(doc(db, 'users', user.uid), userProfile)
-      
+
       // Log activity
       await logActivity(user.uid, ACTIVITY_TYPES.USER_CREATED, `User account created via Google: ${user.email}`)
     } else {
@@ -266,20 +266,20 @@ export const MemberAuthProvider = ({ children }) => {
         photoURL: user.photoURL || userDoc.data().photoURL
       }, { merge: true })
     }
-    
+
     // Log login activity
     await logActivity(user.uid, ACTIVITY_TYPES.LOGIN, 'User logged in via Google', { method: 'google' })
-    
+
     return userCredential
   }
 
   const logout = async () => {
     if (!auth) return Promise.resolve()
-    
+
     if (currentUser) {
       await logActivity(currentUser.uid, ACTIVITY_TYPES.LOGOUT, 'User logged out')
     }
-    
+
     return signOut(auth)
   }
 
@@ -287,7 +287,7 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth) {
       throw new Error('Firebase is not configured')
     }
-    
+
     // Configure action code settings for password reset
     // Using handleCodeInApp: false to use email link instead of in-app handling
     // This helps prevent emails from going to spam
@@ -297,7 +297,7 @@ export const MemberAuthProvider = ({ children }) => {
       // Dynamic link domain (if using Firebase Dynamic Links)
       // dynamicLinkDomain: 'your-app.page.link' // Uncomment if using Dynamic Links
     }
-    
+
     try {
       await sendPasswordResetEmail(auth, email, actionCodeSettings)
     } catch (error) {
@@ -317,7 +317,7 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth || !currentUser) {
       throw new Error('User not authenticated')
     }
-    
+
     await sendEmailVerification(currentUser)
   }
 
@@ -325,15 +325,15 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth) {
       throw new Error('Firebase is not configured')
     }
-    
+
     await applyActionCode(auth, actionCode)
-    
+
     // Wait a moment for auth state to update
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     // Get updated user from auth
     const user = auth.currentUser
-    
+
     // Update user profile if authenticated
     if (user && db) {
       await setDoc(doc(db, 'users', user.uid), {
@@ -348,15 +348,15 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth || !currentUser) {
       throw new Error('User not authenticated')
     }
-    
+
     // Validate email format
     if (!newEmail.includes('@')) {
       throw new Error('Invalid email address. Email must contain @ symbol.')
     }
-    
+
     // Send verification email to new address
     await verifyBeforeUpdateEmail(currentUser, newEmail)
-    
+
     // Note: Email won't be updated until user clicks verification link
     // The email will be updated automatically after verification
   }
@@ -365,15 +365,15 @@ export const MemberAuthProvider = ({ children }) => {
     if (!auth || !currentUser) {
       throw new Error('User not authenticated')
     }
-    
+
     // Validate password length
     if (!newPassword || newPassword.length < 6) {
       throw new Error('Password must be at least 6 characters long.')
     }
-    
+
     // Check if user has password provider
     const hasPassword = currentUser.providerData?.some(provider => provider.providerId === 'password')
-    
+
     if (hasPassword) {
       // User already has password, just update it
       await updatePassword(currentUser, newPassword)
@@ -398,7 +398,7 @@ export const MemberAuthProvider = ({ children }) => {
         throw error
       }
     }
-    
+
     // Log activity
     await logActivity(currentUser.uid, ACTIVITY_TYPES.PROFILE_UPDATED, 'User password updated/set')
   }
@@ -412,21 +412,10 @@ export const MemberAuthProvider = ({ children }) => {
   }
 
   const updateProfile = async (updates) => {
-    // Sync to CometChat if user profile is updated
-    if (currentUser && (updates.name || updates.avatar || updates.photoURL)) {
-      try {
-        // Import CometChat context dynamically to avoid circular dependency
-        const { useCometChat } = await import('./CometChatContext')
-        // Note: We can't use hooks here, so we'll handle sync in CometChatContext
-        // The CometChatContext already watches for userProfile changes
-      } catch (e) {
-        console.warn('Could not sync to CometChat:', e)
-      }
-    }
     if (!db || !currentUser) {
       throw new Error('User not authenticated')
     }
-    
+
     // Check if user is admin and get role
     let isAdmin = false
     let adminRole = null
@@ -439,24 +428,24 @@ export const MemberAuthProvider = ({ children }) => {
     } catch (err) {
       // Ignore errors checking admin status
     }
-    
+
     // Merge updates with current profile to compute flairs
     const mergedProfile = { ...userProfile, ...updates }
-    
+
     // Recompute flairs based on updated profile (pass role if admin)
     const flairs = computeFlairsForStorage(mergedProfile, adminRole || isAdmin)
-    
+
     const updatedData = {
       ...updates,
       flairs: flairs, // Store computed flairs
       updatedAt: new Date().toISOString()
     }
-    
+
     await setDoc(doc(db, 'users', currentUser.uid), updatedData, { merge: true })
-    
+
     // Update local state
     setUserProfile(prev => ({ ...prev, ...updatedData }))
-    
+
     // Log activity
     await logActivity(currentUser.uid, ACTIVITY_TYPES.PROFILE_UPDATED, 'User profile updated', { changes: updates })
   }
@@ -465,7 +454,7 @@ export const MemberAuthProvider = ({ children }) => {
     if (!currentUser || !db) {
       return
     }
-    
+
     try {
       // Check if user is admin
       let isAdmin = false
@@ -479,10 +468,10 @@ export const MemberAuthProvider = ({ children }) => {
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
       if (userDoc.exists()) {
         const profileData = userDoc.data()
-        
+
         // Recompute flairs
         const flairs = computeFlairsForStorage(profileData, isAdmin)
-        
+
         // Update flairs in Firestore if they changed
         if (JSON.stringify(profileData.flairs) !== JSON.stringify(flairs)) {
           try {
@@ -491,7 +480,7 @@ export const MemberAuthProvider = ({ children }) => {
             console.error('Error updating flairs:', err)
           }
         }
-        
+
         setUserProfile({
           ...profileData,
           emailVerified: currentUser.emailVerified,

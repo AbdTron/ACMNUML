@@ -261,5 +261,25 @@ service cloud.firestore {
       allow update: if request.auth != null && isAdmin();
       allow delete: if request.auth != null && isAdmin();
     }
+
+    // User Warnings collection - targeted warnings for individual users
+    match /userWarnings/{warningId} {
+      // Users can read their own warnings
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      // Allow list/query operations for authenticated users
+      allow list: if request.auth != null;
+      // Only admins can create warnings
+      allow create: if request.auth != null && isAdmin();
+      // Users can update their own warnings (to acknowledge), admins can update any
+      allow update: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      // Only admins can delete warnings
+      allow delete: if request.auth != null && isAdmin();
+    }
   }
 }

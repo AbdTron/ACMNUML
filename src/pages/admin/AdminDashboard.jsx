@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { 
-  FiCalendar, 
-  FiBell, 
-  FiSettings, 
-  FiLogOut, 
+import {
+  FiCalendar,
+  FiBell,
+  FiSettings,
+  FiLogOut,
   FiUsers,
   FiImage,
   FiMail,
@@ -15,7 +15,8 @@ import {
   FiMessageSquare,
   FiMessageCircle,
   FiShield,
-  FiEdit3
+  FiEdit3,
+  FiFlag
 } from 'react-icons/fi'
 import { isMainAdmin, ROLES } from '../../utils/permissions'
 import { collection, query, getCountFromServer } from 'firebase/firestore'
@@ -39,48 +40,48 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-    const fetchStats = async () => {
-      if (!db) {
-        setLoading(false)
-        return
-      }
-      try {
-        // Use count aggregation queries instead of fetching all documents
-        // This is much more efficient - only counts, doesn't fetch data
-        const [eventsCount, notificationsCount, teamCount, galleryCount, contactsCount, usersCount] = await Promise.all([
-          getCountFromServer(query(collection(db, 'events'))),
-          getCountFromServer(query(collection(db, 'notifications'))),
-          getCountFromServer(query(collection(db, 'team'))),
-          getCountFromServer(query(collection(db, 'gallery'))),
-          getCountFromServer(query(collection(db, 'contacts'))),
-          getCountFromServer(query(collection(db, 'users')))
-        ])
-
-        setStats({
-          events: eventsCount.data().count,
-          notifications: notificationsCount.data().count,
-          teamMembers: teamCount.data().count,
-          galleryImages: galleryCount.data().count,
-          contacts: contactsCount.data().count,
-          users: usersCount.data().count
-        })
-      } catch (error) {
-        console.error('Error fetching stats:', error)
-        // Show more specific error message
-        if (error.code === 'permission-denied') {
-          alert('Permission denied. Please make sure you are logged in as an admin and that Firestore rules are deployed.')
-        } else {
-          alert(`Error loading statistics: ${error.message}. Please refresh the page.`)
-        }
-      } finally {
-        setLoading(false)
-        setRefreshing(false)
-      }
+  const fetchStats = async () => {
+    if (!db) {
+      setLoading(false)
+      return
     }
+    try {
+      // Use count aggregation queries instead of fetching all documents
+      // This is much more efficient - only counts, doesn't fetch data
+      const [eventsCount, notificationsCount, teamCount, galleryCount, contactsCount, usersCount] = await Promise.all([
+        getCountFromServer(query(collection(db, 'events'))),
+        getCountFromServer(query(collection(db, 'notifications'))),
+        getCountFromServer(query(collection(db, 'team'))),
+        getCountFromServer(query(collection(db, 'gallery'))),
+        getCountFromServer(query(collection(db, 'contacts'))),
+        getCountFromServer(query(collection(db, 'users')))
+      ])
+
+      setStats({
+        events: eventsCount.data().count,
+        notifications: notificationsCount.data().count,
+        teamMembers: teamCount.data().count,
+        galleryImages: galleryCount.data().count,
+        contacts: contactsCount.data().count,
+        users: usersCount.data().count
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      // Show more specific error message
+      if (error.code === 'permission-denied') {
+        alert('Permission denied. Please make sure you are logged in as an admin and that Firestore rules are deployed.')
+      } else {
+        alert(`Error loading statistics: ${error.message}. Please refresh the page.`)
+      }
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
     fetchStats()
-    
+
     // Show error message if redirected from protected route
     const urlParams = new URLSearchParams(window.location.search)
     const error = urlParams.get('error')
@@ -195,6 +196,14 @@ const AdminDashboard = () => {
       color: '#ec4899',
       featureId: 'settings' // Use settings permission since it's a general site setting
     },
+    {
+      icon: FiFlag,
+      title: 'User Warnings',
+      description: 'Send targeted warnings to users',
+      link: '/admin/warnings',
+      color: '#ef4444',
+      featureId: 'userWarnings'
+    },
   ]
 
   // Filter actions based on permissions (main admin sees all)
@@ -228,18 +237,18 @@ const AdminDashboard = () => {
               <p>Welcome back, {currentUser?.email}</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <button 
-                onClick={handleRefresh} 
+              <button
+                onClick={handleRefresh}
                 className="btn-refresh"
                 disabled={refreshing}
                 title="Refresh statistics"
               >
                 <FiRefreshCw style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
               </button>
-            <button onClick={handleLogout} className="btn-logout">
-              <FiLogOut />
-              Logout
-            </button>
+              <button onClick={handleLogout} className="btn-logout">
+                <FiLogOut />
+                Logout
+              </button>
             </div>
           </div>
         </div>

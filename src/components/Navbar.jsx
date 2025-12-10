@@ -4,7 +4,7 @@ import { FiMenu, FiX, FiShield, FiMoon, FiSun, FiUser } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useMemberAuth } from '../context/MemberAuthContext'
 import { useTheme } from '../context/ThemeContext'
-import ChatWidget from './ChatWidget'
+import StreamChatWidget from './StreamChatWidget'
 import acmLogo from '../assets/acmlog.png'
 import './Navbar.css'
 
@@ -66,8 +66,8 @@ const Navbar = () => {
         </Link>
 
         {isOpen && (
-          <div 
-            className="navbar-backdrop" 
+          <div
+            className="navbar-backdrop"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
@@ -124,7 +124,7 @@ const Navbar = () => {
         </ul>
 
         <div className="navbar-actions">
-          {memberUser && <ChatWidget />}
+          {memberUser && <StreamChatWidget />}
           <button
             className="theme-toggle"
             onClick={toggleTheme}

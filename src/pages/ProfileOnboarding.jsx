@@ -53,7 +53,7 @@ const ProfileOnboarding = () => {
   useEffect(() => {
     const degrees = getDegreesForDepartment(formData.department)
     setAvailableDegrees(degrees)
-    
+
     // Auto-select first degree if current selection is not available
     if (degrees.length > 0 && !degrees.find(d => d.name === formData.degree)) {
       setFormData(prev => ({
@@ -68,7 +68,7 @@ const ProfileOnboarding = () => {
   useEffect(() => {
     const shifts = getShiftsForDegree(formData.department, formData.degree)
     setAvailableShifts(shifts)
-    
+
     // Auto-select shift if only one option
     if (shifts.length === 1 && formData.shift !== shifts[0]) {
       setFormData(prev => ({
@@ -127,36 +127,36 @@ const ProfileOnboarding = () => {
       return
     }
 
-                if (!formData.shift) {
-                  setError('Shift is required')
-                  return
-                }
+    if (!formData.shift) {
+      setError('Shift is required')
+      return
+    }
 
-                // Check if roll number is banned
-                const rollNumberBanned = await isRollNumberBanned(formData.rollNumber.trim().toUpperCase())
-                if (rollNumberBanned) {
-                  setError('This roll number has been banned. Your account will be deleted. Please contact an administrator if you believe this is an error.')
-                  
-                  // Delete the user account since roll number is banned
-                  try {
-                    // Delete user profile
-                    await deleteDoc(doc(db, 'users', currentUser.uid))
-                    // Sign out the user
-                    await signOut(auth)
-                    // Redirect to login after a delay
-                    setTimeout(() => {
-                      navigate('/member/login')
-                    }, 3000)
-                  } catch (deleteError) {
-                    console.error('Error deleting banned user account:', deleteError)
-                  }
-                  
-                  return
-                }
+    // Check if roll number is banned
+    const rollNumberBanned = await isRollNumberBanned(formData.rollNumber.trim().toUpperCase())
+    if (rollNumberBanned) {
+      setError('This roll number has been banned. Your account will be deleted. Please contact an administrator if you believe this is an error.')
 
-                setLoading(true)
+      // Delete the user account since roll number is banned
+      try {
+        // Delete user profile
+        await deleteDoc(doc(db, 'users', currentUser.uid))
+        // Sign out the user
+        await signOut(auth)
+        // Redirect to login after a delay
+        setTimeout(() => {
+          navigate('/member/login')
+        }, 3000)
+      } catch (deleteError) {
+        console.error('Error deleting banned user account:', deleteError)
+      }
 
-                try {
+      return
+    }
+
+    setLoading(true)
+
+    try {
       // Check if user is admin and get role
       let isAdmin = false
       let adminRole = null
@@ -237,6 +237,7 @@ const ProfileOnboarding = () => {
               placeholder="Enter your full name"
               required
             />
+            <small className="field-hint">⚠️ Must match the name on your student ID card. This will be used for event registrations and official records.</small>
           </div>
 
           {/* Roll Number */}

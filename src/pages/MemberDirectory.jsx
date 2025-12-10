@@ -6,7 +6,7 @@ import { FiSearch, FiUser, FiMail, FiGlobe, FiLinkedin, FiGithub, FiTwitter, FiS
 import { ROLES } from '../utils/permissions'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
-import ChatButton from '../components/ChatButton'
+import StreamChatButton from '../components/StreamChatButton'
 import './MemberDirectory.css'
 
 const MemberDirectory = () => {
@@ -34,7 +34,7 @@ const MemberDirectory = () => {
         // Removed orderBy to avoid composite index requirement
       )
       const usersSnap = await getDocs(directoryQuery)
-      
+
       const membersData = []
       usersSnap.forEach((doc) => {
         const data = doc.data()
@@ -133,7 +133,7 @@ const MemberDirectory = () => {
                   : "No users match your search criteria."}
               </p>
               {members.length === 0 && (
-                <button 
+                <button
                   onClick={() => {
                     window.location.reload()
                   }}
@@ -149,7 +149,7 @@ const MemberDirectory = () => {
               {filteredMembers.map((member) => {
                 const isAdmin = member.role === ROLES.ADMIN || member.role === ROLES.MAIN_ADMIN
                 const isAcmMember = member.acmRole && member.acmRole.trim() !== ''
-                
+
                 // Determine card class based on role and ACM membership
                 let cardClass = 'member-card'
                 if (isAdmin && isAcmMember) {
@@ -159,153 +159,153 @@ const MemberDirectory = () => {
                 } else if (isAcmMember) {
                   cardClass = 'member-card member-card-acm'
                 }
-                
+
                 return (
-                <div
-                  key={member.id}
-                  className={cardClass}
-                >
-                  <Link
-                    to={`/members/${member.id}`}
-                    className="member-card-link"
+                  <div
+                    key={member.id}
+                    className={cardClass}
                   >
-                    <div className="member-avatar">
-                      {(() => {
-                        const avatarUrl = getAvatarUrlOrDefault(member.avatar || member.photoURL)
-                        return avatarUrl ? (
-                          <img src={avatarUrl} alt={member.name} />
-                        ) : (
-                          <span>{member.name?.charAt(0)?.toUpperCase() || '?'}</span>
-                        )
-                      })()}
-                    </div>
-                    <div className="member-info">
-                      <h3>{member.name || 'User'}</h3>
-                      {/* Display flairs from stored user profile */}
-                      {member.flairs && member.flairs.length > 0 && (
-                        <div className="member-flairs">
-                          {member.flairs.map((flair, index) => (
-                            <span key={index} className={`flair ${flair.class || ''}`}>
-                              {flair.text}
-                            </span>
-                          ))}
+                    <Link
+                      to={`/members/${member.id}`}
+                      className="member-card-link"
+                    >
+                      <div className="member-avatar">
+                        {(() => {
+                          const avatarUrl = getAvatarUrlOrDefault(member.avatar || member.photoURL)
+                          return avatarUrl ? (
+                            <img src={avatarUrl} alt={member.name} />
+                          ) : (
+                            <span>{member.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                          )
+                        })()}
+                      </div>
+                      <div className="member-info">
+                        <h3>{member.name || 'User'}</h3>
+                        {/* Display flairs from stored user profile */}
+                        {member.flairs && member.flairs.length > 0 && (
+                          <div className="member-flairs">
+                            {member.flairs.map((flair, index) => (
+                              <span key={index} className={`flair ${flair.class || ''}`}>
+                                {flair.text}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {/* Fallback: Show ACM role if no flairs stored (backward compatibility) */}
+                        {(!member.flairs || member.flairs.length === 0) && member.acmRole && (
+                          <p className="member-acm-role">{member.acmRole}</p>
+                        )}
+                        {/* Show contact based on user preferences - prioritize phone number */}
+                        <div className="member-contact">
+                          {/* Priority 1: Show phone if enabled */}
+                          {member.showPhone && member.phone ? (
+                            <a
+                              href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="member-phone whatsapp-link"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <FiPhone />
+                              {member.phone}
+                            </a>
+                          ) : member.showEmail ? (
+                            /* Priority 2: Show email if phone not available */
+                            <p className="member-email">
+                              <FiMail />
+                              {member.emailType === 'display' && member.displayEmail && member.displayEmailVerified
+                                ? member.displayEmail
+                                : member.email}
+                            </p>
+                          ) : null}
+
+                          {/* Fallback: if old data structure, show based on contactType */}
+                          {!member.showEmail && !member.showPhone && member.showContactOnDirectory && (
+                            <>
+                              {member.contactType === 'phone' && member.phone ? (
+                                <a
+                                  href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="member-phone whatsapp-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <FiPhone />
+                                  {member.phone}
+                                </a>
+                              ) : member.contactType === 'email' && member.email ? (
+                                <p className="member-email">
+                                  <FiMail />
+                                  {member.email}
+                                </p>
+                              ) : member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified ? (
+                                <p className="member-email">
+                                  <FiMail />
+                                  {member.displayEmail}
+                                </p>
+                              ) : null}
+                            </>
+                          )}
                         </div>
-                      )}
-                      {/* Fallback: Show ACM role if no flairs stored (backward compatibility) */}
-                      {(!member.flairs || member.flairs.length === 0) && member.acmRole && (
-                        <p className="member-acm-role">{member.acmRole}</p>
-                      )}
-                      {/* Show contact based on user preferences - prioritize phone number */}
-                      <div className="member-contact">
-                        {/* Priority 1: Show phone if enabled */}
-                        {member.showPhone && member.phone ? (
-                          <a 
-                            href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="member-phone whatsapp-link"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <FiPhone />
-                            {member.phone}
-                          </a>
-                        ) : member.showEmail ? (
-                          /* Priority 2: Show email if phone not available */
-                          <p className="member-email">
-                            <FiMail />
-                            {member.emailType === 'display' && member.displayEmail && member.displayEmailVerified 
-                              ? member.displayEmail 
-                              : member.email}
-                          </p>
-                        ) : null}
-                        
-                        {/* Fallback: if old data structure, show based on contactType */}
-                        {!member.showEmail && !member.showPhone && member.showContactOnDirectory && (
-                          <>
-                            {member.contactType === 'phone' && member.phone ? (
-                              <a 
-                                href={`https://wa.me/${formatPhoneForWhatsApp(member.phone)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="member-phone whatsapp-link"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <FiPhone />
-                                {member.phone}
-                              </a>
-                            ) : member.contactType === 'email' && member.email ? (
-                              <p className="member-email">
-                                <FiMail />
-                                {member.email}
-                              </p>
-                            ) : member.contactType === 'displayEmail' && member.displayEmail && member.displayEmailVerified ? (
-                              <p className="member-email">
-                                <FiMail />
-                                {member.displayEmail}
-                              </p>
-                            ) : null}
-                          </>
+                        {member.bio && (
+                          <p className="member-bio">{member.bio}</p>
                         )}
                       </div>
-                      {member.bio && (
-                        <p className="member-bio">{member.bio}</p>
+                    </Link>
+                    <div className="member-social">
+                      <StreamChatButton
+                        userId={member.id}
+                        userEmail={member.emailType === 'display' && member.displayEmail && member.displayEmailVerified
+                          ? member.displayEmail
+                          : member.email}
+                        className="member-chat-button"
+                      />
+                      {member.website && (
+                        <a
+                          href={member.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-link"
+                          title="Website"
+                        >
+                          <FiGlobe />
+                        </a>
+                      )}
+                      {member.linkedin && (
+                        <a
+                          href={member.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-link"
+                          title="LinkedIn"
+                        >
+                          <FiLinkedin />
+                        </a>
+                      )}
+                      {member.github && (
+                        <a
+                          href={member.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-link"
+                          title="GitHub"
+                        >
+                          <FiGithub />
+                        </a>
+                      )}
+                      {member.twitter && (
+                        <a
+                          href={member.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-link"
+                          title="Twitter"
+                        >
+                          <FiTwitter />
+                        </a>
                       )}
                     </div>
-                  </Link>
-                  <div className="member-social">
-                    <ChatButton 
-                      userId={member.id} 
-                      userEmail={member.emailType === 'display' && member.displayEmail && member.displayEmailVerified 
-                        ? member.displayEmail 
-                        : member.email}
-                      className="member-chat-button"
-                    />
-                    {member.website && (
-                      <a
-                        href={member.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        title="Website"
-                      >
-                        <FiGlobe />
-                      </a>
-                    )}
-                    {member.linkedin && (
-                      <a
-                        href={member.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        title="LinkedIn"
-                      >
-                        <FiLinkedin />
-                      </a>
-                    )}
-                    {member.github && (
-                      <a
-                        href={member.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        title="GitHub"
-                      >
-                        <FiGithub />
-                      </a>
-                    )}
-                    {member.twitter && (
-                      <a
-                        href={member.twitter}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        title="Twitter"
-                      >
-                        <FiTwitter />
-                      </a>
-                    )}
                   </div>
-                </div>
                 )
               })}
             </div>

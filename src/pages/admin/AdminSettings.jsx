@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useNavigate } from 'react-router-dom'
-import { 
+import {
   FiArrowLeft,
   FiSave,
   FiLink,
@@ -23,6 +23,7 @@ const AdminSettings = () => {
     websiteUrl: '',
     showGallery: true,
     requireAcademicChangeApproval: true,
+    autoWarnIncompleteProfiles: false,
     socialLinks: {
       facebook: '',
       instagram: '',
@@ -56,6 +57,7 @@ const AdminSettings = () => {
           websiteUrl: data.websiteUrl || '',
           showGallery: data.showGallery !== false,
           requireAcademicChangeApproval: data.requireAcademicChangeApproval !== false,
+          autoWarnIncompleteProfiles: data.autoWarnIncompleteProfiles === true,
           socialLinks: data.socialLinks || {
             facebook: '',
             instagram: '',
@@ -84,6 +86,8 @@ const AdminSettings = () => {
       setFormData({ ...formData, showGallery: e.target.checked })
     } else if (name === 'requireAcademicChangeApproval') {
       setFormData({ ...formData, requireAcademicChangeApproval: e.target.checked })
+    } else if (name === 'autoWarnIncompleteProfiles') {
+      setFormData({ ...formData, autoWarnIncompleteProfiles: e.target.checked })
     } else if (name.startsWith('social.')) {
       const socialKey = name.split('.')[1]
       setFormData({
@@ -187,6 +191,23 @@ const AdminSettings = () => {
                       type="checkbox"
                       name="requireAcademicChangeApproval"
                       checked={formData.requireAcademicChangeApproval}
+                      onChange={handleInputChange}
+                    />
+                    <span className="slider" />
+                  </label>
+                </div>
+              </div>
+              <div className="form-group toggle-group">
+                <div className="toggle-item">
+                  <div className="toggle-label">
+                    <label>Auto-Warn Incomplete Profiles</label>
+                    <small>When enabled, users with incomplete profiles will automatically see a warning banner prompting them to complete their profile. The warning is shown on each login until the profile is complete.</small>
+                  </div>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      name="autoWarnIncompleteProfiles"
+                      checked={formData.autoWarnIncompleteProfiles}
                       onChange={handleInputChange}
                     />
                     <span className="slider" />

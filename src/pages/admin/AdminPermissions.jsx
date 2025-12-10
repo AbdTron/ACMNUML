@@ -3,7 +3,7 @@ import { collection, getDocs, doc, getDoc, setDoc, updateDoc } from 'firebase/fi
 import { db } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { 
+import {
   FiArrowLeft,
   FiShield,
   FiCheck,
@@ -37,7 +37,8 @@ const AdminPermissions = () => {
     { id: 'formTemplates', label: 'Form Templates', description: 'Create and manage reusable form templates' },
     { id: 'userRequests', label: 'User Requests', description: 'Review profile change requests' },
     { id: 'feedback', label: 'Feedback', description: 'View and manage user feedback' },
-    { id: 'forumModeration', label: 'Forum Moderation', description: 'Moderate forum posts and discussions' }
+    { id: 'forumModeration', label: 'Forum Moderation', description: 'Moderate forum posts and discussions' },
+    { id: 'userWarnings', label: 'User Warnings', description: 'Send targeted warnings to users' }
   ]
 
   useEffect(() => {
@@ -54,7 +55,7 @@ const AdminPermissions = () => {
       navigate('/admin')
       return
     }
-    
+
     try {
       // Check if user is super admin by checking their role in admins collection
       const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid))
@@ -65,7 +66,7 @@ const AdminPermissions = () => {
       // User is super admin, fetch admins
       fetchAdmins()
     } catch (error) {
-        console.error('Error checking super admin status:', error)
+      console.error('Error checking super admin status:', error)
       navigate('/admin')
     }
   }
@@ -80,7 +81,7 @@ const AdminPermissions = () => {
       // Get all admins from admins collection
       const adminsRef = collection(db, 'admins')
       const adminsSnap = await getDocs(adminsRef)
-      
+
       const adminsList = []
       const permissionsMap = {}
 
@@ -100,7 +101,7 @@ const AdminPermissions = () => {
         }
 
         const isMainAdminUser = adminData?.role === ROLES.MAIN_ADMIN
-        
+
         adminsList.push({
           id: adminId,
           email: userData?.email || adminData?.email || 'Unknown',
@@ -111,7 +112,7 @@ const AdminPermissions = () => {
         })
 
         // Initialize permissions map (all features enabled by default for main admin, empty for others)
-        permissionsMap[adminId] = isMainAdminUser 
+        permissionsMap[adminId] = isMainAdminUser
           ? adminFeatures.reduce((acc, feature) => ({ ...acc, [feature.id]: true }), {})
           : { ...(adminData?.permissions || {}) }
       }
@@ -205,7 +206,7 @@ const AdminPermissions = () => {
           <div className="permissions-info">
             <FiShield />
             <p>
-              As Super Admin, you can control which features each admin can access. 
+              As Super Admin, you can control which features each admin can access.
               Super Admin always has full access to all features.
             </p>
           </div>

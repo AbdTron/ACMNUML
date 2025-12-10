@@ -1,27 +1,30 @@
 import { useState, useEffect } from 'react'
-import { 
-  collection, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  deleteDoc,
   doc,
   getDoc,
   setDoc,
+  addDoc,
   query,
-  orderBy
+  orderBy,
+  Timestamp
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { 
+import {
   FiArrowLeft,
-  FiEdit2, 
+  FiEdit2,
   FiTrash2,
   FiUser,
   FiMail,
   FiCalendar,
   FiShield,
-  FiXCircle
+  FiXCircle,
+  FiFlag
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import './AdminUsers.css'
@@ -60,7 +63,7 @@ const AdminUsers = () => {
       const q = query(usersRef, orderBy('joinDate', 'desc'))
       const querySnapshot = await getDocs(q)
       const usersData = []
-      
+
       // Fetch all admin roles in parallel
       const adminRolesMap = new Map()
       try {
@@ -72,7 +75,7 @@ const AdminUsers = () => {
       } catch (err) {
         console.error('Error fetching admin roles:', err)
       }
-      
+
       querySnapshot.forEach((doc) => {
         const data = doc.data()
         const adminRole = adminRolesMap.get(doc.id)
@@ -133,7 +136,7 @@ const AdminUsers = () => {
       // Manage admins collection based on role changes
       const adminRef = doc(db, 'admins', editingUser.id)
       let newAdminRole = null
-      
+
       if (formData.role === ROLES.ADMIN || formData.role === ROLES.MAIN_ADMIN) {
         // User is being set to Admin or Super Admin - create/update admin document
         const adminData = {
@@ -141,7 +144,7 @@ const AdminUsers = () => {
           email: formData.email,
           updatedAt: new Date().toISOString()
         }
-        
+
         // Check if admin document exists
         const adminDoc = await getDoc(adminRef)
         if (adminDoc.exists()) {
@@ -156,12 +159,12 @@ const AdminUsers = () => {
         }
       } else if ((oldRole === ROLES.ADMIN || oldRole === ROLES.MAIN_ADMIN) && formData.role === ROLES.USER) {
         // User was Admin/Super Admin but is being changed to User - remove from admins collection
-      // Prevent deleting super admin documents (super admin cannot be demoted)
-      if (oldRole === ROLES.MAIN_ADMIN) {
-        alert('Cannot demote Super Admin. Only Super Admin can change their own role.')
+        // Prevent deleting super admin documents (super admin cannot be demoted)
+        if (oldRole === ROLES.MAIN_ADMIN) {
+          alert('Cannot demote Super Admin. Only Super Admin can change their own role.')
           return
         }
-        
+
         // Only allow deleting regular admin documents
         if (oldRole === ROLES.ADMIN) {
           try {
@@ -177,13 +180,13 @@ const AdminUsers = () => {
       // Get current user profile to recompute flairs
       const currentUserDoc = await getDoc(userRef)
       const currentUserData = currentUserDoc.exists() ? currentUserDoc.data() : {}
-      
+
       // Merge updates with current profile
       const mergedProfile = { ...currentUserData, ...updates }
-      
+
       // Recompute flairs based on updated profile and admin role
       const flairs = computeFlairsForStorage(mergedProfile, newAdminRole || (formData.role === ROLES.ADMIN || formData.role === ROLES.MAIN_ADMIN ? formData.role : false))
-      
+
       // Add flairs to updates
       updates.flairs = flairs
 
@@ -340,14 +343,14 @@ const AdminUsers = () => {
       // Delete user profile
       await deleteDoc(doc(db, 'users', userId))
 
-      await logActivity(currentUser.uid, ACTIVITY_TYPES.USER_DELETED, `User banned and deleted: ${userName}`, { 
-        userId, 
-        userName, 
+      await logActivity(currentUser.uid, ACTIVITY_TYPES.USER_DELETED, `User banned and deleted: ${userName}`, {
+        userId,
+        userName,
         email: userData.email,
         rollNumber: userData.rollNumber,
         reason: reason || 'No reason provided'
       })
-      
+
       fetchUsers()
       alert('User banned and deleted successfully. They cannot create a new account with this email or roll number.')
     } catch (error) {
@@ -378,10 +381,10 @@ const AdminUsers = () => {
       // Non-super admins can only edit regular users
       return user.role === ROLES.USER || user.role === 'member' // Backward compatibility
     }
-    
+
     // Super admin can edit anyone except themselves (to prevent accidental self-modification)
     if (user.id === currentUser.uid) return false
-    
+
     // Super admin can edit all users including other admins
     return true
   }
@@ -391,14 +394,44 @@ const AdminUsers = () => {
     if (!isMainAdmin(userRole)) {
       return false
     }
-    
+
     // Can't delete yourself
     if (user.id === currentUser.uid) return false
-    
+
     // Prevent deleting super admin
     if (user.isMainAdmin) return false
-    
+
     return true
+  }
+
+  // Quick warn user about real name
+  const handleWarnRealName = async (user) => {
+    if (!db || !currentUser) return
+
+    if (!window.confirm(`Send "Real Name Required" warning to ${user.name || user.email}?`)) {
+      return
+    }
+
+    try {
+      const warningData = {
+        userId: user.id,
+        userName: user.name || 'Unknown',
+        userEmail: user.email || '',
+        title: '⚠️ Action Required: Update Your Name',
+        message: 'Your account name does not match your student ID card. Please update your profile to use your real name as shown on your student card. Failure to comply may result in account suspension or deletion.',
+        buttons: [{ text: 'Update My Profile', url: '/member/profile' }],
+        severity: 'warning',
+        acknowledged: false,
+        createdAt: Timestamp.now(),
+        createdBy: currentUser.uid
+      }
+
+      await addDoc(collection(db, 'userWarnings'), warningData)
+      alert(`Warning sent to ${user.name || user.email}!`)
+    } catch (error) {
+      console.error('Error sending warning:', error)
+      alert('Error sending warning: ' + error.message)
+    }
   }
 
   return (
@@ -425,7 +458,7 @@ const AdminUsers = () => {
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                   <h2>Edit User</h2>
-                  <button 
+                  <button
                     className="modal-close"
                     onClick={() => {
                       setShowEditModal(false)
@@ -504,12 +537,12 @@ const AdminUsers = () => {
                     <small>When enabled, this user's profile will be visible in the public member directory</small>
                   </div>
                   <div className="form-actions">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => {
                         setShowEditModal(false)
                         setEditingUser(null)
-                      }} 
+                      }}
                       className="btn btn-secondary"
                     >
                       Cancel
@@ -622,6 +655,14 @@ const AdminUsers = () => {
                                   style={{ color: '#dc2626', background: 'rgba(220, 38, 38, 0.1)' }}
                                 >
                                   <FiXCircle />
+                                </button>
+                                <button
+                                  onClick={() => handleWarnRealName(user)}
+                                  className="btn-icon btn-warn"
+                                  title="Warn: Real name required"
+                                  style={{ color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)' }}
+                                >
+                                  <FiFlag />
                                 </button>
                               </div>
                             )}

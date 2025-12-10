@@ -7,7 +7,7 @@ import { sendDisplayEmailVerification } from '../../utils/emailService'
 import { FiArrowLeft, FiUser, FiMail, FiSave, FiAlertCircle, FiPhone, FiCheckCircle, FiHash, FiBookOpen, FiClock, FiUsers, FiSun, FiMoon, FiAward, FiLock, FiSend } from 'react-icons/fi'
 import { DEPARTMENTS, SEMESTERS, SECTIONS, getDegreesForDepartment, getShiftsForDegree } from '../../utils/universityData'
 import AvatarSelector from '../../components/AvatarSelector'
-import ChatSettings from '../../components/ChatSettings'
+import StreamChatSettings from '../../components/StreamChatSettings'
 import './MemberProfile.css'
 
 const MemberProfile = () => {
@@ -540,6 +540,7 @@ const MemberProfile = () => {
                 required
                 placeholder="Enter your full name"
               />
+              <small>⚠️ Must match the name on your student ID card. Used for event registrations and official records.</small>
             </div>
 
             <div className="form-group">
@@ -1060,7 +1061,7 @@ const MemberProfile = () => {
           </div>
         </form>
 
-        <ChatSettings />
+        <StreamChatSettings />
       </div>
     </div>
   )
