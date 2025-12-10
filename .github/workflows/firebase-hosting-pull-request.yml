@@ -20,10 +20,8 @@ jobs:
       - run: npm ci
       - name: Build with environment variables
         env:
-          VITE_COMETCHAT_APP_ID: ${{ secrets.VITE_COMETCHAT_APP_ID }}
-          VITE_COMETCHAT_REGION: ${{ secrets.VITE_COMETCHAT_REGION }}
-          VITE_COMETCHAT_AUTH_KEY: ${{ secrets.VITE_COMETCHAT_AUTH_KEY }}
-          VITE_COMETCHAT_REST_API_KEY: ${{ secrets.VITE_COMETCHAT_REST_API_KEY }}
+          VITE_STREAM_CHAT_API_KEY: ${{ secrets.VITE_STREAM_CHAT_API_KEY }}
+          VITE_STREAM_CHAT_SECRET: ${{ secrets.VITE_STREAM_CHAT_SECRET }}
         run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
