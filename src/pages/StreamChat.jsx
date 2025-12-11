@@ -611,7 +611,7 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
                                 disableDateSeparator={false}
                                 Message={CustomMessage}
                             />
-                            <MessageInput />
+                            <CustomMessageInput />
                         </Window>
                         <Thread />
                     </Channel>
