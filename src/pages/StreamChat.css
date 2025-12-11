@@ -1701,30 +1701,78 @@
 
 /* ===== TOOLTIPS & POPOVERS ===== */
 
-/* Stream Chat tooltip styling */
+/* Stream Chat tooltip styling - targeting ALL possible classes */
 .str-chat__tooltip,
 .str-chat__message-status-tooltip,
+.str-chat__simple-message-status-tooltip,
+.str-chat__message-status,
+.str-chat__message-simple-status,
+.str-chat-message-status,
 [class*="tooltip"],
-[class*="Tooltip"] {
+[class*="Tooltip"],
+[class*="status-tooltip"],
+[role="tooltip"] {
     background: #1a1a2e !important;
     color: white !important;
     border-radius: 8px !important;
     padding: 8px 12px !important;
     font-size: 12px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
     border: none !important;
     z-index: 9999 !important;
 }
 
-/* Message status tooltip (Sent/Delivered/Read) */
+/* Message status tooltip (Sent/Delivered/Read) - more selectors */
 .str-chat__message-status-tooltip,
-.str-chat__message-simple-status-tooltip {
+.str-chat__message-simple-status-tooltip,
+.str-chat__message-status>span,
+.str-chat__message-simple-status>span,
+[class*="message-status"] [class*="tooltip"],
+[class*="MessageStatus"] [class*="tooltip"] {
     background: #1a1a2e !important;
     color: white !important;
     padding: 6px 10px !important;
     border-radius: 6px !important;
     font-size: 11px !important;
-    white-space: nowrap;
+    white-space: nowrap !important;
+}
+
+/* Target any element that appears on hover near status icons */
+.str-chat__message-status:hover::after,
+.str-chat__message-status:hover::before,
+.str-chat__message-simple-status:hover::after,
+.str-chat__message-simple-status:hover::before {
+    background: #1a1a2e !important;
+    color: white !important;
+}
+
+/* Fix tippy.js tooltips (commonly used by Stream) */
+.tippy-box,
+.tippy-content,
+[data-tippy-root],
+[data-tippy-root]>* {
+    background: #1a1a2e !important;
+    color: white !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+}
+
+.tippy-arrow {
+    color: #1a1a2e !important;
+}
+
+.tippy-arrow::before {
+    border-top-color: #1a1a2e !important;
+    border-bottom-color: #1a1a2e !important;
+}
+
+/* Fix Floating UI tooltips */
+[data-floating-ui-portal] [role="tooltip"],
+[data-floating-ui-portal] [class*="tooltip"] {
+    background: #1a1a2e !important;
+    color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
 }
 
 /* Popover styling */
@@ -1735,6 +1783,7 @@
     border: 1px solid #e5e7eb !important;
     border-radius: 12px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    color: #1a1a2e !important;
 }
 
 [data-theme="dark"] .str-chat__popover,
@@ -1751,10 +1800,23 @@
     background: white !important;
     border-radius: 8px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    color: #1a1a2e !important;
 }
 
 [data-theme="dark"] .str-chat__floating-ui,
 [data-theme="dark"] [data-floating-ui-portal]>* {
     background: #2d2d4a !important;
     color: white !important;
+}
+
+/* Override any white backgrounds in tooltips */
+[class*="tooltip"] * {
+    color: inherit !important;
+}
+
+/* Ensure text is visible */
+.str-chat [role="tooltip"],
+.str-chat [class*="tooltip"] {
+    background-color: #1a1a2e !important;
+    color: #ffffff !important;
 }
