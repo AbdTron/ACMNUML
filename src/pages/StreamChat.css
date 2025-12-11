@@ -1698,3 +1698,63 @@
 [data-theme="dark"] .str-chat__thread-header-name {
     color: white !important;
 }
+
+/* ===== TOOLTIPS & POPOVERS ===== */
+
+/* Stream Chat tooltip styling */
+.str-chat__tooltip,
+.str-chat__message-status-tooltip,
+[class*="tooltip"],
+[class*="Tooltip"] {
+    background: #1a1a2e !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    border: none !important;
+    z-index: 9999 !important;
+}
+
+/* Message status tooltip (Sent/Delivered/Read) */
+.str-chat__message-status-tooltip,
+.str-chat__message-simple-status-tooltip {
+    background: #1a1a2e !important;
+    color: white !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+}
+
+/* Popover styling */
+.str-chat__popover,
+[class*="popover"],
+[class*="Popover"] {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="dark"] .str-chat__popover,
+[data-theme="dark"] [class*="popover"],
+[data-theme="dark"] [class*="Popover"] {
+    background: #2d2d4a !important;
+    border-color: #3d3d5c !important;
+    color: white !important;
+}
+
+/* Generic floating UI styling */
+.str-chat__floating-ui,
+[data-floating-ui-portal]>* {
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="dark"] .str-chat__floating-ui,
+[data-theme="dark"] [data-floating-ui-portal]>* {
+    background: #2d2d4a !important;
+    color: white !important;
+}

@@ -23,6 +23,7 @@ import {
 } from 'stream-chat-react'
 import { FiArrowLeft, FiVideo, FiPhone, FiMic, FiPaperclip, FiSmile, FiSend, FiX, FiSquare, FiMessageSquare, FiCornerUpLeft, FiMoreVertical } from 'react-icons/fi'
 import VideoCallUI from '../components/VideoCallUI'
+import { useStreamNotifications } from '../hooks/useStreamNotifications'
 import 'stream-chat-react/dist/css/v2/index.css'
 import './StreamChat.css'
 
@@ -632,39 +633,15 @@ const StreamChatPage = () => {
     const navigate = useNavigate()
     const [showChannelList, setShowChannelList] = useState(true)
 
-    // Setup notifications
+    // Setup notifications using the custom hook
+    const { requestNotificationPermission } = useStreamNotifications()
+
+    // Request notification permission on mount
     useEffect(() => {
-        if (!client || !isConnected) return
-
-        // Request notification permission if not already granted
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission()
+        if (client && isConnected) {
+            requestNotificationPermission()
         }
-
-        // Listen for new messages and show desktop notifications
-        const handleNewMessage = (event) => {
-            const message = event.message
-
-            if (
-                message.user?.id !== client.userID &&
-                document.hidden &&
-                'Notification' in window &&
-                Notification.permission === 'granted'
-            ) {
-                new Notification('New Message', {
-                    body: `${message.user?.name || 'Someone'}: ${message.text || 'Sent an attachment'}`,
-                    icon: message.user?.image || '/favicon.ico',
-                    tag: `message-${message.id}`,
-                })
-            }
-        }
-
-        client.on('message.new', handleNewMessage)
-
-        return () => {
-            client.off('message.new', handleNewMessage)
-        }
-    }, [client, isConnected])
+    }, [client, isConnected, requestNotificationPermission])
 
     // If userId is provided in URL, create/open a direct message channel with that user
     useEffect(() => {
