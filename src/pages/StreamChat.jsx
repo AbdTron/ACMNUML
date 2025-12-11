@@ -15,12 +15,33 @@ import {
     useChannelStateContext,
     useMessageInputContext,
     useChatContext,
+    useMessageContext,
     Attachment,
+    MessageSimple,
+    ReactionSelector,
+    ReactionsList,
 } from 'stream-chat-react'
-import { FiArrowLeft, FiVideo, FiPhone, FiMic, FiPaperclip, FiSmile, FiSend, FiX, FiSquare, FiMessageSquare } from 'react-icons/fi'
+import { FiArrowLeft, FiVideo, FiPhone, FiMic, FiPaperclip, FiSmile, FiSend, FiX, FiSquare, FiMessageSquare, FiCornerUpLeft, FiMoreVertical } from 'react-icons/fi'
 import VideoCallUI from '../components/VideoCallUI'
 import 'stream-chat-react/dist/css/v2/index.css'
 import './StreamChat.css'
+
+// Extended emoji list like WhatsApp
+const EMOJI_CATEGORIES = {
+    'Recently Used': ['👍', '❤️', '😂', '😮', '😢', '🙏'],
+    'Smileys': ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐'],
+    'Gestures': ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪', '🦾', '🦿'],
+    'Hearts': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'],
+    'Celebrations': ['🎉', '🎊', '🎈', '🎁', '🎀', '🎂', '🍰', '🧁', '🥂', '🍾', '✨', '🌟', '⭐', '💫', '🔥', '💥', '🎆', '🎇'],
+    'Nature': ['🌸', '🌺', '🌻', '🌹', '🌷', '🌱', '🌲', '🌳', '🌴', '🌵', '🍀', '🍁', '🍂', '🍃', '🌈', '☀️', '🌙', '⭐', '🌊', '🔥', '❄️', '💧'],
+    'Food': ['🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🥑', '🍔', '🍕', '🌮', '🍜', '🍣', '🍦', '🍩', '🍪', '☕', '🍵'],
+    'Activities': ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🎱', '🏓', '🎮', '🎯', '🎲', '🧩', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸'],
+    'Objects': ['💼', '📱', '💻', '⌨️', '🖥️', '🖨️', '📷', '📹', '🎥', '📞', '☎️', '📺', '📻', '🧭', '⏰', '🔑', '🗝️', '🔒', '💡', '🔦', '📚', '📖', '✏️', '✒️', '🖊️'],
+    'Symbols': ['✅', '❌', '❓', '❗', '💯', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '🔄', '🔃']
+};
+
+// Reaction emojis for quick reactions (like WhatsApp)
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉'];
 
 // Custom Channel Header with Video Call button
 const CustomChannelHeader = () => {
@@ -55,8 +76,10 @@ const CustomChannelHeader = () => {
     const handleBack = () => {
         // Clear the active channel to show channel list
         if (setActiveChannel) {
-            setActiveChannel(null)
+            setActiveChannel(undefined)
         }
+        // Force re-render by navigating to chat without userId
+        navigate('/chat', { replace: true })
     }
 
     return (
@@ -196,13 +219,12 @@ const CustomMessageInput = () => {
     }
 
     // Emoji
+    const [activeEmojiCategory, setActiveEmojiCategory] = useState('Smileys')
+
     const handleEmojiSelect = (emoji) => {
         handleChange({ target: { value: text + emoji } })
         setShowEmojiPicker(false)
     }
-
-    // Common emojis for quick selection
-    const commonEmojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '👏', '😊', '🙌', '💯', '✨', '😍', '🤔', '😎', '👀', '🚀']
 
     // Submit
     const handleFormSubmit = (e) => {
@@ -274,20 +296,35 @@ const CustomMessageInput = () => {
                 </div>
             )}
 
-            {/* Emoji Picker */}
+            {/* Extended Emoji Picker like WhatsApp */}
             {showEmojiPicker && (
                 <div className="emoji-picker-container">
-                    <div className="emoji-picker-simple">
-                        {commonEmojis.map((emoji, index) => (
-                            <button
-                                key={index}
-                                type="button"
-                                className="emoji-btn"
-                                onClick={() => handleEmojiSelect(emoji)}
-                            >
-                                {emoji}
-                            </button>
-                        ))}
+                    <div className="emoji-picker-whatsapp">
+                        <div className="emoji-categories">
+                            {Object.keys(EMOJI_CATEGORIES).map((category) => (
+                                <button
+                                    key={category}
+                                    type="button"
+                                    className={`emoji-category-btn ${activeEmojiCategory === category ? 'active' : ''}`}
+                                    onClick={() => setActiveEmojiCategory(category)}
+                                    title={category}
+                                >
+                                    {EMOJI_CATEGORIES[category][0]}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="emoji-grid">
+                            {EMOJI_CATEGORIES[activeEmojiCategory]?.map((emoji, index) => (
+                                <button
+                                    key={index}
+                                    type="button"
+                                    className="emoji-btn"
+                                    onClick={() => handleEmojiSelect(emoji)}
+                                >
+                                    {emoji}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
@@ -352,6 +389,178 @@ const CustomMessageInput = () => {
     )
 }
 
+// Custom Message component with quick quote action
+const CustomMessage = () => {
+    const {
+        message,
+        handleOpenThread,
+        setQuotedMessage,
+        isMyMessage,
+        isReactionEnabled,
+        reactionSelectorRef,
+        showDetailedReactions,
+    } = useMessageContext()
+    const { client, channel } = useChatContext()
+    const [showReactionPicker, setShowReactionPicker] = useState(false)
+    const [showActionsMenu, setShowActionsMenu] = useState(false)
+    const reactionPickerRef = useRef(null)
+    const actionsMenuRef = useRef(null)
+
+    // Close menus when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (reactionPickerRef.current && !reactionPickerRef.current.contains(event.target)) {
+                setShowReactionPicker(false)
+            }
+            if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
+                setShowActionsMenu(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    // Handle quote reply
+    const handleQuoteReply = () => {
+        if (setQuotedMessage) {
+            setQuotedMessage(message)
+        }
+    }
+
+    // Handle reaction with single-reaction-per-user limit
+    const handleReaction = async (reactionType) => {
+        if (!channel || !message) return
+
+        try {
+            // Get user's current reactions on this message
+            const userId = client.userID
+            const existingReactions = message.own_reactions || []
+
+            // If user already reacted with this emoji, remove it
+            const existingReaction = existingReactions.find(r => r.type === reactionType)
+            if (existingReaction) {
+                await channel.deleteReaction(message.id, reactionType)
+            } else {
+                // Remove any existing reaction from this user first (single reaction per user)
+                for (const reaction of existingReactions) {
+                    await channel.deleteReaction(message.id, reaction.type)
+                }
+                // Add the new reaction
+                await channel.sendReaction(message.id, { type: reactionType })
+            }
+        } catch (error) {
+            console.error('Failed to handle reaction:', error)
+        }
+        setShowReactionPicker(false)
+    }
+
+    // Get reaction counts for display
+    const getReactionCounts = () => {
+        const counts = {}
+        const reactions = message.reaction_counts || {}
+        Object.entries(reactions).forEach(([type, count]) => {
+            if (count > 0) {
+                counts[type] = count
+            }
+        })
+        return counts
+    }
+
+    const reactionCounts = getReactionCounts()
+    const hasReactions = Object.keys(reactionCounts).length > 0
+    const isMine = isMyMessage()
+
+    return (
+        <div className={`custom-message-wrapper ${isMine ? 'custom-message--mine' : 'custom-message--other'}`}>
+            <div className="custom-message-content">
+                {/* Message bubble using MessageSimple */}
+                <MessageSimple />
+
+                {/* Quick Actions */}
+                <div className={`message-quick-actions ${isMine ? 'left' : 'right'}`}>
+                    {/* Quick Quote Reply */}
+                    <button
+                        className="quick-action-btn quote-btn"
+                        onClick={handleQuoteReply}
+                        title="Quote Reply"
+                    >
+                        <FiCornerUpLeft />
+                    </button>
+
+                    {/* Emoji Reaction Button */}
+                    <button
+                        className="quick-action-btn react-btn"
+                        onClick={() => setShowReactionPicker(!showReactionPicker)}
+                        title="React"
+                    >
+                        <FiSmile />
+                    </button>
+
+                    {/* More Actions (3-dots menu) */}
+                    <button
+                        className="quick-action-btn menu-btn"
+                        onClick={() => setShowActionsMenu(!showActionsMenu)}
+                        title="More"
+                    >
+                        <FiMoreVertical />
+                    </button>
+                </div>
+
+                {/* Reaction Picker */}
+                {showReactionPicker && (
+                    <div
+                        ref={reactionPickerRef}
+                        className={`reaction-picker ${isMine ? 'left' : 'right'}`}
+                    >
+                        {REACTION_EMOJIS.map((emoji) => (
+                            <button
+                                key={emoji}
+                                className="reaction-emoji-btn"
+                                onClick={() => handleReaction(emoji)}
+                            >
+                                {emoji}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Actions Menu (threaded reply, pin, delete, etc.) */}
+                {showActionsMenu && (
+                    <div
+                        ref={actionsMenuRef}
+                        className={`actions-menu ${isMine ? 'left' : 'right'}`}
+                    >
+                        <button onClick={() => { handleOpenThread(); setShowActionsMenu(false); }}>
+                            <FiMessageSquare /> Reply in Thread
+                        </button>
+                        {isMine && (
+                            <>
+                                <button onClick={() => setShowActionsMenu(false)}>
+                                    Edit
+                                </button>
+                                <button className="delete-action" onClick={() => setShowActionsMenu(false)}>
+                                    Delete
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Display Reactions */}
+            {hasReactions && (
+                <div className={`message-reactions ${isMine ? 'right' : 'left'}`}>
+                    {Object.entries(reactionCounts).map(([emoji, count]) => (
+                        <span key={emoji} className="reaction-badge" onClick={() => handleReaction(emoji)}>
+                            {emoji} {count > 1 && <span className="reaction-count">{count}</span>}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
 // Main Chat Content that uses Stream Chat's context for channel management
 const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) => {
     const { channel } = useChatContext()
@@ -395,7 +604,7 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
                             <CustomChannelHeader onBack={() => setShowChannelList(true)} />
                             <MessageList
                                 disableDateSeparator={false}
-                                messageActions={['react', 'reply', 'quote', 'pin', 'delete', 'edit', 'flag']}
+                                Message={CustomMessage}
                             />
                             <MessageInput />
                         </Window>

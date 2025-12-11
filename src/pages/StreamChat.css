@@ -295,15 +295,71 @@
     overflow: hidden;
 }
 
-/* Simple Emoji Picker */
-.emoji-picker-simple {
+/* ===== WhatsApp-Style Emoji Picker ===== */
+.emoji-picker-whatsapp {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    width: 320px;
+    max-height: 320px;
+}
+
+.emoji-categories {
+    display: flex;
+    gap: 2px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.emoji-categories::-webkit-scrollbar {
+    display: none;
+}
+
+.emoji-category-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-category-btn:hover {
+    background: #f3f4f6;
+}
+
+.emoji-category-btn.active {
+    background: #6366f1;
+    transform: scale(1.1);
+}
+
+.emoji-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 4px;
     padding: 12px;
-    background: white;
-    border-radius: 12px;
-    max-width: 280px;
+    max-height: 250px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.emoji-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
 }
 
 .emoji-btn {
@@ -322,7 +378,29 @@
 
 .emoji-btn:hover {
     background: #f3f4f6;
-    transform: scale(1.15);
+    transform: scale(1.2);
+}
+
+/* Dark mode emoji picker */
+[data-theme="dark"] .emoji-picker-whatsapp {
+    background: #2d2d4a;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .emoji-categories {
+    border-bottom-color: #3d3d5c;
+}
+
+[data-theme="dark"] .emoji-category-btn:hover {
+    background: #3d3d5c;
+}
+
+[data-theme="dark"] .emoji-btn:hover {
+    background: #3d3d5c;
+}
+
+[data-theme="dark"] .emoji-grid::-webkit-scrollbar-thumb {
+    background: #4d4d6a;
 }
 
 /* Input Form */
@@ -611,6 +689,64 @@
         right: 8px;
         margin-bottom: 0;
     }
+
+    .emoji-picker-whatsapp {
+        width: 100%;
+        max-width: none;
+    }
+
+    /* Mobile: Always show quick actions */
+    .message-quick-actions {
+        opacity: 1;
+        visibility: visible;
+        position: relative;
+        top: auto;
+        transform: none;
+        margin: 0;
+        padding: 4px 0;
+    }
+
+    .message-quick-actions.left,
+    .message-quick-actions.right {
+        margin: 0;
+        flex-direction: row;
+    }
+
+    .custom-message-content {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .custom-message--mine .custom-message-content {
+        align-items: flex-end;
+    }
+
+    .custom-message--other .custom-message-content {
+        align-items: flex-start;
+    }
+
+    .quick-action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .reaction-picker {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        top: auto;
+    }
+
+    .actions-menu {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        top: auto;
+        min-width: 200px;
+    }
 }
 
 /* Tablet */
@@ -792,16 +928,26 @@
     color: white !important;
 }
 
-/* ===== MESSAGE BUBBLES - Clean styling ===== */
+/* ===== MESSAGE BUBBLES - Clean styling (FIX DOUBLE BUBBLE) ===== */
 
-/* Remove weird bubble borders */
+/* Remove all extra wrappers and backgrounds */
 .str-chat__message,
 .str-chat__message-simple {
     background: transparent !important;
     border: none !important;
+    box-shadow: none !important;
 }
 
-/* Light theme message bubbles */
+/* Reset message bubble wrapper */
+.str-chat__message-bubble,
+.str-chat__message-simple-content {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Light theme message bubbles - ONLY the text inner should have background */
 .str-chat__message-text-inner,
 .str-chat__message-simple-text-inner {
     background: #f0f2f5 !important;
@@ -810,6 +956,280 @@
     padding: 10px 16px !important;
     border: none !important;
     box-shadow: none !important;
+}
+
+/* My messages (right side) - light theme */
+.str-chat__message--me .str-chat__message-text-inner,
+.str-chat__message--me .str-chat__message-simple-text-inner {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: white !important;
+}
+
+/* Dark theme message bubbles */
+[data-theme="dark"] .str-chat__message-text-inner,
+[data-theme="dark"] .str-chat__message-simple-text-inner {
+    background: #3d3d5c !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .str-chat__message--me .str-chat__message-text-inner,
+[data-theme="dark"] .str-chat__message--me .str-chat__message-simple-text-inner {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: white !important;
+}
+
+/* ===== CUSTOM MESSAGE WRAPPER ===== */
+
+.custom-message-wrapper {
+    position: relative;
+    padding: 4px 16px;
+    margin: 2px 0;
+}
+
+.custom-message-wrapper:hover .message-quick-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-message-content {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+}
+
+.custom-message--mine .custom-message-content {
+    justify-content: flex-end;
+}
+
+.custom-message--other .custom-message-content {
+    justify-content: flex-start;
+}
+
+/* ===== QUICK ACTIONS ===== */
+
+.message-quick-actions {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.message-quick-actions.left {
+    right: 100%;
+    margin-right: 8px;
+    flex-direction: row-reverse;
+}
+
+.message-quick-actions.right {
+    left: 100%;
+    margin-left: 8px;
+}
+
+.quick-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-action-btn:hover {
+    background: #6366f1;
+    color: white;
+    transform: scale(1.1);
+}
+
+[data-theme="dark"] .quick-action-btn {
+    background: #3d3d5c;
+    color: #a1a1aa;
+}
+
+[data-theme="dark"] .quick-action-btn:hover {
+    background: #6366f1;
+    color: white;
+}
+
+/* ===== REACTION PICKER ===== */
+
+.reaction-picker {
+    position: absolute;
+    top: -50px;
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.reaction-picker.left {
+    right: 0;
+}
+
+.reaction-picker.right {
+    left: 0;
+}
+
+.reaction-emoji-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reaction-emoji-btn:hover {
+    background: #f3f4f6;
+    transform: scale(1.2);
+}
+
+[data-theme="dark"] .reaction-picker {
+    background: #2d2d4a;
+}
+
+[data-theme="dark"] .reaction-emoji-btn:hover {
+    background: #3d3d5c;
+}
+
+/* ===== ACTIONS MENU ===== */
+
+.actions-menu {
+    position: absolute;
+    top: 100%;
+    margin-top: 8px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    z-index: 100;
+    min-width: 160px;
+}
+
+.actions-menu.left {
+    right: 0;
+}
+
+.actions-menu.right {
+    left: 0;
+}
+
+.actions-menu button {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #374151;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s;
+    text-align: left;
+}
+
+.actions-menu button:hover {
+    background: #f3f4f6;
+}
+
+.actions-menu button.delete-action {
+    color: #ef4444;
+}
+
+.actions-menu button.delete-action:hover {
+    background: #fef2f2;
+}
+
+[data-theme="dark"] .actions-menu {
+    background: #2d2d4a;
+}
+
+[data-theme="dark"] .actions-menu button {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .actions-menu button:hover {
+    background: #3d3d5c;
+}
+
+[data-theme="dark"] .actions-menu button.delete-action {
+    color: #f87171;
+}
+
+[data-theme="dark"] .actions-menu button.delete-action:hover {
+    background: #450a0a;
+}
+
+/* ===== MESSAGE REACTIONS DISPLAY ===== */
+
+.message-reactions {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 0 16px;
+}
+
+.message-reactions.right {
+    justify-content: flex-end;
+}
+
+.message-reactions.left {
+    justify-content: flex-start;
+}
+
+.reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reaction-badge:hover {
+    background: #e5e7eb;
+    transform: scale(1.05);
+}
+
+.reaction-count {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .reaction-badge {
+    background: #3d3d5c;
+}
+
+[data-theme="dark"] .reaction-badge:hover {
+    background: #4d4d6a;
+}
+
+[data-theme="dark"] .reaction-count {
+    color: #9ca3af;
 }
 
 /* My messages (right side) - light theme */
