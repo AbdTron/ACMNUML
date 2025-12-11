@@ -604,17 +604,23 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
             {/* Main Chat Area */}
             <div className={`stream-chat-main ${channel ? 'show' : 'hide'}`}>
                 {channel ? (
-                    <Channel>
-                        <Window>
-                            <CustomChannelHeader onBack={() => setShowChannelList(true)} />
-                            <MessageList
-                                disableDateSeparator={false}
-                                Message={CustomMessage}
-                            />
-                            <CustomMessageInput />
-                        </Window>
-                        <Thread />
-                    </Channel>
+                    <>
+                        {/* Header OUTSIDE of Channel/Window for guaranteed visibility */}
+                        <CustomChannelHeader onBack={() => setShowChannelList(true)} />
+
+                        <Channel>
+                            <Window hideOnThread>
+                                <MessageList
+                                    disableDateSeparator={false}
+                                    Message={CustomMessage}
+                                />
+                            </Window>
+                            <Thread />
+                        </Channel>
+
+                        {/* Input OUTSIDE of Channel for guaranteed visibility */}
+                        <CustomMessageInput />
+                    </>
                 ) : (
                     <div className="no-channel-selected">
                         <div className="no-channel-content">

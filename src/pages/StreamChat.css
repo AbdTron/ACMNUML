@@ -1145,18 +1145,31 @@
     color: white;
 }
 
-/* ===== REACTION PICKER ===== */
+/* ===== REACTION PICKER (WhatsApp Style) ===== */
 
 .reaction-picker {
     position: absolute;
-    top: -50px;
+    top: -60px;
     display: flex;
-    gap: 4px;
-    padding: 8px 12px;
+    gap: 2px;
+    padding: 8px 10px;
     background: white;
-    border-radius: 24px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     z-index: 100;
+    animation: reactionPopIn 0.2s ease;
+}
+
+@keyframes reactionPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .reaction-picker.left {
@@ -1168,26 +1181,32 @@
 }
 
 .reaction-emoji-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border: none;
     background: transparent;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     border-radius: 50%;
-    transition: all 0.2s;
+    transition: all 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
 }
 
 .reaction-emoji-btn:hover {
-    background: #f3f4f6;
-    transform: scale(1.2);
+    background: #f0f2f5;
+    transform: scale(1.25);
+}
+
+.reaction-emoji-btn:active {
+    transform: scale(1.1);
 }
 
 [data-theme="dark"] .reaction-picker {
     background: #2d2d4a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="dark"] .reaction-emoji-btn:hover {
