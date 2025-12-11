@@ -507,6 +507,11 @@ const AdminWarnings = () => {
                         <div className="warnings-list">
                             {warnings.map((warning) => {
                                 const isExpanded = expandedWarnings[warning.id]
+                                // Get current user info to show updated name
+                                const currentUserInfo = users.find(u => u.id === warning.userId)
+                                const currentName = currentUserInfo?.name || warning.userName
+                                const nameChanged = currentName !== warning.userName
+
                                 return (
                                     <div key={warning.id} className={`warning-card ${warning.severity} ${isExpanded ? 'expanded' : ''}`}>
                                         <div
@@ -516,8 +521,18 @@ const AdminWarnings = () => {
                                             <div className="warning-user">
                                                 {getSeverityIcon(warning.severity)}
                                                 <div>
-                                                    <h3>{warning.userName}</h3>
+                                                    <h3>
+                                                        {currentName}
+                                                        {nameChanged && (
+                                                            <span className="name-changed-badge" title={`Original: ${warning.userName}`}>
+                                                                ✓ Name Updated
+                                                            </span>
+                                                        )}
+                                                    </h3>
                                                     <span className="user-email">{warning.userEmail}</span>
+                                                    {nameChanged && (
+                                                        <span className="original-name">Was: {warning.userName}</span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="warning-header-right">

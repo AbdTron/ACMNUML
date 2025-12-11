@@ -294,6 +294,37 @@
 .warning-user .user-email {
     font-size: 0.85rem;
     color: #6b7280;
+    display: block;
+}
+
+.name-changed-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: #d1fae5;
+    color: #047857;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 10px;
+    vertical-align: middle;
+}
+
+.original-name {
+    display: block;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* Dark mode for name badges */
+[data-theme="dark"] .name-changed-badge {
+    background: #064e3b;
+    color: #6ee7b7;
+}
+
+[data-theme="dark"] .original-name {
+    color: #6b7280;
 }
 
 .warning-header-right {
