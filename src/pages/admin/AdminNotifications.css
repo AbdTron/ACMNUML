@@ -205,6 +205,59 @@
   cursor: pointer;
 }
 
+/* Notification Form in Modal */
+.notification-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.notification-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notification-form .form-group label {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.notification-form .form-group input,
+.notification-form .form-group textarea,
+.notification-form .form-group select {
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--bg-white);
+  color: var(--text-dark);
+}
+
+.notification-form .form-group input:focus,
+.notification-form .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.notification-form .form-group small {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+.notification-form .form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
 /* Buttons Builder */
 .buttons-builder {
   margin-top: 0.5rem;

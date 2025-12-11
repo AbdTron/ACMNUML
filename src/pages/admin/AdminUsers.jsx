@@ -10,6 +10,7 @@ import {
   addDoc,
   query,
   orderBy,
+  where,
   Timestamp
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
