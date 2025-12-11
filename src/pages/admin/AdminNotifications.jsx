@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   doc,
   Timestamp,
   query,
@@ -12,10 +12,10 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { useNavigate } from 'react-router-dom'
-import { 
-  FiPlus, 
-  FiEdit2, 
-  FiTrash2, 
+import {
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
   FiArrowLeft,
   FiCheck,
   FiX,
@@ -224,7 +224,7 @@ const AdminNotifications = () => {
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                   <h2>{editingNotification ? 'Edit Notification' : 'Create Notification'}</h2>
-                  <button 
+                  <button
                     className="modal-close"
                     onClick={() => {
                       setShowForm(false)
@@ -244,17 +244,6 @@ const AdminNotifications = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="Notification title"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Message *</label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      rows="4"
-                      placeholder="Notification message"
                     />
                   </div>
                   <div className="form-group">

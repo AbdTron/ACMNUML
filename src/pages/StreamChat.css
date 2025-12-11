@@ -57,17 +57,23 @@
     height: 40px;
     border-radius: 50%;
     border: none;
-    background: transparent;
+    background: #f3f4f6;
     color: var(--text-dark, #1a1a2e);
     font-size: 20px;
     cursor: pointer;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    flex-shrink: 0;
 }
 
 .header-back-btn:hover {
-    background: #f3f4f6;
+    background: #e5e7eb;
+    transform: scale(1.05);
+}
+
+.header-back-btn:active {
+    transform: scale(0.95);
 }
 
 .header-info {
@@ -772,6 +778,11 @@
     .custom-message-input {
         padding-bottom: calc(12px + env(safe-area-inset-bottom));
     }
+
+    /* Always show back button in PWA mode */
+    .header-back-btn {
+        display: flex !important;
+    }
 }
 
 /* Dark Mode */
@@ -797,15 +808,18 @@
     color: white;
 }
 
-[data-theme="dark"] .header-back-btn,
-[data-theme="dark"] .input-action-btn {
-    color: #a1a1aa;
+[data-theme="dark"] .header-back-btn {
+    background: #2d2d4a;
+    color: #e5e7eb;
 }
 
-[data-theme="dark"] .header-back-btn:hover,
-[data-theme="dark"] .input-action-btn:hover:not(:disabled) {
-    background: #2d2d4a;
+[data-theme="dark"] .header-back-btn:hover {
+    background: #3d3d5c;
     color: white;
+}
+
+[data-theme="dark"] .input-action-btn {
+    color: #a1a1aa;
 }
 
 [data-theme="dark"] .header-action-btn {
