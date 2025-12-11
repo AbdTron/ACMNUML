@@ -370,21 +370,25 @@ const CustomMessageInput = () => {
                     <FiSmile />
                 </button>
 
-                {/* Voice Note or Send */}
-                {text.trim() || (attachments && attachments.length > 0) ? (
-                    <button type="submit" className="send-btn" title="Send">
-                        <FiSend />
-                    </button>
-                ) : (
-                    <button
-                        type="button"
-                        className="voice-btn"
-                        onClick={startRecording}
-                        title="Record voice note"
-                    >
-                        <FiMic />
-                    </button>
-                )}
+                {/* Voice Note Button - always visible */}
+                <button
+                    type="button"
+                    className="voice-btn"
+                    onClick={startRecording}
+                    title="Record voice note"
+                >
+                    <FiMic />
+                </button>
+
+                {/* Send Button */}
+                <button
+                    type="submit"
+                    className="send-btn"
+                    title="Send"
+                    disabled={!text.trim() && (!attachments || attachments.length === 0)}
+                >
+                    <FiSend />
+                </button>
             </form>
         </div>
     )
