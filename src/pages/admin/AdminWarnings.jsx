@@ -25,7 +25,9 @@ import {
     FiInfo,
     FiSearch,
     FiUser,
-    FiCopy
+    FiCopy,
+    FiChevronDown,
+    FiChevronUp
 } from 'react-icons/fi'
 import { format } from 'date-fns'
 import { useAuth } from '../../context/AuthContext'
@@ -94,6 +96,7 @@ const AdminWarnings = () => {
     })
     const [buttonText, setButtonText] = useState('')
     const [buttonUrl, setButtonUrl] = useState('')
+    const [expandedWarnings, setExpandedWarnings] = useState({})
 
     useEffect(() => {
         fetchWarnings()
@@ -275,6 +278,18 @@ const AdminWarnings = () => {
             case 'info': return <FiInfo className="severity-icon info" />
             default: return <FiAlertTriangle className="severity-icon warning" />
         }
+    }
+
+    const toggleWarningExpand = (warningId) => {
+        setExpandedWarnings(prev => ({
+            ...prev,
+            [warningId]: !prev[warningId]
+        }))
+    }
+
+    const truncateText = (text, maxLength = 100) => {
+        if (!text || text.length <= maxLength) return text
+        return text.substring(0, maxLength) + '...'
     }
 
     return (
@@ -490,51 +505,74 @@ const AdminWarnings = () => {
                         <div className="loading">Loading warnings...</div>
                     ) : (
                         <div className="warnings-list">
-                            {warnings.map((warning) => (
-                                <div key={warning.id} className={`warning-card ${warning.severity}`}>
-                                    <div className="warning-header">
-                                        <div className="warning-user">
-                                            {getSeverityIcon(warning.severity)}
-                                            <div>
-                                                <h3>{warning.userName}</h3>
-                                                <span>{warning.userEmail}</span>
+                            {warnings.map((warning) => {
+                                const isExpanded = expandedWarnings[warning.id]
+                                return (
+                                    <div key={warning.id} className={`warning-card ${warning.severity} ${isExpanded ? 'expanded' : ''}`}>
+                                        <div
+                                            className="warning-header clickable"
+                                            onClick={() => toggleWarningExpand(warning.id)}
+                                        >
+                                            <div className="warning-user">
+                                                {getSeverityIcon(warning.severity)}
+                                                <div>
+                                                    <h3>{warning.userName}</h3>
+                                                    <span className="user-email">{warning.userEmail}</span>
+                                                </div>
+                                            </div>
+                                            <div className="warning-header-right">
+                                                <div className="warning-meta">
+                                                    <span className={`severity-badge ${warning.severity}`}>
+                                                        {warning.severity}
+                                                    </span>
+                                                    <span className={`ack-badge ${warning.acknowledged ? 'acknowledged' : 'pending'}`}>
+                                                        {warning.acknowledged ? 'Acknowledged' : 'Pending'}
+                                                    </span>
+                                                </div>
+                                                <button className="expand-btn">
+                                                    {isExpanded ? <FiChevronUp /> : <FiChevronDown />}
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="warning-meta">
-                                            <span className={`severity-badge ${warning.severity}`}>
-                                                {warning.severity}
-                                            </span>
-                                            <span className={`ack-badge ${warning.acknowledged ? 'acknowledged' : 'pending'}`}>
-                                                {warning.acknowledged ? 'Acknowledged' : 'Pending'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="warning-body">
-                                        <h4>{warning.title}</h4>
-                                        <p>{warning.message}</p>
-                                        {warning.buttons && warning.buttons.length > 0 && (
-                                            <div className="warning-buttons-preview">
-                                                {warning.buttons.map((button, index) => (
-                                                    <span key={index} className="button-preview">
-                                                        {button.text} → {button.url}
-                                                    </span>
-                                                ))}
+
+                                        {/* Preview (always visible) */}
+                                        {!isExpanded && (
+                                            <div className="warning-preview">
+                                                <h4>{warning.title}</h4>
+                                                <p>{truncateText(warning.message, 120)}</p>
                                             </div>
                                         )}
-                                        <p className="warning-date">
-                                            Sent: {format(warning.createdAt, 'MMM dd, yyyy HH:mm')}
-                                        </p>
+
+                                        {/* Full content (only when expanded) */}
+                                        {isExpanded && (
+                                            <div className="warning-body">
+                                                <h4>{warning.title}</h4>
+                                                <p>{warning.message}</p>
+                                                {warning.buttons && warning.buttons.length > 0 && (
+                                                    <div className="warning-buttons-preview">
+                                                        {warning.buttons.map((button, index) => (
+                                                            <span key={index} className="button-preview">
+                                                                {button.text} → {button.url}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <p className="warning-date">
+                                                    Sent: {format(warning.createdAt, 'MMM dd, yyyy HH:mm')}
+                                                </p>
+                                                <div className="warning-actions">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(warning); }} className="btn-icon">
+                                                        <FiEdit2 /> Edit
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(warning.id); }} className="btn-icon btn-danger">
+                                                        <FiTrash2 /> Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="warning-actions">
-                                        <button onClick={() => handleEdit(warning)} className="btn-icon">
-                                            <FiEdit2 /> Edit
-                                        </button>
-                                        <button onClick={() => handleDelete(warning.id)} className="btn-icon btn-danger">
-                                            <FiTrash2 /> Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                             {warnings.length === 0 && (
                                 <div className="empty-state">
                                     <FiAlertTriangle />
