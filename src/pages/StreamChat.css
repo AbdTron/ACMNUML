@@ -49,7 +49,54 @@
     padding: 16px 20px;
     border-bottom: 1px solid #e5e7eb;
     background: white;
+    flex-shrink: 0;
+    z-index: 10;
 }
+
+/* Ensure Stream Chat components have proper flex layout */
+.stream-chat-main .str-chat__channel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.stream-chat-main .str-chat__main-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.stream-chat-main .str-chat__container {
+    flex: 1;
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.stream-chat-main .str-chat__message-list {
+    flex: 1;
+    overflow-y: auto !important;
+    min-height: 0;
+}
+
+.stream-chat-main .str-chat__message-list-scroll {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure input bar is always visible at the bottom */
+.stream-chat-main .str-chat__message-input,
+.stream-chat-main .custom-message-input {
+    flex-shrink: 0 !important;
+    position: relative;
+    z-index: 10;
+}
+
 
 .header-back-btn {
     display: none;

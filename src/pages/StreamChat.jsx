@@ -613,13 +613,12 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
                                 <MessageList
                                     disableDateSeparator={false}
                                     Message={CustomMessage}
+                                    messageLimit={50}
                                 />
+                                <CustomMessageInput />
                             </Window>
                             <Thread />
                         </Channel>
-
-                        {/* Input OUTSIDE of Channel for guaranteed visibility */}
-                        <CustomMessageInput />
                     </>
                 ) : (
                     <div className="no-channel-selected">
