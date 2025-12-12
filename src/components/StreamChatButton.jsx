@@ -17,13 +17,18 @@ const StreamChatButton = ({ userId, userEmail, className = '' }) => {
         }
     }
 
+    // Debug logging
+    console.log(`[StreamChatButton] userId: ${userId}, isConnected: ${isConnected}, currentUser: ${currentUser?.uid}`)
+
     // Don't show button if user is not connected
     if (!isConnected || !currentUser) {
+        console.log(`[StreamChatButton] Hidden - not connected or no current user`)
         return null
     }
 
     // Don't show button if it's the current user
     if (userId === currentUser.uid) {
+        console.log(`[StreamChatButton] Hidden - current user's own card`)
         return null
     }
 

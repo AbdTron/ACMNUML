@@ -39,7 +39,7 @@ const MemberProfile = () => {
     linkedin: '',
     github: '',
     twitter: '',
-    showInDirectory: false,
+    showInDirectory: true,
     showEmail: true,
     showPhone: false,
     emailType: 'account', // 'account' or 'display'
@@ -129,7 +129,7 @@ const MemberProfile = () => {
         linkedin: userProfile.linkedin || '',
         github: userProfile.github || '',
         twitter: userProfile.twitter || '',
-        showInDirectory: userProfile.showInDirectory || false,
+        showInDirectory: userProfile.showInDirectory !== false, // Default to true
         showEmail: userProfile.showEmail !== undefined ? userProfile.showEmail : (userProfile.showContactOnDirectory && (userProfile.contactType === 'email' || userProfile.contactType === 'displayEmail')) || true,
         showPhone: userProfile.showPhone !== undefined ? userProfile.showPhone : (userProfile.showContactOnDirectory && userProfile.contactType === 'phone'),
         emailType: userProfile.emailType || (userProfile.contactType === 'displayEmail' ? 'display' : 'account'),

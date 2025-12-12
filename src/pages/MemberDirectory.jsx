@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { Link } from 'react-router-dom'
@@ -13,9 +13,14 @@ const MemberDirectory = () => {
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const hasFetchedRef = useRef(false)
 
   useEffect(() => {
-    fetchMembers()
+    // Prevent duplicate fetches on re-mounts (React Strict Mode, context updates)
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true
+      fetchMembers()
+    }
   }, [])
 
   const fetchMembers = async () => {
