@@ -870,6 +870,22 @@
         top: auto;
         min-width: 200px;
     }
+
+    /* Ensure message input is always visible on mobile */
+    .custom-message-input {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 100 !important;
+        flex-shrink: 0 !important;
+    }
+
+    .custom-message-input .input-form {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
 /* Tablet */

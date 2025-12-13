@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { 
-  collection, 
-  getDocs, 
+import {
+  collection,
+  getDocs,
   setDoc,
-  updateDoc, 
-  deleteDoc, 
+  updateDoc,
+  deleteDoc,
   doc,
   getDoc,
   Timestamp,
@@ -14,10 +14,10 @@ import {
 import { db } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { 
-  FiPlus, 
-  FiEdit2, 
-  FiTrash2, 
+import {
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
   FiCalendar,
   FiArrowLeft,
   FiCheck,
@@ -175,7 +175,7 @@ const AdminEvents = () => {
         coverCrop: coverCropToSave,
         date: Timestamp.fromDate(new Date(formData.date))
       }
-      
+
       // Remove undefined values to avoid Firestore issues
       Object.keys(eventData).forEach(key => {
         if (eventData[key] === undefined) {
@@ -202,7 +202,7 @@ const AdminEvents = () => {
           updatedAt: new Date().toISOString()
         })
       }
-      
+
       setFormData({
         title: '',
         description: '',
@@ -247,7 +247,7 @@ const AdminEvents = () => {
       registrationEnabled: event.registrationEnabled || false,
       capacity: event.capacity || ''
     })
-    
+
     // Load form configuration if it exists
     if (event.id && db) {
       try {
@@ -266,7 +266,7 @@ const AdminEvents = () => {
         setSelectedTemplate('')
       }
     }
-    
+
     setShowForm(true)
   }
 
@@ -321,7 +321,7 @@ const AdminEvents = () => {
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
       yesterday.setHours(23, 59, 59, 999) // Set to end of yesterday
-      
+
       await updateDoc(doc(db, 'events', event.id), {
         date: Timestamp.fromDate(yesterday)
       })
@@ -338,7 +338,7 @@ const AdminEvents = () => {
     today.setHours(0, 0, 0, 0)
     const date = new Date(eventDate)
     date.setHours(0, 0, 0, 0)
-    
+
     if (date < today) return 'past'
     if (date.getTime() === today.getTime()) return 'today'
     return 'upcoming'
@@ -388,7 +388,7 @@ const AdminEvents = () => {
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                   <h2>{editingEvent ? 'Edit Event' : 'Add New Event'}</h2>
-                  <button 
+                  <button
                     className="modal-close"
                     onClick={() => {
                       setShowForm(false)
@@ -465,6 +465,7 @@ const AdminEvents = () => {
                         <option value="Workshop">Workshop</option>
                         <option value="Hackathon">Hackathon</option>
                         <option value="Talk">Talk</option>
+                        <option value="Session">Session</option>
                         <option value="Visit">Visit</option>
                         <option value="Other">Other</option>
                       </select>
@@ -481,32 +482,32 @@ const AdminEvents = () => {
                     />
                     <small>Enter session details, one per line or separated by commas</small>
                   </div>
-                <ImageUploader
-                  label="Event Cover (Crop for card preview)"
-                  folder="events"
-                  value={{ url: formData.coverUrl, filePath: formData.coverFilePath, crops: formData.coverCrop ? { cover: formData.coverCrop } : null }}
-                  onChange={(payload) => {
-                    // Same pattern as AdminTeam - store original image URL and crop data
-                    if (!payload || payload === '' || (typeof payload === 'object' && (!payload.url || payload.url === ''))) {
-                      setFormData({ ...formData, coverUrl: '', coverFilePath: '', coverCrop: null })
-                      return
-                    }
-                    if (typeof payload === 'string') {
-                      setFormData({ ...formData, coverUrl: payload, coverFilePath: '', coverCrop: null })
-                      return
-                    }
-                    if (typeof payload === 'object' && payload.url) {
-                      const cropData = payload.crops?.cover || null
-                      setFormData({ 
-                        ...formData, 
-                        coverUrl: payload.url,
-                        coverFilePath: payload.filePath || payload.path || '',
-                        coverCrop: cropData
-                      })
-                    }
-                  }}
-                  aspect={16 / 9}
-                />
+                  <ImageUploader
+                    label="Event Cover (Crop for card preview)"
+                    folder="events"
+                    value={{ url: formData.coverUrl, filePath: formData.coverFilePath, crops: formData.coverCrop ? { cover: formData.coverCrop } : null }}
+                    onChange={(payload) => {
+                      // Same pattern as AdminTeam - store original image URL and crop data
+                      if (!payload || payload === '' || (typeof payload === 'object' && (!payload.url || payload.url === ''))) {
+                        setFormData({ ...formData, coverUrl: '', coverFilePath: '', coverCrop: null })
+                        return
+                      }
+                      if (typeof payload === 'string') {
+                        setFormData({ ...formData, coverUrl: payload, coverFilePath: '', coverCrop: null })
+                        return
+                      }
+                      if (typeof payload === 'object' && payload.url) {
+                        const cropData = payload.crops?.cover || null
+                        setFormData({
+                          ...formData,
+                          coverUrl: payload.url,
+                          coverFilePath: payload.filePath || payload.path || '',
+                          coverCrop: cropData
+                        })
+                      }
+                    }}
+                    aspect={16 / 9}
+                  />
                   <div className="form-group">
                     <label>Additional Images (Displayed on event detail page)</label>
                     <div className="additional-images-manager">
@@ -684,7 +685,7 @@ const AdminEvents = () => {
                       <tr key={event.id}>
                         <td>
                           {event.coverUrl ? (
-                            <div 
+                            <div
                               className="cover-thumb"
                               style={getCropBackgroundStyle(
                                 typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || ''),
