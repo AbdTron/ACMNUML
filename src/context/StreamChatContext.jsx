@@ -140,6 +140,12 @@ export const StreamChatProvider = ({ children }) => {
                 client.devToken(userId)
             )
 
+            // Set user status to online explicitly
+            await client.upsertUser({
+                id: userId,
+                online: true,
+            })
+
             console.log('Stream Chat user connected successfully:', userId)
             setIsConnected(true)
             setCurrentUserId(userId)

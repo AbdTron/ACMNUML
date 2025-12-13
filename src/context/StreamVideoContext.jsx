@@ -56,18 +56,19 @@ export const StreamVideoProvider = ({ children }) => {
                     image: avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff`,
                 }
 
-                // Generate dev token for the user
-                // Note: In production, you should generate tokens server-side
-                const tokenProvider = () => Promise.resolve(
-                    // Dev token format: user_id encoded in the token
-                    `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ user_id: userId }))}.dev`
-                )
+                // Create a temporary client to generate devToken
+                const tempClient = new StreamVideoClient({
+                    apiKey: STREAM_VIDEO_CONFIG.API_KEY,
+                })
 
-                // Create video client
+                // Generate dev token using Stream's method (same as chat)
+                const token = tempClient.devToken(userId)
+
+                // Create the actual video client with the token
                 const client = new StreamVideoClient({
                     apiKey: STREAM_VIDEO_CONFIG.API_KEY,
                     user,
-                    tokenProvider,
+                    token,
                 })
 
                 clientRef.current = client

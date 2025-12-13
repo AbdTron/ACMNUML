@@ -51,6 +51,7 @@ const CustomChannelHeader = () => {
     const { currentUser } = useMemberAuth()
     const navigate = useNavigate()
     const [isStartingCall, setIsStartingCall] = useState(false)
+    const [showMenu, setShowMenu] = useState(false)
 
     // Get the other member in a 1-on-1 chat
     const getOtherMember = () => {
@@ -81,6 +82,36 @@ const CustomChannelHeader = () => {
         }
         // Force re-render by navigating to chat without userId
         navigate('/chat', { replace: true })
+    }
+
+    // Hide conversation (archive)
+    const handleHideConversation = async () => {
+        if (!channel) return
+        if (!window.confirm('Hide this conversation? You can find it again in your message list.')) return
+
+        try {
+            await channel.hide()
+            setShowMenu(false)
+            handleBack()
+        } catch (error) {
+            console.error('Failed to hide conversation:', error)
+            alert('Failed to hide conversation')
+        }
+    }
+
+    // Delete conversation
+    const handleDeleteConversation = async () => {
+        if (!channel) return
+        if (!window.confirm('Delete this conversation? This will remove all messages permanently.')) return
+
+        try {
+            await channel.delete()
+            setShowMenu(false)
+            handleBack()
+        } catch (error) {
+            console.error('Failed to delete conversation:', error)
+            alert('Failed to delete conversation')
+        }
     }
 
     return (
@@ -124,6 +155,25 @@ const CustomChannelHeader = () => {
                 >
                     <FiPhone />
                 </button>
+                <div className="header-menu-container">
+                    <button
+                        className="header-action-btn"
+                        onClick={() => setShowMenu(!showMenu)}
+                        title="More options"
+                    >
+                        <FiMoreVertical />
+                    </button>
+                    {showMenu && (
+                        <div className="header-dropdown-menu">
+                            <button onClick={handleHideConversation}>
+                                Hide Conversation
+                            </button>
+                            <button onClick={handleDeleteConversation} className="delete-option">
+                                Delete Conversation
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
@@ -356,8 +406,8 @@ const CustomMessageInput = () => {
                     type="text"
                     className="message-text-input"
                     placeholder="Type a message..."
-                    value={text}
-                    onChange={handleChange}
+                    value={text || ''}
+                    onChange={(e) => handleChange && handleChange(e)}
                 />
 
                 {/* Emoji Button */}
@@ -570,10 +620,19 @@ const CustomMessage = () => {
 const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) => {
     const { channel } = useChatContext()
 
-    // Debug log
+    // Auto-scroll to bottom when channel changes
     useEffect(() => {
-        console.log('[Stream Chat] Channel from context:', channel?.cid || 'none')
-    }, [channel])
+        if (channel) {
+            // Wait for messages to load, then scroll to bottom
+            const timer = setTimeout(() => {
+                const messageList = document.querySelector('.str-chat__message-list-scroll')
+                if (messageList) {
+                    messageList.scrollTop = messageList.scrollHeight
+                }
+            }, 500)
+            return () => clearTimeout(timer)
+        }
+    }, [channel?.cid])
 
     return (
         <div className="stream-chat-container">
