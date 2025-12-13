@@ -614,6 +614,8 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
                                     disableDateSeparator={false}
                                     Message={CustomMessage}
                                     messageLimit={50}
+                                    highlightedMessageId={null}
+                                    stickToBottomScrollBehavior="smooth"
                                 />
                                 <CustomMessageInput />
                             </Window>

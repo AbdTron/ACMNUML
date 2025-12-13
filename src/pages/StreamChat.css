@@ -926,6 +926,21 @@
         flex-direction: column !important;
         height: 100% !important;
     }
+
+    /* Dark mode support for fixed header and input on mobile */
+    [data-theme="dark"] .custom-channel-header {
+        background: var(--bg-dark, #1a1a2e) !important;
+        border-bottom-color: var(--border-dark, #2d2d4a) !important;
+    }
+
+    [data-theme="dark"] .custom-message-input {
+        background: var(--bg-dark, #1a1a2e) !important;
+        border-top-color: var(--border-dark, #2d2d4a) !important;
+    }
+
+    [data-theme="dark"] .input-form {
+        background: var(--bg-secondary-dark, #2d2d4a) !important;
+    }
 }
 
 /* Tablet */

@@ -135,12 +135,10 @@ export const useStreamNotifications = () => {
         // Subscribe to events
         client.on('message.new', handleNewMessage)
         client.on('call.incoming', handleCallIncoming)
-        client.on('notification.message_new', handleNewMessage)
 
         return () => {
             client.off('message.new', handleNewMessage)
             client.off('call.incoming', handleCallIncoming)
-            client.off('notification.message_new', handleNewMessage)
         }
     }, [client, isConnected, currentUser, showNotification, requestNotificationPermission])
 
