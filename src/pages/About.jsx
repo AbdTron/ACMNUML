@@ -1,4 +1,6 @@
 import { FiTarget, FiUsers, FiAward, FiTrendingUp } from 'react-icons/fi'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig, generateOrganizationSchema } from '../utils/seoUtils'
 import './About.css'
 
 const About = () => {
@@ -37,6 +39,11 @@ const About = () => {
 
   return (
     <div className="about-page">
+      <SEOHead
+        title={pageSEOConfig.about.title}
+        description={pageSEOConfig.about.description}
+        structuredData={generateOrganizationSchema()}
+      />
       <div className="page-header">
         <div className="container">
           <h1>About ACM NUML</h1>

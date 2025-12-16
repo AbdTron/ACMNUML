@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { collection, addDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { FiMail, FiMapPin, FiPhone, FiSend, FiCheckCircle, FiInstagram, FiLinkedin, FiGithub } from 'react-icons/fi'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig } from '../utils/seoUtils'
 import './Contact.css'
 
 const Contact = () => {
@@ -72,6 +74,10 @@ const Contact = () => {
 
   return (
     <div className="contact-page">
+      <SEOHead
+        title={pageSEOConfig.contact.title}
+        description={pageSEOConfig.contact.description}
+      />
       <div className="page-header">
         <div className="container">
           <h1>Contact Us</h1>

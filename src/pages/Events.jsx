@@ -6,6 +6,8 @@ import { format } from 'date-fns'
 import { FiCalendar, FiMapPin, FiClock } from 'react-icons/fi'
 import { truncateText } from '../utils/text'
 import { getCropBackgroundStyle } from '../utils/cropStyles'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig, generateItemListSchema } from '../utils/seoUtils'
 import './Events.css'
 
 const Events = () => {
@@ -62,7 +64,7 @@ const Events = () => {
     today.setHours(0, 0, 0, 0)
     const date = new Date(eventDate)
     date.setHours(0, 0, 0, 0)
-    
+
     if (date < today) return 'past'
     if (date.getTime() === today.getTime()) return 'today'
     return 'upcoming'
@@ -70,6 +72,11 @@ const Events = () => {
 
   return (
     <div className="events-page">
+      <SEOHead
+        title={pageSEOConfig.events.title}
+        description={pageSEOConfig.events.description}
+        structuredData={events.length > 0 ? generateItemListSchema(events) : null}
+      />
       <div className="page-header">
         <div className="container">
           <h1>Events</h1>
@@ -107,42 +114,42 @@ const Events = () => {
               {events.map((event) => {
                 const status = getEventStatus(event.date)
                 return (
-                  <div 
-                    key={event.id} 
+                  <div
+                    key={event.id}
                     className="event-card-wrapper"
                     onClick={() => window.location.href = `/events/${event.id}`}
                   >
                     <div className="event-card">
-                    {event.coverUrl && (() => {
-                      const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
-                      // Handle crop data - it should be an object with x, y, width, height
-                      let cropData = event.coverCrop
-                      if (cropData && typeof cropData === 'object' && cropData.cover) {
-                        // If it's wrapped, unwrap it
-                        cropData = cropData.cover
-                      }
-                      const cropStyle = getCropBackgroundStyle(imageUrl, cropData)
-                      return (
-                        <div className="event-cover">
-                          <div 
-                            className="event-cover-image"
-                            style={cropStyle}
-                          />
-                        </div>
-                      )
-                    })()}
-                    <div className="event-header">
-                      {status === 'upcoming' && (
-                        <span className="event-badge upcoming">Upcoming</span>
-                      )}
-                      {status === 'today' && (
-                        <span className="event-badge today">Today</span>
-                      )}
-                      {status === 'past' && (
-                        <span className="event-badge past">Past</span>
-                      )}
-                    </div>
-                    <div className="event-body">
+                      {event.coverUrl && (() => {
+                        const imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+                        // Handle crop data - it should be an object with x, y, width, height
+                        let cropData = event.coverCrop
+                        if (cropData && typeof cropData === 'object' && cropData.cover) {
+                          // If it's wrapped, unwrap it
+                          cropData = cropData.cover
+                        }
+                        const cropStyle = getCropBackgroundStyle(imageUrl, cropData)
+                        return (
+                          <div className="event-cover">
+                            <div
+                              className="event-cover-image"
+                              style={cropStyle}
+                            />
+                          </div>
+                        )
+                      })()}
+                      <div className="event-header">
+                        {status === 'upcoming' && (
+                          <span className="event-badge upcoming">Upcoming</span>
+                        )}
+                        {status === 'today' && (
+                          <span className="event-badge today">Today</span>
+                        )}
+                        {status === 'past' && (
+                          <span className="event-badge past">Past</span>
+                        )}
+                      </div>
+                      <div className="event-body">
                         <div className="event-date-compact">
                           <span className="event-day-compact">
                             {format(new Date(event.date), 'dd')}
@@ -151,35 +158,35 @@ const Events = () => {
                             {format(new Date(event.date), 'MMM')}
                           </span>
                         </div>
-                      <h3 className="event-title">{event.title}</h3>
+                        <h3 className="event-title">{event.title}</h3>
                         <p className="event-description">
                           {truncateText(event.description, 160)}
                         </p>
-                      <div className="event-details">
-                        {event.location && (
+                        <div className="event-details">
+                          {event.location && (
+                            <div className="event-detail">
+                              <FiMapPin />
+                              <span>{event.location}</span>
+                            </div>
+                          )}
                           <div className="event-detail">
-                            <FiMapPin />
-                            <span>{event.location}</span>
+                            <FiCalendar />
+                            <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
+                          </div>
+                          {event.time && (
+                            <div className="event-detail">
+                              <FiClock />
+                              <span>{event.time}</span>
+                            </div>
+                          )}
+                        </div>
+                        {event.type && (
+                          <div className="event-type">
+                            <span className={`type-badge ${event.type.toLowerCase()}`}>
+                              {event.type}
+                            </span>
                           </div>
                         )}
-                        <div className="event-detail">
-                          <FiCalendar />
-                          <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
-                        </div>
-                        {event.time && (
-                          <div className="event-detail">
-                            <FiClock />
-                            <span>{event.time}</span>
-                          </div>
-                        )}
-                      </div>
-                      {event.type && (
-                        <div className="event-type">
-                          <span className={`type-badge ${event.type.toLowerCase()}`}>
-                            {event.type}
-                          </span>
-                        </div>
-                      )}
                         <div className="event-card-actions">
                           {event.registerLink && (
                             <button

@@ -3,6 +3,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { FiCheckCircle, FiMessageCircle, FiZap, FiAlertCircle } from 'react-icons/fi'
 import FeedbackForm from '../components/FeedbackForm'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig } from '../utils/seoUtils'
 import './Feedback.css'
 
 const Feedback = () => {
@@ -39,6 +41,10 @@ const Feedback = () => {
 
   return (
     <div className="feedback-page">
+      <SEOHead
+        title={pageSEOConfig.feedback.title}
+        description={pageSEOConfig.feedback.description}
+      />
       {/* Hero Section */}
       <section className="feedback-hero">
         <div className="container">
@@ -91,7 +97,7 @@ const Feedback = () => {
                   Your feedback has been submitted successfully. We appreciate you taking
                   the time to help us improve.
                 </p>
-                <button 
+                <button
                   className="btn-primary"
                   onClick={() => setSubmitted(false)}
                 >
@@ -109,7 +115,7 @@ const Feedback = () => {
                     <p>{error}</p>
                   </div>
                 )}
-                <FeedbackForm 
+                <FeedbackForm
                   onSubmit={handleSubmit}
                   loading={loading}
                 />

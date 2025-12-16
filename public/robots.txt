@@ -1,0 +1,14 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin and member-only areas
+Disallow: /admin/
+Disallow: /member/
+Disallow: /chat/
+
+# Allow crawling of public member directory
+Allow: /members/
+
+# Sitemap location
+Sitemap: https://acmnuml.com/sitemap.xml

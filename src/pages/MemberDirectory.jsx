@@ -7,6 +7,8 @@ import { ROLES } from '../utils/permissions'
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { formatPhoneForWhatsApp } from '../utils/phoneUtils'
 import StreamChatButton from '../components/StreamChatButton'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig } from '../utils/seoUtils'
 import './MemberDirectory.css'
 
 const MemberDirectory = () => {
@@ -104,6 +106,10 @@ const MemberDirectory = () => {
 
   return (
     <div className="member-directory-page">
+      <SEOHead
+        title={pageSEOConfig.members.title}
+        description={pageSEOConfig.members.description}
+      />
       <div className="page-header">
         <div className="container">
           <h1>User Directory</h1>

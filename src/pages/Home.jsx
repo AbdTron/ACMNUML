@@ -16,6 +16,8 @@ import { db } from '../config/firebase'
 import { useEffect, useState, useRef } from 'react'
 import { getCropBackgroundStyle } from '../utils/cropStyles'
 import { truncateText } from '../utils/text'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig, generateOrganizationSchema } from '../utils/seoUtils'
 import './Home.css'
 
 const Home = () => {
@@ -364,6 +366,11 @@ const Home = () => {
 
   return (
     <div className="home">
+      <SEOHead
+        title={pageSEOConfig.home.title}
+        description={pageSEOConfig.home.description}
+        structuredData={generateOrganizationSchema()}
+      />
       {/* Hero Section */}
       <section className="hero">
         <div className="container hero-grid">
@@ -728,6 +735,51 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Past Highlights */}
+      <section className="section highlights-section">
+        <div className="container">
+          <div className="section-title">
+            <h2>Past Highlights</h2>
+            <p>Proof of impact from the last academic year</p>
+          </div>
+          <div className="highlights-grid">
+            {highlightData.map((item) => (
+              <Link key={item.id || item.title} to={item.link || '/events'} className="highlight-card">
+                <span className="highlight-tag">{item.tag}</span>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <span className="feature-link">
+                  Explore recap <FiArrowRight />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Collaborations Section */}
+      {collaborationData.length > 0 && (
+        <section className="section collaborations-section">
+          <div className="container">
+            <div className="section-title section-title-compact">
+              <h3>Collaborations</h3>
+              <p>Joint initiatives with partner organizations</p>
+            </div>
+            <div className="collaborations-grid">
+              {collaborationData.map((item) => (
+                <Link key={item.id} to={item.link} className="collaboration-card">
+                  <h4>{item.title}</h4>
+                  <p>{truncateText(item.description, 80)}</p>
+                  <span className="collab-link">
+                    View <FiArrowRight />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Join Section */}
       <section className="section join-section">
         <div className="container">
@@ -804,51 +856,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* Past Highlights */}
-      <section className="section highlights-section">
-        <div className="container">
-          <div className="section-title">
-            <h2>Past Highlights</h2>
-            <p>Proof of impact from the last academic year</p>
-          </div>
-          <div className="highlights-grid">
-            {highlightData.map((item) => (
-              <Link key={item.id || item.title} to={item.link || '/events'} className="highlight-card">
-                <span className="highlight-tag">{item.tag}</span>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-                <span className="feature-link">
-                  Explore recap <FiArrowRight />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Collaborations Section */}
-      {collaborationData.length > 0 && (
-        <section className="section collaborations-section">
-          <div className="container">
-            <div className="section-title section-title-compact">
-              <h3>Collaborations</h3>
-              <p>Joint initiatives with partner organizations</p>
-            </div>
-            <div className="collaborations-grid">
-              {collaborationData.map((item) => (
-                <Link key={item.id} to={item.link} className="collaboration-card">
-                  <h4>{item.title}</h4>
-                  <p>{truncateText(item.description, 80)}</p>
-                  <span className="collab-link">
-                    View <FiArrowRight />
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Gallery Preview */}
       {showGallery && (

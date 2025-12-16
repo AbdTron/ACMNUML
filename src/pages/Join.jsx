@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { FiExternalLink, FiMail, FiUsers, FiArrowRight } from 'react-icons/fi'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig } from '../utils/seoUtils'
 import './Join.css'
 
 const Join = () => {
@@ -58,6 +60,10 @@ const Join = () => {
 
   return (
     <div className="join-page">
+      <SEOHead
+        title={pageSEOConfig.join.title}
+        description={pageSEOConfig.join.description}
+      />
       <div className="page-header">
         <div className="container">
           <h1>Join ACM NUML</h1>
@@ -100,7 +106,7 @@ const Join = () => {
 
                   <div className="form-info">
                     <p>
-                      <strong>Note:</strong> The application form will open in a new tab. 
+                      <strong>Note:</strong> The application form will open in a new tab.
                       Please complete all required fields to submit your application.
                     </p>
                   </div>
@@ -117,7 +123,7 @@ const Join = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* "Ready to Join?" section - shown on desktop in sidebar, hidden on mobile/PWA */}
             <div className="join-form-section join-form-section-desktop">
               <div className="form-card">
@@ -141,7 +147,7 @@ const Join = () => {
 
                 <div className="form-info">
                   <p>
-                    <strong>Note:</strong> The application form will open in a new tab. 
+                    <strong>Note:</strong> The application form will open in a new tab.
                     Please complete all required fields to submit your application.
                   </p>
                 </div>

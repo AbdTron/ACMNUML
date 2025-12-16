@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  collection, 
-  query, 
-  getDocs, 
+import {
+  collection,
+  query,
+  getDocs,
   getDoc,
   doc,
-  orderBy, 
+  orderBy,
   where,
   limit as firestoreLimit
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useMemberAuth } from '../context/MemberAuthContext'
-import { 
-  FiPlus, 
-  FiSearch, 
+import {
+  FiPlus,
+  FiSearch,
   FiFilter,
   FiMessageSquare,
   FiTrendingUp,
@@ -23,6 +23,8 @@ import {
   FiUser
 } from 'react-icons/fi'
 import ForumPostCard from '../components/ForumPostCard'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig } from '../utils/seoUtils'
 import './Forum.css'
 
 const CATEGORIES = [
@@ -64,7 +66,7 @@ const Forum = () => {
     setLoading(true)
     try {
       let postsQuery = collection(db, 'forumPosts')
-      
+
       // Filter by category
       if (selectedCategory !== 'all') {
         postsQuery = query(postsQuery, where('category', '==', selectedCategory))
@@ -190,6 +192,10 @@ const Forum = () => {
 
   return (
     <div className="forum-page">
+      <SEOHead
+        title={pageSEOConfig.forum.title}
+        description={pageSEOConfig.forum.description}
+      />
       {/* Hero Section */}
       <section className="forum-hero">
         <div className="container">
@@ -238,8 +244,8 @@ const Forum = () => {
 
               <div className="sidebar-section">
                 <h3>Sort By</h3>
-                <select 
-                  value={sortBy} 
+                <select
+                  value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="sort-select"
                 >

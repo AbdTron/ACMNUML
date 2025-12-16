@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { FiImage, FiFolder, FiArrowRight } from 'react-icons/fi'
+import SEOHead from '../components/SEOHead'
+import { pageSEOConfig } from '../utils/seoUtils'
 import './Gallery.css'
 
 const Gallery = () => {
@@ -18,7 +20,7 @@ const Gallery = () => {
       try {
         const galleriesRef = collection(db, 'galleries')
         const q = query(galleriesRef, orderBy('createdAt', 'desc'))
-        
+
         const querySnapshot = await getDocs(q)
         const galleriesList = []
         querySnapshot.forEach((doc) => {
@@ -37,6 +39,10 @@ const Gallery = () => {
 
   return (
     <div className="gallery-page">
+      <SEOHead
+        title={pageSEOConfig.gallery.title}
+        description={pageSEOConfig.gallery.description}
+      />
       <div className="page-header">
         <div className="container">
           <h1>Gallery</h1>
@@ -58,8 +64,8 @@ const Gallery = () => {
                 >
                   <div className="gallery-thumbnail">
                     {gallery.thumbnailUrl ? (
-                      <img 
-                        src={gallery.thumbnailUrl} 
+                      <img
+                        src={gallery.thumbnailUrl}
                         alt={gallery.name}
                         className="thumbnail-image"
                       />
