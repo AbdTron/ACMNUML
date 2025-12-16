@@ -11,4 +11,4 @@ Disallow: /chat/
 Allow: /members/
 
 # Sitemap location
-Sitemap: https://acmnuml.com/sitemap.xml
+Sitemap: https://acm.atrons.net/sitemap.xml

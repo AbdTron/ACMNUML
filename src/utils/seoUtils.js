@@ -4,7 +4,7 @@
  */
 
 const SITE_NAME = 'ACM NUML'
-const SITE_URL = 'https://acmnuml.com'
+const SITE_URL = 'https://acm.atrons.net'
 const DEFAULT_IMAGE = `${SITE_URL}/icon-512.png`
 const ORGANIZATION_LOGO = `${SITE_URL}/icon-512.png`
 
