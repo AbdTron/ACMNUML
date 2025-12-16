@@ -22,6 +22,7 @@ const Home = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [pastEvents, setPastEvents] = useState([])
+  const [collaborationEvents, setCollaborationEvents] = useState([])
   const [defaultPost, setDefaultPost] = useState(null)
   const [showGallery, setShowGallery] = useState(true)
   const [cabinetMembers, setCabinetMembers] = useState([])
@@ -41,7 +42,7 @@ const Home = () => {
       try {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-        
+
         const eventsRef = collection(db, 'events')
         const q = query(
           eventsRef,
@@ -49,7 +50,7 @@ const Home = () => {
           orderBy('date', 'asc'),
           limit(3)
         )
-        
+
         const querySnapshot = await getDocs(q)
         const events = []
         querySnapshot.forEach((doc) => {
@@ -74,17 +75,48 @@ const Home = () => {
           eventsRef,
           where('date', '<', today),
           orderBy('date', 'desc'),
-          limit(3)
+          limit(6)
         )
 
         const snap = await getDocs(pastQuery)
         const events = []
         snap.forEach((doc) => {
-          events.push({ id: doc.id, ...doc.data() })
+          const data = doc.data()
+          // Exclude Collaboration events from past highlights
+          if (data.type !== 'Collaboration') {
+            events.push({ id: doc.id, ...data })
+          }
         })
-        setPastEvents(events)
+        // Limit to 3 after filtering
+        setPastEvents(events.slice(0, 3))
       } catch (error) {
         console.error('Error fetching past events:', error)
+      }
+    }
+
+    const fetchCollaborationEvents = async () => {
+      if (!db) return
+      try {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const eventsRef = collection(db, 'events')
+        const collabQuery = query(
+          eventsRef,
+          where('date', '<', today),
+          where('type', '==', 'Collaboration'),
+          orderBy('date', 'desc'),
+          limit(4)
+        )
+
+        const snap = await getDocs(collabQuery)
+        const events = []
+        snap.forEach((doc) => {
+          events.push({ id: doc.id, ...doc.data() })
+        })
+        setCollaborationEvents(events)
+      } catch (error) {
+        console.error('Error fetching collaboration events:', error)
       }
     }
 
@@ -103,6 +135,7 @@ const Home = () => {
 
     fetchUpcomingEvents()
     fetchPastEvents()
+    fetchCollaborationEvents()
     fetchDefaultPost()
   }, [])
 
@@ -132,27 +165,27 @@ const Home = () => {
         const teamQuery = query(teamRef, orderBy('order', 'asc'))
         const snapshot = await getDocs(teamQuery)
         const allMembers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        
+
         // Separate head/faculty from students
-        const head = allMembers.find(m => 
-          m.memberType === 'head' || 
+        const head = allMembers.find(m =>
+          m.memberType === 'head' ||
           m.memberType === 'faculty' ||
           m.role?.toLowerCase().includes('head') ||
           m.role?.toLowerCase().includes('faculty') ||
           m.role?.toLowerCase().includes('advisor')
         )
-        
-        const students = allMembers.filter(m => 
-          !m.memberType || 
+
+        const students = allMembers.filter(m =>
+          !m.memberType ||
           (m.memberType !== 'head' && m.memberType !== 'faculty') ||
-          (!m.role?.toLowerCase().includes('head') && 
-           !m.role?.toLowerCase().includes('faculty') && 
-           !m.role?.toLowerCase().includes('advisor'))
+          (!m.role?.toLowerCase().includes('head') &&
+            !m.role?.toLowerCase().includes('faculty') &&
+            !m.role?.toLowerCase().includes('advisor'))
         ) // Get all students for scrollable view
-        
+
         setTeamHead(head || null)
         setCabinetMembers(students)
-        
+
         // Preload team member images (head + students)
         const loadingStates = {}
         const membersToPreload = head ? [head, ...students] : students
@@ -180,8 +213,8 @@ const Home = () => {
 
   const heroAnnouncement = upcomingEvents.length
     ? `${upcomingEvents[0].title} — ${new Date(
-        upcomingEvents[0].date?.toDate ? upcomingEvents[0].date.toDate() : upcomingEvents[0].date
-      ).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+      upcomingEvents[0].date?.toDate ? upcomingEvents[0].date.toDate() : upcomingEvents[0].date
+    ).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
     : 'Next Event: Google Cloud Workshop — 10 Feb 2025'
 
   const fallbackCabinet = [
@@ -222,19 +255,19 @@ const Home = () => {
   // Team scroll functions
   const handleTeamNext = () => {
     if (displayCabinet.length <= 4) return
-    
+
     // Clear any existing timeout to allow rapid clicks
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
     }
-    
+
     // Update immediately - don't block on isScrolling
     setScrollDirection('next')
     setTeamScrollIndex((prev) => (prev + 1) % displayCabinet.length)
-    
+
     // Set scrolling state for animation
     setIsScrolling(true)
-    
+
     // Clear scrolling state after animation (500ms matches CSS animation duration)
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false)
@@ -243,19 +276,19 @@ const Home = () => {
 
   const handleTeamPrev = () => {
     if (displayCabinet.length <= 4) return
-    
+
     // Clear any existing timeout to allow rapid clicks
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
     }
-    
+
     // Update immediately - don't block on isScrolling
     setScrollDirection('prev')
     setTeamScrollIndex((prev) => (prev - 1 + displayCabinet.length) % displayCabinet.length)
-    
+
     // Set scrolling state for animation
     setIsScrolling(true)
-    
+
     // Clear scrolling state after animation (500ms matches CSS animation duration)
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false)
@@ -295,7 +328,9 @@ const Home = () => {
   ]
 
   const highlightData = pastEvents.length
-    ? pastEvents.map((event) => ({
+    ? pastEvents
+      .filter((event) => event.type !== 'Collaboration')
+      .map((event) => ({
         id: event.id,
         title: event.title,
         description: event.description,
@@ -303,6 +338,13 @@ const Home = () => {
         link: `/events/${event.id}`,
       }))
     : highlightCards
+
+  const collaborationData = collaborationEvents.map((event) => ({
+    id: event.id,
+    title: event.title,
+    description: event.description,
+    link: `/events/${event.id}`,
+  }))
 
   const departments = ['Events', 'Technical', 'Dev Labs', 'Public Relations', 'Media & Graphics', 'Content', 'Community']
 
@@ -368,115 +410,115 @@ const Home = () => {
           </div>
           <div className="hero-visual">
             <div className="hero-gradient"></div>
-                {upcomingEvents[0] ? (() => {
-                  const event = upcomingEvents[0]
-                  let imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
-                  // Only use Supabase URLs, filter out Unsplash or other external URLs
-                  if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
-                    imageUrl = ''
-                  }
-                  let cropData = event.coverCrop
-                  if (cropData && typeof cropData === 'object' && cropData.cover) {
-                    cropData = cropData.cover
-                  }
-                  const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
-                  const hasValidImage = imageUrl && titleBgStyle.backgroundImage
-                  return (
-                    <Link to={`/events/${event.id}`} className="hero-card hero-card-link">
-                      <div className={`hero-card-header ${hasValidImage ? 'hero-card-header-with-bg' : ''}`} style={hasValidImage ? titleBgStyle : {}}>
-                        <span className="hero-card-label">Next Up</span>
-                        <h3>
-                          <span className="hero-card-title-text">{event.title}</span>
-                        </h3>
-                      </div>
-                      <div className="hero-card-content">
-                        <p>
-                          {truncateText(
-                            upcomingEvents[0].description ||
-                              'Prototype sprint • limited seats • collaboration focused',
-                            120
-                          )}
-                        </p>
-                        {upcomingEvents[0]?.registerLink && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              window.open(upcomingEvents[0].registerLink, '_blank', 'noopener,noreferrer')
-                            }}
-                            className="btn hero-register-btn"
-                          >
-                            Register
-                          </button>
-                        )}
-                      </div>
-                <div className="hero-card-footer">
-                  <span>
-                    {new Date(
-                      upcomingEvents[0].date?.toDate
-                        ? upcomingEvents[0].date.toDate()
-                        : upcomingEvents[0].date
-                    ).toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: 'short',
-                    })}
-                    {' • '}
-                    {upcomingEvents[0]?.venue || 'Innovation Lab'}
-                  </span>
-                  <FiArrowRight />
-                </div>
-              </Link>
-                  )
-                })() : defaultPost ? (() => {
-                  let imageUrl = typeof defaultPost.coverUrl === 'string' ? defaultPost.coverUrl : (defaultPost.coverUrl?.url || '')
-                  if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
-                    imageUrl = ''
-                  }
-                  let cropData = defaultPost.coverCrop
-                  if (cropData && typeof cropData === 'object' && cropData.cover) {
-                    cropData = cropData.cover
-                  }
-                  const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
-                  const hasValidImage = imageUrl && titleBgStyle.backgroundImage
-                  return (
-                    <Link to="/default-post" className="hero-card hero-card-link">
-                      <div className={`hero-card-header ${hasValidImage ? 'hero-card-header-with-bg' : ''}`} style={hasValidImage ? titleBgStyle : {}}>
-                        <span className="hero-card-label">Coming Soon</span>
-                        <h3>
-                          <span className="hero-card-title-text">{defaultPost.title || 'New Events Coming Soon'}</span>
-                        </h3>
-                      </div>
-                      <div className="hero-card-content">
-                        <p>
-                          {truncateText(
-                            defaultPost.description ||
-                              'We\'re working on exciting new workshops, competitions, and visits. Keep an eye out for updates!',
-                            120
-                          )}
-                        </p>
-                        {defaultPost.enableButton && defaultPost.buttonText && defaultPost.buttonUrl && (
-                          <a
-                            href={defaultPost.buttonUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn hero-register-btn"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              window.open(defaultPost.buttonUrl, '_blank', 'noopener,noreferrer')
-                            }}
-                          >
-                            {defaultPost.buttonText}
-                          </a>
-                        )}
-                      </div>
-                      <div className="hero-card-footer">
-                        <span>View Details</span>
-                        <FiArrowRight />
-                      </div>
-                    </Link>
-                  )
-                })() : (
+            {upcomingEvents[0] ? (() => {
+              const event = upcomingEvents[0]
+              let imageUrl = typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')
+              // Only use Supabase URLs, filter out Unsplash or other external URLs
+              if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
+                imageUrl = ''
+              }
+              let cropData = event.coverCrop
+              if (cropData && typeof cropData === 'object' && cropData.cover) {
+                cropData = cropData.cover
+              }
+              const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
+              const hasValidImage = imageUrl && titleBgStyle.backgroundImage
+              return (
+                <Link to={`/events/${event.id}`} className="hero-card hero-card-link">
+                  <div className={`hero-card-header ${hasValidImage ? 'hero-card-header-with-bg' : ''}`} style={hasValidImage ? titleBgStyle : {}}>
+                    <span className="hero-card-label">Next Up</span>
+                    <h3>
+                      <span className="hero-card-title-text">{event.title}</span>
+                    </h3>
+                  </div>
+                  <div className="hero-card-content">
+                    <p>
+                      {truncateText(
+                        upcomingEvents[0].description ||
+                        'Prototype sprint • limited seats • collaboration focused',
+                        120
+                      )}
+                    </p>
+                    {upcomingEvents[0]?.registerLink && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          window.open(upcomingEvents[0].registerLink, '_blank', 'noopener,noreferrer')
+                        }}
+                        className="btn hero-register-btn"
+                      >
+                        Register
+                      </button>
+                    )}
+                  </div>
+                  <div className="hero-card-footer">
+                    <span>
+                      {new Date(
+                        upcomingEvents[0].date?.toDate
+                          ? upcomingEvents[0].date.toDate()
+                          : upcomingEvents[0].date
+                      ).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                      })}
+                      {' • '}
+                      {upcomingEvents[0]?.venue || 'Innovation Lab'}
+                    </span>
+                    <FiArrowRight />
+                  </div>
+                </Link>
+              )
+            })() : defaultPost ? (() => {
+              let imageUrl = typeof defaultPost.coverUrl === 'string' ? defaultPost.coverUrl : (defaultPost.coverUrl?.url || '')
+              if (imageUrl && (imageUrl.includes('unsplash.com') || imageUrl.includes('ui-avatars.com'))) {
+                imageUrl = ''
+              }
+              let cropData = defaultPost.coverCrop
+              if (cropData && typeof cropData === 'object' && cropData.cover) {
+                cropData = cropData.cover
+              }
+              const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
+              const hasValidImage = imageUrl && titleBgStyle.backgroundImage
+              return (
+                <Link to="/default-post" className="hero-card hero-card-link">
+                  <div className={`hero-card-header ${hasValidImage ? 'hero-card-header-with-bg' : ''}`} style={hasValidImage ? titleBgStyle : {}}>
+                    <span className="hero-card-label">Coming Soon</span>
+                    <h3>
+                      <span className="hero-card-title-text">{defaultPost.title || 'New Events Coming Soon'}</span>
+                    </h3>
+                  </div>
+                  <div className="hero-card-content">
+                    <p>
+                      {truncateText(
+                        defaultPost.description ||
+                        'We\'re working on exciting new workshops, competitions, and visits. Keep an eye out for updates!',
+                        120
+                      )}
+                    </p>
+                    {defaultPost.enableButton && defaultPost.buttonText && defaultPost.buttonUrl && (
+                      <a
+                        href={defaultPost.buttonUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn hero-register-btn"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          window.open(defaultPost.buttonUrl, '_blank', 'noopener,noreferrer')
+                        }}
+                      >
+                        {defaultPost.buttonText}
+                      </a>
+                    )}
+                  </div>
+                  <div className="hero-card-footer">
+                    <span>View Details</span>
+                    <FiArrowRight />
+                  </div>
+                </Link>
+              )
+            })() : (
               <div className="hero-card">
                 <span className="hero-card-label">Coming Soon</span>
                 <h3>New Events Coming Soon</h3>
@@ -513,55 +555,55 @@ const Home = () => {
                   const titleBgStyle = imageUrl ? getCropBackgroundStyle(imageUrl, cropData) : {}
                   const hasValidImage = imageUrl && titleBgStyle.backgroundImage
                   const cardBgStyle = hasValidImage ? titleBgStyle : {}
-                return (
-                  <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
-                    <div className="event-card-preview">
-                      <div className={`event-header-preview ${hasValidImage ? 'event-header-with-bg' : ''}`} style={cardBgStyle}>
-                        <div className="event-date-preview">
-                          <span className="event-day">{eventDate.getDate()}</span>
-                          <span className="event-month">
-                            {eventDate.toLocaleString('default', { month: 'short' })}
-                          </span>
+                  return (
+                    <Link to={`/events/${event.id}`} key={event.id} className="event-card-link">
+                      <div className="event-card-preview">
+                        <div className={`event-header-preview ${hasValidImage ? 'event-header-with-bg' : ''}`} style={cardBgStyle}>
+                          <div className="event-date-preview">
+                            <span className="event-day">{eventDate.getDate()}</span>
+                            <span className="event-month">
+                              {eventDate.toLocaleString('default', { month: 'short' })}
+                            </span>
+                          </div>
+                          <h3 className="event-title-preview">
+                            <span className="event-title-text">{event.title}</span>
+                          </h3>
                         </div>
-                        <h3 className="event-title-preview">
-                          <span className="event-title-text">{event.title}</span>
-                        </h3>
-                      </div>
-                      <div className="event-content-preview">
-                        <p className="event-description-preview">
-                          {truncateText(event.description, 140)}
-                        </p>
-                        <div className="event-meta">
-                          <span>{event.venue || 'On Campus'}</span>
-                          <span>{event.time || 'TBA'}</span>
-                        </div>
-                        <div className="event-card-preview-actions">
-                          {event.registerLink && (
+                        <div className="event-content-preview">
+                          <p className="event-description-preview">
+                            {truncateText(event.description, 140)}
+                          </p>
+                          <div className="event-meta">
+                            <span>{event.venue || 'On Campus'}</span>
+                            <span>{event.time || 'TBA'}</span>
+                          </div>
+                          <div className="event-card-preview-actions">
+                            {event.registerLink && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  window.open(event.registerLink, '_blank', 'noopener,noreferrer')
+                                }}
+                                className="btn btn-primary event-preview-register-btn"
+                              >
+                                Registration
+                              </button>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.preventDefault()
-                                e.stopPropagation()
-                                window.open(event.registerLink, '_blank', 'noopener,noreferrer')
+                                window.location.href = `/events/${event.id}`
                               }}
-                              className="btn btn-primary event-preview-register-btn"
+                              className="btn btn-secondary event-preview-view-btn"
                             >
-                              Registration
+                              View Details
                             </button>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault()
-                              window.location.href = `/events/${event.id}`
-                            }}
-                            className="btn btn-secondary event-preview-view-btn"
-                          >
-                            View Details
-                          </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                )
+                    </Link>
+                  )
                 })}
               </div>
               <div className="events-view-all">
@@ -587,7 +629,7 @@ const Home = () => {
             <h2>Our Team</h2>
             <p>Meet the students orchestrating ACM NUML</p>
           </div>
-          
+
           {/* Head Section */}
           {teamHead && (
             <div className="team-head-section">
@@ -605,9 +647,9 @@ const Home = () => {
                             <div className="loading-spinner"></div>
                           </div>
                         )}
-                        <div 
-                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
-                          style={cropStyle} 
+                        <div
+                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`}
+                          style={cropStyle}
                         />
                       </div>
                       <div className="team-info-landing">
@@ -628,8 +670,8 @@ const Home = () => {
           <div className="team-members-section">
             <div className="team-scroll-container">
               {displayCabinet.length > 4 && (
-                <button 
-                  className="team-scroll-btn team-scroll-btn-prev" 
+                <button
+                  className="team-scroll-btn team-scroll-btn-prev"
                   onClick={handleTeamPrev}
                   aria-label="Previous team member"
                 >
@@ -650,9 +692,9 @@ const Home = () => {
                             <div className="loading-spinner"></div>
                           </div>
                         )}
-                        <div 
-                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`} 
-                          style={cropStyle} 
+                        <div
+                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`}
+                          style={cropStyle}
                         />
                       </div>
                       <div className="team-info-landing">
@@ -667,8 +709,8 @@ const Home = () => {
                 })}
               </div>
               {displayCabinet.length > 4 && (
-                <button 
-                  className="team-scroll-btn team-scroll-btn-next" 
+                <button
+                  className="team-scroll-btn team-scroll-btn-next"
                   onClick={handleTeamNext}
                   aria-label="Next team member"
                 >
@@ -677,7 +719,7 @@ const Home = () => {
               )}
             </div>
           </div>
-          
+
           <div className="team-cta">
             <Link to="/team" className="btn btn-outline">
               View full team
@@ -714,12 +756,12 @@ const Home = () => {
               <div className="benefit-card">
                 <FiUserPlus />
                 <h3>Why join?</h3><ul>
-                <li>Take ownership of planning and executing ACM NUML events</li>
-                <li>Collaborate closely with a motivated team of peers and alumni mentors</li>
-                <li>Develop leadership, project management, and organizational skills</li>
-                <li>Shape the NUML CS community and leave a lasting impact</li>
-                <li>Gain real-world experience managing hackathons, workshops, and tech projects</li>
-              </ul>
+                  <li>Take ownership of planning and executing ACM NUML events</li>
+                  <li>Collaborate closely with a motivated team of peers and alumni mentors</li>
+                  <li>Develop leadership, project management, and organizational skills</li>
+                  <li>Shape the NUML CS community and leave a lasting impact</li>
+                  <li>Gain real-world experience managing hackathons, workshops, and tech projects</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -784,6 +826,29 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Collaborations Section */}
+      {collaborationData.length > 0 && (
+        <section className="section collaborations-section">
+          <div className="container">
+            <div className="section-title section-title-compact">
+              <h3>Collaborations</h3>
+              <p>Joint initiatives with partner organizations</p>
+            </div>
+            <div className="collaborations-grid">
+              {collaborationData.map((item) => (
+                <Link key={item.id} to={item.link} className="collaboration-card">
+                  <h4>{item.title}</h4>
+                  <p>{truncateText(item.description, 80)}</p>
+                  <span className="collab-link">
+                    View <FiArrowRight />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Gallery Preview */}
       {showGallery && (

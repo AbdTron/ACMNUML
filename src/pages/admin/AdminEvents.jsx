@@ -61,6 +61,9 @@ const AdminEvents = () => {
   const [formTemplates, setFormTemplates] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [loadingTemplates, setLoadingTemplates] = useState(false)
+  const [typeFilter, setTypeFilter] = useState('All')
+
+  const eventTypes = ['All', 'Workshop', 'Hackathon', 'Talk', 'Session', 'Visit', 'Collaboration', 'Other']
 
   const createEventId = (title) => {
     const slug = title
@@ -356,10 +359,23 @@ const AdminEvents = () => {
               </button>
               <h1>Manage Events</h1>
             </div>
-            <button onClick={() => setShowForm(true)} className="btn btn-primary">
-              <FiPlus />
-              Add Event
-            </button>
+            <div className="admin-header-actions">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="type-filter-select"
+              >
+                {eventTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type === 'All' ? 'All Types' : type}
+                  </option>
+                ))}
+              </select>
+              <button onClick={() => setShowForm(true)} className="btn btn-primary">
+                <FiPlus />
+                Add Event
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -467,6 +483,7 @@ const AdminEvents = () => {
                         <option value="Talk">Talk</option>
                         <option value="Session">Session</option>
                         <option value="Visit">Visit</option>
+                        <option value="Collaboration">Collaboration</option>
                         <option value="Other">Other</option>
                       </select>
                     </div>
@@ -679,88 +696,90 @@ const AdminEvents = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {events.map((event) => {
-                    const status = getEventStatus(event.date)
-                    return (
-                      <tr key={event.id}>
-                        <td>
-                          {event.coverUrl ? (
-                            <div
-                              className="cover-thumb"
-                              style={getCropBackgroundStyle(
-                                typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || ''),
-                                event.coverCrop
+                  {events
+                    .filter((event) => typeFilter === 'All' || event.type === typeFilter)
+                    .map((event) => {
+                      const status = getEventStatus(event.date)
+                      return (
+                        <tr key={event.id}>
+                          <td>
+                            {event.coverUrl ? (
+                              <div
+                                className="cover-thumb"
+                                style={getCropBackgroundStyle(
+                                  typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || ''),
+                                  event.coverCrop
+                                )}
+                              />
+                            ) : (
+                              <span className="no-cover">No cover</span>
+                            )}
+                          </td>
+                          <td>
+                            <strong>{event.title}</strong>
+                            <br />
+                            <small>{event.description?.substring(0, 50)}...</small>
+                          </td>
+                          <td>
+                            <FiCalendar />
+                            {format(new Date(event.date), 'MMM dd, yyyy')}
+                          </td>
+                          <td>
+                            <span className="type-badge">{event.type}</span>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${status}`}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="action-buttons">
+                              {event.registrationEnabled && (
+                                <>
+                                  <button
+                                    onClick={() => navigate(`/admin/registrations?eventId=${event.id}`)}
+                                    className="btn-icon"
+                                    title="View Registrations"
+                                  >
+                                    <FiUsers />
+                                  </button>
+                                  <button
+                                    onClick={() => navigate(`/admin/checkin?eventId=${event.id}`)}
+                                    className="btn-icon"
+                                    title="Check-In"
+                                  >
+                                    <FiCamera />
+                                  </button>
+                                </>
                               )}
-                            />
-                          ) : (
-                            <span className="no-cover">No cover</span>
-                          )}
-                        </td>
-                        <td>
-                          <strong>{event.title}</strong>
-                          <br />
-                          <small>{event.description?.substring(0, 50)}...</small>
-                        </td>
-                        <td>
-                          <FiCalendar />
-                          {format(new Date(event.date), 'MMM dd, yyyy')}
-                        </td>
-                        <td>
-                          <span className="type-badge">{event.type}</span>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${status}`}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="action-buttons">
-                            {event.registrationEnabled && (
-                              <>
-                                <button
-                                  onClick={() => navigate(`/admin/registrations?eventId=${event.id}`)}
-                                  className="btn-icon"
-                                  title="View Registrations"
-                                >
-                                  <FiUsers />
-                                </button>
-                                <button
-                                  onClick={() => navigate(`/admin/checkin?eventId=${event.id}`)}
-                                  className="btn-icon"
-                                  title="Check-In"
-                                >
-                                  <FiCamera />
-                                </button>
-                              </>
-                            )}
-                            <button
-                              onClick={() => handleEdit(event)}
-                              className="btn-icon"
-                              title="Edit"
-                            >
-                              <FiEdit2 />
-                            </button>
-                            {(status === 'upcoming' || status === 'today') && (
                               <button
-                                onClick={() => handleMoveToPast(event)}
-                                className="btn-icon btn-move-past"
-                                title="Mark as Finished & Move to Past"
+                                onClick={() => handleEdit(event)}
+                                className="btn-icon"
+                                title="Edit"
                               >
-                                <FiClock />
+                                <FiEdit2 />
                               </button>
-                            )}
-                            <button
-                              onClick={() => handleDelete(event.id)}
-                              className="btn-icon btn-danger"
-                              title="Delete"
-                            >
-                              <FiTrash2 />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                              {(status === 'upcoming' || status === 'today') && (
+                                <button
+                                  onClick={() => handleMoveToPast(event)}
+                                  className="btn-icon btn-move-past"
+                                  title="Mark as Finished & Move to Past"
+                                >
+                                  <FiClock />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDelete(event.id)}
+                                className="btn-icon btn-danger"
+                                title="Delete"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                 </tbody>
               </table>
               {events.length === 0 && (

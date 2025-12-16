@@ -21,6 +21,40 @@
   color: white;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.type-filter-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.type-filter-select:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.type-filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.type-filter-select option {
+  background: var(--bg-white);
+  color: var(--text-dark);
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -261,9 +295,6 @@
   border-color: #f59e0b;
   color: white;
 }
-  border-color: #dc2626;
-  color: white;
-}
 
 .empty-state {
   text-align: center;
@@ -350,4 +381,3 @@
     gap: 0.75rem;
   }
 }
-
