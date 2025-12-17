@@ -111,19 +111,49 @@ export const generatePersonSchema = (member) => ({
 
 /**
  * Generate ItemList schema (for Events listing)
+ * Includes required fields for Event type items
  */
 export const generateItemListSchema = (items, itemType = 'Event') => ({
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    itemListElement: items.slice(0, 10).map((item, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        item: {
-            '@type': itemType,
-            name: item.title || item.name,
-            url: `${SITE_URL}/events/${item.id}`
+    itemListElement: items.slice(0, 10).map((item, index) => {
+        const listItem = {
+            '@type': 'ListItem',
+            position: index + 1,
+            item: {
+                '@type': itemType,
+                name: item.title || item.name,
+                url: `${SITE_URL}/events/${item.id}`
+            }
         }
-    }))
+
+        // For Event type, include required fields to pass Google validation
+        if (itemType === 'Event') {
+            listItem.item.startDate = item.date || item.startDate || new Date().toISOString()
+            listItem.item.location = {
+                '@type': 'Place',
+                name: item.location || 'NUML Lahore Campus',
+                address: {
+                    '@type': 'PostalAddress',
+                    addressLocality: 'Lahore',
+                    addressCountry: 'PK'
+                }
+            }
+            listItem.item.organizer = {
+                '@type': 'Organization',
+                name: 'ACM NUML',
+                url: SITE_URL
+            }
+            if (item.description) {
+                listItem.item.description = item.description.substring(0, 200)
+            }
+            if (item.imageUrl) {
+                listItem.item.image = item.imageUrl
+            }
+        }
+
+        return listItem
+    })
 })
 
 /**
