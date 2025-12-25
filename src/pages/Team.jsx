@@ -35,11 +35,17 @@ const Team = () => {
           const member = { id: doc.id, ...doc.data() }
 
           // Check if this is the head/faculty
-          const isHead = member.memberType === 'head' ||
-            member.memberType === 'faculty' ||
-            member.role?.toLowerCase().includes('head') ||
-            member.role?.toLowerCase().includes('faculty') ||
-            member.role?.toLowerCase().includes('advisor')
+          // Priority: memberType field takes precedence
+          // Only show in head section if memberType is explicitly 'head' or 'faculty'
+          // Do NOT use role name matching for students (e.g., "Social Media Head" is still a student)
+          const memberType = member.memberType?.toLowerCase()
+          const isHead = memberType === 'head' ||
+            memberType === 'faculty' ||
+            // Fallback for legacy data without memberType - check role only if memberType is not set
+            (!memberType && (
+              member.role?.toLowerCase().includes('faculty') ||
+              member.role?.toLowerCase().includes('advisor')
+            ))
 
           if (isHead) {
             headMember = member
