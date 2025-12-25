@@ -56,29 +56,24 @@ export const StreamVideoProvider = ({ children }) => {
                     image: avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff`,
                 }
 
-                // Create a temporary client to generate devToken
-                const tempClient = new StreamVideoClient({
-                    apiKey: STREAM_VIDEO_CONFIG.API_KEY,
-                })
-
-                // Generate dev token using Stream's method (same as chat)
-                const token = tempClient.devToken(userId)
-
-                // Create the actual video client with the token
+                // Create video client with tokenProvider for dev mode
+                // In production, you should generate tokens server-side
                 const client = new StreamVideoClient({
                     apiKey: STREAM_VIDEO_CONFIG.API_KEY,
                     user,
-                    token,
+                    tokenProvider: () => {
+                        // Generate development token - must enable dev mode in Stream Dashboard
+                        const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ user_id: userId }))}.dev-token`
+                        return Promise.resolve(token)
+                    },
                 })
 
                 clientRef.current = client
                 setVideoClient(client)
                 setIsVideoConnected(true)
-                console.log('[Stream Video] Client connected:', userId)
 
                 // Listen for incoming calls
                 client.on('call.ring', (event) => {
-                    console.log('[Stream Video] Incoming call:', event.call)
                     setIncomingCall(event.call)
                 })
 

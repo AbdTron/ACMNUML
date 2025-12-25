@@ -31,10 +31,8 @@ export const StreamChatProvider = ({ children }) => {
         }
 
         try {
-            console.log('Initializing Stream Chat client...')
             const chatClient = StreamChat.getInstance(STREAMCHAT_CONFIG.API_KEY)
             setClient(chatClient)
-            console.log('Stream Chat client initialized successfully')
         } catch (error) {
             console.error('Stream Chat initialization failed:', error)
         } finally {
@@ -94,7 +92,6 @@ export const StreamChatProvider = ({ children }) => {
 
             // Check if already connected as this user
             if (client.userID === userId) {
-                console.log('Stream Chat user already connected:', userId)
                 setIsConnected(true)
                 setCurrentUserId(userId)
                 return true
@@ -123,8 +120,6 @@ export const StreamChatProvider = ({ children }) => {
                 chatAllowList: [],
             }
 
-            console.log('[Stream Chat] Connecting user:', userId)
-
             // Generate user token server-side (in production)
             // For now, using client.connectUser with user data
             // Note: In production, you should generate tokens server-side for security
@@ -140,13 +135,14 @@ export const StreamChatProvider = ({ children }) => {
                 client.devToken(userId)
             )
 
-            // Set user status to online explicitly
+            // Set user status to online and ensure name/image are set
             await client.upsertUser({
                 id: userId,
+                name: userName,
+                image: finalAvatar,
                 online: true,
             })
 
-            console.log('Stream Chat user connected successfully:', userId)
             setIsConnected(true)
             setCurrentUserId(userId)
             return true
@@ -162,9 +158,7 @@ export const StreamChatProvider = ({ children }) => {
         if (!client || !currentUserId) return
 
         try {
-            console.log('Disconnecting from Stream Chat...')
             await client.disconnectUser()
-            console.log('Stream Chat user disconnected successfully')
             setIsConnected(false)
             setCurrentUserId(null)
         } catch (error) {
@@ -207,7 +201,6 @@ export const StreamChatProvider = ({ children }) => {
                 },
             })
 
-            console.log('Chat settings updated successfully for user:', userId)
             return true
         } catch (error) {
             console.error('Failed to update chat settings:', error)

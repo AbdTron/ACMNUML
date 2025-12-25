@@ -61,10 +61,72 @@ export const getAuthorData = async (authorId) => {
       timestamp: now
     })
 
+    // Also cache the lowercase ID mapping
+    lowercaseIdMap.set(authorId.toLowerCase(), authorId)
+
     return data
   } catch (error) {
     console.error('Error fetching author data:', error)
     return { userData: null, adminRole: null }
+  }
+}
+
+// Secondary cache to map lowercase IDs to original case IDs
+const lowercaseIdMap = new Map()
+
+/**
+ * Get author data using a lowercase ID (e.g., from Stream Chat)
+ * This is useful when Stream Chat lowercases Firebase UIDs
+ * @param {string} lowercaseId - Lowercase user ID
+ * @returns {Promise<{userData: Object|null, adminRole: string|null, originalId: string|null}>}
+ */
+export const getAuthorDataByLowercaseId = async (lowercaseId) => {
+  if (!lowercaseId || !db) {
+    return { userData: null, adminRole: null, originalId: null }
+  }
+
+  const lowerId = lowercaseId.toLowerCase()
+
+  // Check if we have a cached mapping
+  if (lowercaseIdMap.has(lowerId)) {
+    const originalId = lowercaseIdMap.get(lowerId)
+    const data = await getAuthorData(originalId)
+    return { ...data, originalId }
+  }
+
+  // Try the ID as-is first (might already be correct case)
+  const directResult = await getAuthorData(lowercaseId)
+  if (directResult.userData) {
+    lowercaseIdMap.set(lowerId, lowercaseId)
+    return { ...directResult, originalId: lowercaseId }
+  }
+
+  // Need to search - query all users and find by lowercase match
+  // This is expensive but only happens once per user (then cached)
+  try {
+    const { collection, getDocs, query, limit } = await import('firebase/firestore')
+
+    // Query users collection - we'll check a limited set
+    const usersRef = collection(db, 'users')
+    const usersSnapshot = await getDocs(query(usersRef, limit(500)))
+
+    for (const userDoc of usersSnapshot.docs) {
+      if (userDoc.id.toLowerCase() === lowerId) {
+        // Found it! Cache the mapping
+        const originalId = userDoc.id
+        lowercaseIdMap.set(lowerId, originalId)
+
+        // Now use the regular function to get full data and cache it
+        const data = await getAuthorData(originalId)
+        return { ...data, originalId }
+      }
+    }
+
+    // Not found
+    return { userData: null, adminRole: null, originalId: null }
+  } catch (error) {
+    console.error('Error in lowercase lookup:', error)
+    return { userData: null, adminRole: null, originalId: null }
   }
 }
 
@@ -128,7 +190,7 @@ export const getAuthorDataBatch = async (authorIds) => {
 
     // Build result map including cached data
     const resultMap = new Map()
-    
+
     // Add newly fetched data
     results.forEach(({ authorId, data }) => {
       resultMap.set(authorId, data)

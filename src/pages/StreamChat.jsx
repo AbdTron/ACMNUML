@@ -62,11 +62,15 @@ const CustomChannelHeader = () => {
 
     const otherMember = getOtherMember()
 
+    // Use Stream Chat data directly - no Firestore fallback
+    // User names are set when users connect to Stream Chat
+    const displayMember = otherMember
+
     const handleVideoCall = async () => {
-        if (!otherMember || isStartingCall) return
+        if (!displayMember || isStartingCall) return
         setIsStartingCall(true)
         try {
-            await startCall(otherMember.id)
+            await startCall(displayMember.id)
         } catch (error) {
             console.error('Failed to start call:', error)
         } finally {
@@ -121,17 +125,17 @@ const CustomChannelHeader = () => {
             </button>
 
             <div className="header-info">
-                {otherMember && (
+                {displayMember && (
                     <>
                         <img
-                            src={otherMember.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherMember.name || 'U')}&background=6366f1&color=fff`}
-                            alt={otherMember.name}
+                            src={displayMember.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayMember.name || 'U')}&background=6366f1&color=fff`}
+                            alt={displayMember.name}
                             className="header-avatar"
                         />
                         <div className="header-text">
-                            <h3 className="header-name">{otherMember.name || 'Unknown'}</h3>
+                            <h3 className="header-name">{displayMember.name || 'Loading...'}</h3>
                             <span className="header-status">
-                                {otherMember.online ? 'Online' : 'Offline'}
+                                {displayMember.online ? 'Online' : 'Offline'}
                             </span>
                         </div>
                     </>
@@ -183,12 +187,14 @@ const CustomChannelHeader = () => {
 const CustomMessageInput = () => {
     const {
         text = '',
+        setText,
         handleChange,
         handleSubmit,
         uploadNewFiles,
         attachments = [],
         removeAttachments,
         isUploadEnabled,
+        textareaRef,
     } = useMessageInputContext() || {}
 
     const [isRecording, setIsRecording] = useState(false)
@@ -273,7 +279,9 @@ const CustomMessageInput = () => {
     const [activeEmojiCategory, setActiveEmojiCategory] = useState('Smileys')
 
     const handleEmojiSelect = (emoji) => {
-        handleChange({ target: { value: text + emoji } })
+        if (setText) {
+            setText((text || '') + emoji)
+        }
         setShowEmojiPicker(false)
     }
 
@@ -402,12 +410,18 @@ const CustomMessageInput = () => {
 
                 {/* Text Input */}
                 <input
-                    ref={inputRef}
+                    ref={textareaRef || inputRef}
                     type="text"
                     className="message-text-input"
                     placeholder="Type a message..."
                     value={text || ''}
-                    onChange={(e) => handleChange && handleChange(e)}
+                    onChange={(e) => {
+                        if (setText) {
+                            setText(e.target.value)
+                        } else if (handleChange) {
+                            handleChange(e)
+                        }
+                    }}
                 />
 
                 {/* Emoji Button */}
@@ -441,6 +455,118 @@ const CustomMessageInput = () => {
                 </button>
             </form>
         </div>
+    )
+}
+
+// Simple Voice Note Button that works with default MessageInput
+const VoiceNoteButton = () => {
+    const { channel } = useChatContext()
+    const [isRecording, setIsRecording] = useState(false)
+    const [recordingTime, setRecordingTime] = useState(0)
+    const mediaRecorderRef = useRef(null)
+    const audioChunksRef = useRef([])
+    const timerRef = useRef(null)
+    const streamRef = useRef(null)
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+            streamRef.current = stream
+            const mediaRecorder = new MediaRecorder(stream)
+            mediaRecorderRef.current = mediaRecorder
+            audioChunksRef.current = []
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunksRef.current.push(event.data)
+            }
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+
+                // Send voice note as message with attachment
+                if (channel && audioBlob.size > 0) {
+                    try {
+                        const file = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' })
+                        const response = await channel.sendFile(file)
+                        if (response.file) {
+                            await channel.sendMessage({
+                                text: '🎤 Voice Note',
+                                attachments: [{
+                                    type: 'audio',
+                                    asset_url: response.file,
+                                    title: 'Voice Note'
+                                }]
+                            })
+                        }
+                    } catch (err) {
+                        console.error('Failed to send voice note:', err)
+                    }
+                }
+
+                // Stop all tracks
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => track.stop())
+                }
+            }
+
+            mediaRecorder.start()
+            setIsRecording(true)
+            setRecordingTime(0)
+            timerRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1)
+            }, 1000)
+        } catch (error) {
+            console.error('Failed to start recording:', error)
+            alert('Could not access microphone')
+        }
+    }
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop()
+            setIsRecording(false)
+            clearInterval(timerRef.current)
+        }
+    }
+
+    const cancelRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop()
+            audioChunksRef.current = []
+            setIsRecording(false)
+            clearInterval(timerRef.current)
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop())
+            }
+        }
+    }
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60)
+        const secs = seconds % 60
+        return `${mins}:${secs.toString().padStart(2, '0')}`
+    }
+
+    if (isRecording) {
+        return (
+            <div className="voice-note-recording">
+                <span className="recording-dot"></span>
+                <span className="recording-time">{formatTime(recordingTime)}</span>
+                <button type="button" onClick={cancelRecording} className="cancel-btn"><FiX /></button>
+                <button type="button" onClick={stopRecording} className="stop-btn"><FiSquare /> Send</button>
+            </div>
+        )
+    }
+
+    return (
+        <button
+            type="button"
+            className="voice-note-btn"
+            onClick={startRecording}
+            title="Record voice note"
+        >
+            <FiMic />
+        </button>
     )
 }
 
@@ -676,7 +802,10 @@ const ChatContent = ({ showChannelList, setShowChannelList, userId, client }) =>
                                     highlightedMessageId={null}
                                     stickToBottomScrollBehavior="smooth"
                                 />
-                                <CustomMessageInput />
+                                <div className="message-input-with-voice">
+                                    <MessageInput />
+                                    <VoiceNoteButton />
+                                </div>
                             </Window>
                             <Thread />
                         </Channel>
@@ -720,22 +849,14 @@ const StreamChatPage = () => {
         const openDirectMessage = async () => {
             try {
                 const targetUserId = userId.toLowerCase()
-                const { users } = await client.queryUsers({ id: targetUserId })
 
-                if (users.length === 0) {
-                    console.error('User not found:', targetUserId)
-                    return
-                }
-
-                // Create or get the channel
+                // Create or get the channel - Stream Chat will create user if needed
                 const channel = client.channel('messaging', {
                     members: [client.userID, targetUserId],
                 })
 
-                // Watch the channel and let Stream Chat set it as active
+                // Watch the channel
                 await channel.watch()
-                // The ChatContent component will detect this via useChatContext
-                console.log('[Stream Chat] Direct message channel ready:', channel.cid)
                 setShowChannelList(false)
             } catch (error) {
                 console.error('Failed to open direct message:', error)

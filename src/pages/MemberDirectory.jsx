@@ -61,11 +61,7 @@ const MemberDirectory = () => {
         return nameA.localeCompare(nameB)
       })
 
-      console.log(`[MemberDirectory] Loaded ${membersData.length} members`)
-      console.log('[MemberDirectory] Members data:', membersData.map(m => ({ id: m.id, name: m.name, showInDirectory: m.showInDirectory })))
-      console.log('[MemberDirectory] Setting members state...')
       setMembers(membersData)
-      console.log('[MemberDirectory] Members state set, filteredMembers will be:', membersData.length)
     } catch (error) {
       console.error('[MemberDirectory] Error fetching members:', error)
       // Set empty array on error to show empty state instead of infinite loading
@@ -88,11 +84,6 @@ const MemberDirectory = () => {
       member.email?.toLowerCase().includes(search)
     )
   })
-
-  // Debug logging for mobile
-  useEffect(() => {
-    console.log('[MemberDirectory] Render - members:', members.length, 'filtered:', filteredMembers.length, 'searchTerm:', searchTerm)
-  }, [members, filteredMembers, searchTerm])
 
   if (loading) {
     return (
