@@ -89,7 +89,8 @@
   transition: all 0.3s ease;
   color: var(--text-dark);
   font-size: 0.9375rem;
-  min-height: 44px; /* Better touch target for mobile */
+  min-height: 44px;
+  /* Better touch target for mobile */
 }
 
 .filter-btn:hover {
@@ -138,8 +139,10 @@
   z-index: 1;
   margin-top: 12px;
   margin-bottom: 12px;
-  display: block; /* Ensure proper display */
-  width: 100%; /* Ensure full width */
+  display: block;
+  /* Ensure proper display */
+  width: 100%;
+  /* Ensure full width */
 }
 
 /* Glow effect behind card on hover */
@@ -154,7 +157,8 @@
   z-index: -1;
   filter: blur(12px);
   pointer-events: none;
-  display: block; /* Ensure pseudo-element displays correctly */
+  display: block;
+  /* Ensure pseudo-element displays correctly */
 }
 
 /* Top border starting from middle */
@@ -171,7 +175,8 @@
   transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   z-index: 2;
   pointer-events: none;
-  display: block; /* Ensure pseudo-element displays correctly */
+  display: block;
+  /* Ensure pseudo-element displays correctly */
 }
 
 .team-card:not(.has-bio):hover {
@@ -200,7 +205,8 @@
   height: 100%;
   transition: transform 0.6s;
   transform-style: preserve-3d;
-  display: block; /* Ensure proper display */
+  display: block;
+  /* Ensure proper display */
 }
 
 /* Flip on hover */
@@ -228,7 +234,8 @@
   left: 0;
   border-radius: 1.25rem;
   overflow: hidden;
-  background: var(--bg-white); /* Ensure background is set */
+  background: var(--bg-white);
+  /* Ensure background is set */
 }
 
 /* Override for head section - ensure front card is visible */
@@ -440,7 +447,7 @@
   font-size: 0.85rem;
 }
 
-.team-meta li + li {
+.team-meta li+li {
   margin-top: 0.25rem;
 }
 
@@ -501,13 +508,18 @@
 }
 
 @keyframes dots {
-  0%, 20% {
+
+  0%,
+  20% {
     content: '.';
   }
+
   40% {
     content: '..';
   }
-  60%, 100% {
+
+  60%,
+  100% {
     content: '...';
   }
 }
@@ -550,7 +562,7 @@
     gap: 0.75rem !important;
     width: 100%;
   }
-  
+
   .team-head-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
@@ -563,9 +575,11 @@
     max-width: 100% !important;
     width: 100% !important;
     margin: 0;
-    grid-column: 1 / -1; /* Span full width of grid */
+    grid-column: 1 / -1;
+    /* Span full width of grid */
     max-width: calc(50% - 0.375rem) !important;
-    justify-self: center; /* Center the card */
+    justify-self: center;
+    /* Center the card */
   }
 
   .team-card {
@@ -603,8 +617,8 @@
     transform: none !important;
   }
 
-  /* Hide back card on mobile since flip is disabled */
-  .team-card-back {
+  /* Hide back card on mobile for non-flipped cards */
+  .team-card:not(.flipped) .team-card-back {
     display: none !important;
   }
 
@@ -699,12 +713,12 @@
     gap: 0.5rem !important;
     width: 100%;
   }
-  
+
   .team-head-section {
     margin-bottom: 1rem !important;
     padding-bottom: 1rem !important;
   }
-  
+
   .team-head-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
@@ -717,9 +731,11 @@
     max-width: 100% !important;
     width: 100% !important;
     margin: 0;
-    grid-column: 1 / -1; /* Span full width of grid */
+    grid-column: 1 / -1;
+    /* Span full width of grid */
     max-width: calc(50% - 0.25rem) !important;
-    justify-self: center; /* Center the card */
+    justify-self: center;
+    /* Center the card */
   }
 
   .team-card {
@@ -751,8 +767,8 @@
     transform: none !important;
   }
 
-  /* Hide back card on mobile since flip is disabled */
-  .team-card-back {
+  /* Hide back card on mobile for non-flipped cards */
+  .team-card:not(.flipped) .team-card-back {
     display: none !important;
   }
 
@@ -851,7 +867,8 @@
     width: 36px;
     height: 36px;
     font-size: 0.875rem;
-    min-width: 36px; /* Better touch target */
+    min-width: 36px;
+    /* Better touch target */
   }
 
   .no-members {
@@ -864,3 +881,103 @@
   }
 }
 
+/* Tap hint - hidden by default on desktop */
+.tap-hint {
+  display: none;
+}
+
+/* Mobile tap-to-flip support */
+@media (max-width: 768px) {
+
+  /* Show tap hint on mobile for cards with bio */
+  .team-card.has-bio .tap-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    text-align: center;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+
+  /* Hide tap hint when card is flipped */
+  .team-card.has-bio.flipped .tap-hint {
+    display: none;
+  }
+
+  /* Enable 3D transforms for mobile flip */
+  .team-card.has-bio {
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .team-card.has-bio .team-card-inner {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Apply flip transform when flipped class is present */
+  .team-card.has-bio.flipped .team-card-inner {
+    transform: rotateY(180deg) !important;
+  }
+
+  /* Reset card positions for proper 3D flip */
+  .team-card.has-bio .team-card-front,
+  .team-card.has-bio .team-card-back {
+    position: absolute !important;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Show back card for flippable cards */
+  .team-card.has-bio .team-card-back {
+    display: flex !important;
+    transform: rotateY(180deg);
+    background: var(--bg-white);
+  }
+
+  /* Ensure card has proper height for flip */
+  .team-card.has-bio {
+    min-height: 320px !important;
+    height: auto !important;
+  }
+
+  .team-card.has-bio .team-card-inner {
+    min-height: 320px !important;
+    height: 100% !important;
+  }
+
+  .team-card.has-bio .team-card-front,
+  .team-card.has-bio .team-card-back {
+    min-height: 320px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Smaller tap hint on very small screens */
+  .team-card.has-bio .tap-hint {
+    font-size: 0.6875rem;
+    padding: 0.375rem;
+  }
+
+  /* Adjust heights for smaller screens */
+  .team-card.has-bio {
+    min-height: 280px !important;
+  }
+
+  .team-card.has-bio .team-card-inner {
+    min-height: 280px !important;
+  }
+
+  .team-card.has-bio .team-card-front,
+  .team-card.has-bio .team-card-back {
+    min-height: 280px !important;
+  }
+}

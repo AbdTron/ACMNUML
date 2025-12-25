@@ -14,6 +14,7 @@ const Team = () => {
   const [filter, setFilter] = useState('all')
   const [socialHovered, setSocialHovered] = useState(null)
   const [imagesLoading, setImagesLoading] = useState({})
+  const [flippedCards, setFlippedCards] = useState({})
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -108,6 +109,20 @@ const Team = () => {
     return `https://ui-avatars.com/api/?name=${initials}&background=2563eb&color=fff`
   }
 
+  // Handle card flip on tap for mobile
+  const handleCardFlip = (memberId, hasBio, e) => {
+    // Don't flip if clicking on social links
+    if (e.target.closest('.team-social') || e.target.closest('.social-link')) {
+      return
+    }
+    if (hasBio) {
+      setFlippedCards(prev => ({
+        ...prev,
+        [memberId]: !prev[memberId]
+      }))
+    }
+  }
+
   const roles = ['all', 'president', 'vice president', 'secretary', 'treasurer', 'member']
 
   return (
@@ -136,8 +151,9 @@ const Team = () => {
                   return (
                     <div
                       key={teamHead.id}
-                      className={`team-card ${teamHead.bio ? 'has-bio' : ''} ${socialHovered === teamHead.id ? 'social-hovered' : ''}`}
+                      className={`team-card ${teamHead.bio ? 'has-bio' : ''} ${socialHovered === teamHead.id ? 'social-hovered' : ''} ${flippedCards[teamHead.id] ? 'flipped' : ''}`}
                       onMouseLeave={() => setSocialHovered(null)}
+                      onClick={(e) => handleCardFlip(teamHead.id, teamHead.bio, e)}
                     >
                       <div className="team-card-inner">
                         <div className="team-card-front">
@@ -208,6 +224,9 @@ const Team = () => {
                                   </a>
                                 )}
                               </div>
+                              {teamHead.bio && (
+                                <div className="tap-hint">Tap for bio</div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -280,8 +299,9 @@ const Team = () => {
                   return (
                     <div
                       key={member.id}
-                      className={`team-card ${member.bio ? 'has-bio' : ''} ${socialHovered === member.id ? 'social-hovered' : ''}`}
+                      className={`team-card ${member.bio ? 'has-bio' : ''} ${socialHovered === member.id ? 'social-hovered' : ''} ${flippedCards[member.id] ? 'flipped' : ''}`}
                       onMouseLeave={() => setSocialHovered(null)}
+                      onClick={(e) => handleCardFlip(member.id, member.bio, e)}
                     >
                       <div className="team-card-inner">
                         <div className="team-card-front">
@@ -352,6 +372,9 @@ const Team = () => {
                                   </a>
                                 )}
                               </div>
+                              {member.bio && (
+                                <div className="tap-hint">Tap for bio</div>
+                              )}
                             </div>
                           </div>
                         </div>
