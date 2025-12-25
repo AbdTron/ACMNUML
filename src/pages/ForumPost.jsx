@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { 
-  doc, 
-  getDoc, 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
   deleteDoc,
   increment,
   serverTimestamp,
@@ -20,9 +20,9 @@ import { useAuth } from '../context/AuthContext'
 // Flairs are now stored in user profiles and fetched directly
 import { getAvatarUrlOrDefault } from '../utils/avatarUtils'
 import { getAuthorData, getAuthorDataBatch } from '../utils/authorDataCache'
-import { 
-  FiArrowLeft, 
-  FiThumbsUp, 
+import {
+  FiArrowLeft,
+  FiThumbsUp,
   FiThumbsDown,
   FiMessageSquare,
   FiClock,
@@ -56,7 +56,7 @@ const ForumPost = () => {
   const [requestingDeletion, setRequestingDeletion] = useState(false)
   const [editingReplyId, setEditingReplyId] = useState(null)
   const [editReplyContent, setEditReplyContent] = useState('')
-  
+
   // Use AuthContext for admin status (already cached)
   const { isAdmin: isAdminUser, userRole, isMainAdmin: isMainAdminUser } = useAuth()
   const isAdmin = isAdminUser
@@ -86,7 +86,7 @@ const ForumPost = () => {
       // For backward compatibility: fetch author's current profile using cached data
       try {
         const { userData: userProfile, adminRole } = await getAuthorData(post.authorId)
-        
+
         if (userProfile) {
           // Get avatar from current profile if post doesn't have it
           if (!post.authorAvatar && userProfile.avatar) {
@@ -109,53 +109,34 @@ const ForumPost = () => {
   }, [post])
 
   // Load author flairs for replies using batch fetch with cache
+  // Always use CURRENT user profile flairs, not stored flairs from when reply was created
   useEffect(() => {
     const loadReplyAuthorsFlairs = async () => {
       if (!replies.length || !db) return
 
       const flairsMap = {}
-      
-      // Get unique author IDs that need data fetching
-      const authorIdsNeedingData = replies
-        .filter(reply => reply.authorId && (!reply.authorFlairs || reply.authorFlairs.length === 0))
-        .map(reply => reply.authorId)
-      
-      // Remove duplicates
-      const uniqueAuthorIds = [...new Set(authorIdsNeedingData)]
-      
+
+      // Get ALL unique author IDs to fetch their current flairs
+      const uniqueAuthorIds = [...new Set(replies.filter(r => r.authorId).map(r => r.authorId))]
+
       // Batch fetch all author data at once (uses cache)
       if (uniqueAuthorIds.length > 0) {
         try {
           const authorsData = await getAuthorDataBatch(uniqueAuthorIds)
-          
-          // Map author data to replies
+
+          // Map current author flairs to replies
           replies.forEach(reply => {
-            // If reply already has stored flairs, use them
-            if (reply.authorFlairs && reply.authorFlairs.length > 0) {
-              flairsMap[reply.id] = reply.authorFlairs
-              return
-            }
-            
             if (reply.authorId && authorsData.has(reply.authorId)) {
-              const { userData, adminRole } = authorsData.get(reply.authorId)
-              if (userData) {
-                // Use stored flairs from user profile
-                if (userData.flairs && userData.flairs.length > 0) {
-                  flairsMap[reply.id] = userData.flairs
-                }
+              const { userData } = authorsData.get(reply.authorId)
+              if (userData && userData.flairs && userData.flairs.length > 0) {
+                // Always use current user profile flairs
+                flairsMap[reply.id] = userData.flairs
               }
             }
           })
         } catch (error) {
           console.error('Error loading reply author flairs:', error)
         }
-      } else {
-        // All replies already have flairs stored
-        replies.forEach(reply => {
-          if (reply.authorFlairs && reply.authorFlairs.length > 0) {
-            flairsMap[reply.id] = reply.authorFlairs
-          }
-        })
       }
 
       setReplyAuthorsFlairs(flairsMap)
@@ -192,6 +173,19 @@ const ForumPost = () => {
         ...doc.data()
       }))
       setReplies(repliesData)
+
+      // Sync replyCount if it doesn't match actual count
+      // This fixes any desync issues
+      const actualCount = repliesData.length
+      const postRef = doc(db, 'forumPosts', postId)
+      const postDoc = await getDoc(postRef)
+      if (postDoc.exists()) {
+        const storedCount = postDoc.data().replyCount || 0
+        if (storedCount !== actualCount) {
+          // Silently fix the count
+          await updateDoc(postRef, { replyCount: actualCount })
+        }
+      }
     } catch (error) {
       console.error('Error fetching replies:', error)
     }
@@ -211,10 +205,10 @@ const ForumPost = () => {
 
     try {
       const postRef = doc(db, 'forumPosts', postId)
-      
+
       // Prepare updates object with only vote fields
       const updates = {}
-      
+
       if (userVote === voteType) {
         // Remove vote - decrement the current vote type
         updates[voteType === 'up' ? 'upvotes' : 'downvotes'] = increment(-1)
@@ -229,7 +223,7 @@ const ForumPost = () => {
         updates[voteType === 'up' ? 'upvotes' : 'downvotes'] = increment(1)
         setUserVote(voteType)
       }
-      
+
       // Only update vote fields - this ensures other fields remain unchanged
       await updateDoc(postRef, updates)
 
@@ -265,11 +259,11 @@ const ForumPost = () => {
         editedByAdminName: isAdmin && !isMainAdmin ? adminName : null // Store admin name if admin (not super admin)
       })
 
-      setPost({ 
-        ...post, 
-        content: editContent.trim(), 
-        editedAt: new Date(), 
-        editedBy: currentUser.uid, 
+      setPost({
+        ...post,
+        content: editContent.trim(),
+        editedAt: new Date(),
+        editedBy: currentUser.uid,
         isAdminEdit: isAdmin && !isMainAdmin,
         isMainAdminEdit: isMainAdmin,
         editedByAdminName: isAdmin && !isMainAdmin ? adminName : null
@@ -375,7 +369,7 @@ const ForumPost = () => {
 
   const handleSubmitReply = async (e) => {
     e.preventDefault()
-    
+
     if (!currentUser) {
       alert('Please login to reply')
       return
@@ -629,7 +623,7 @@ const ForumPost = () => {
                       contentParts.map((part, index) => {
                         if (part.type === 'code') {
                           return (
-                            <CodeSnippet 
+                            <CodeSnippet
                               key={index}
                               code={part.content}
                               language={part.language}
@@ -668,7 +662,7 @@ const ForumPost = () => {
                 )}
 
                 <div className="post-actions">
-                  <button 
+                  <button
                     className={`vote-btn ${userVote === 'up' ? 'active' : ''}`}
                     onClick={() => handleVote('up')}
                     disabled={post?.votingDisabled || post?.isDeletedByUser}
@@ -677,7 +671,7 @@ const ForumPost = () => {
                     <FiThumbsUp />
                     <span>{post.upvotes || 0}</span>
                   </button>
-                  <button 
+                  <button
                     className={`vote-btn ${userVote === 'down' ? 'active' : ''}`}
                     onClick={() => handleVote('down')}
                     disabled={post?.votingDisabled || post?.isDeletedByUser}
@@ -723,8 +717,8 @@ const ForumPost = () => {
                         rows={4}
                       />
                     </div>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className="btn-submit-reply"
                       disabled={submittingReply || !replyContent.trim()}
                     >
@@ -833,7 +827,7 @@ const ForumPost = () => {
                               replyParts.map((part, index) => {
                                 if (part.type === 'code') {
                                   return (
-                                    <CodeSnippet 
+                                    <CodeSnippet
                                       key={index}
                                       code={part.content}
                                       language={part.language}

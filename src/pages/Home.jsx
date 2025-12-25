@@ -30,10 +30,8 @@ const Home = () => {
   const [cabinetMembers, setCabinetMembers] = useState([])
   const [teamHead, setTeamHead] = useState(null)
   const [teamImagesLoading, setTeamImagesLoading] = useState({})
-  const [teamScrollIndex, setTeamScrollIndex] = useState(0)
-  const [isScrolling, setIsScrolling] = useState(false)
-  const [scrollDirection, setScrollDirection] = useState('next')
-  const scrollTimeoutRef = useRef(null)
+  const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false)
+  const autoScrollRef = useRef(null)
 
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
@@ -254,58 +252,10 @@ const Home = () => {
     return `https://ui-avatars.com/api/?name=${initials}&background=111827&color=fff`
   }
 
-  // Team scroll functions
-  const handleTeamNext = () => {
-    if (displayCabinet.length <= 4) return
-
-    // Clear any existing timeout to allow rapid clicks
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
-    }
-
-    // Update immediately - don't block on isScrolling
-    setScrollDirection('next')
-    setTeamScrollIndex((prev) => (prev + 1) % displayCabinet.length)
-
-    // Set scrolling state for animation
-    setIsScrolling(true)
-
-    // Clear scrolling state after animation (500ms matches CSS animation duration)
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false)
-    }, 500)
-  }
-
-  const handleTeamPrev = () => {
-    if (displayCabinet.length <= 4) return
-
-    // Clear any existing timeout to allow rapid clicks
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
-    }
-
-    // Update immediately - don't block on isScrolling
-    setScrollDirection('prev')
-    setTeamScrollIndex((prev) => (prev - 1 + displayCabinet.length) % displayCabinet.length)
-
-    // Set scrolling state for animation
-    setIsScrolling(true)
-
-    // Clear scrolling state after animation (500ms matches CSS animation duration)
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false)
-    }, 500)
-  }
-
-  // Get visible team members (4 at a time, wrapping around)
-  const getVisibleTeamMembers = () => {
-    if (displayCabinet.length <= 4) return displayCabinet
-    const visible = []
-    for (let i = 0; i < 4; i++) {
-      const index = (teamScrollIndex + i) % displayCabinet.length
-      visible.push(displayCabinet[index])
-    }
-    return visible
+  // Get duplicated team members for infinite scroll effect
+  const getMarqueeMembers = () => {
+    // Duplicate the list for seamless infinite scroll
+    return [...displayCabinet, ...displayCabinet]
   }
 
   const highlightCards = [
@@ -673,57 +623,47 @@ const Home = () => {
             </div>
           )}
 
-          {/* Student Members Section */}
+          {/* Student Members Section - Auto-scrolling Marquee */}
           <div className="team-members-section">
-            <div className="team-scroll-container">
-              {displayCabinet.length > 4 && (
-                <button
-                  className="team-scroll-btn team-scroll-btn-prev"
-                  onClick={handleTeamPrev}
-                  aria-label="Previous team member"
-                >
-                  <FiChevronLeft />
-                </button>
-              )}
-              <div className={`team-grid-landing team-grid-scrollable ${isScrolling ? `scrolling scrolling-${scrollDirection}` : ''}`}>
-                {getVisibleTeamMembers().map((member, index) => {
-                  const avatarUrl = member.image || getMemberImage(member)
-                  const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
-                  const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
-                  const isLoading = teamImagesLoading[member.id] && !isPlaceholder
-                  return (
-                    <div key={member.id || `member-${member.name}-${index}`} className="team-card-landing">
-                      <div className="team-avatar-wrapper-landing">
-                        {isLoading && (
-                          <div className="team-avatar-loading">
-                            <div className="loading-spinner"></div>
-                          </div>
-                        )}
-                        <div
-                          className={`team-avatar-landing ${isLoading ? 'loading' : ''}`}
-                          style={cropStyle}
-                        />
+            <div
+              className="team-scroll-container"
+              onMouseEnter={() => setIsAutoScrollPaused(true)}
+              onMouseLeave={() => setIsAutoScrollPaused(false)}
+              onTouchStart={() => setIsAutoScrollPaused(true)}
+              onTouchEnd={() => setIsAutoScrollPaused(false)}
+            >
+              <div className={`team-marquee-wrapper ${isAutoScrollPaused ? 'paused' : ''}`}>
+                <div className="team-marquee-content">
+                  {getMarqueeMembers().map((member, index) => {
+                    const avatarUrl = member.image || getMemberImage(member)
+                    const cropStyle = getCropBackgroundStyle(avatarUrl, member.imageCrops?.landing)
+                    const isPlaceholder = !member.image || avatarUrl.includes('ui-avatars.com')
+                    const isLoading = teamImagesLoading[member.id] && !isPlaceholder
+                    return (
+                      <div key={`${member.id || member.name}-${index}`} className="team-card-landing team-card-marquee">
+                        <div className="team-avatar-wrapper-landing">
+                          {isLoading && (
+                            <div className="team-avatar-loading">
+                              <div className="loading-spinner"></div>
+                            </div>
+                          )}
+                          <div
+                            className={`team-avatar-landing ${isLoading ? 'loading' : ''}`}
+                            style={cropStyle}
+                          />
+                        </div>
+                        <div className="team-info-landing">
+                          <h3>{member.name}</h3>
+                          <p className="team-role-landing">{member.role}</p>
+                          {member.detail || member.program ? (
+                            <span className="team-detail-landing">{member.detail || member.program}</span>
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="team-info-landing">
-                        <h3>{member.name}</h3>
-                        <p className="team-role-landing">{member.role}</p>
-                        {member.detail || member.program ? (
-                          <span className="team-detail-landing">{member.detail || member.program}</span>
-                        ) : null}
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-              {displayCabinet.length > 4 && (
-                <button
-                  className="team-scroll-btn team-scroll-btn-next"
-                  onClick={handleTeamNext}
-                  aria-label="Next team member"
-                >
-                  <FiChevronRight />
-                </button>
-              )}
             </div>
           </div>
 

@@ -87,25 +87,23 @@ const Team = () => {
     fetchTeam()
   }, [])
 
-  // Improved filtering logic to handle role variations
+  // Filtering logic based on role categories
   const filteredMembers = filter === 'all'
     ? teamMembers
     : teamMembers.filter(member => {
-      if (!member.role) return false
-      const memberRole = member.role.toLowerCase().trim()
-      const filterRole = filter.toLowerCase().trim()
+      if (!member.role) return filter === 'members' // No role = member
+      const role = member.role.toLowerCase().trim()
 
-      // Exact match
-      if (memberRole === filterRole) return true
-
-      // Handle variations like "vice president" vs "vice-president"
-      const normalizedMemberRole = memberRole.replace(/[-\s]+/g, ' ')
-      const normalizedFilterRole = filterRole.replace(/[-\s]+/g, ' ')
-      if (normalizedMemberRole === normalizedFilterRole) return true
-
-      // Partial match for roles like "Vice President" matching "vice president"
-      if (memberRole.includes(filterRole) || filterRole.includes(memberRole)) return true
-
+      if (filter === 'president') {
+        // President filter: includes president and vice president
+        return role.includes('president')
+      } else if (filter === 'head') {
+        // Head filter: anyone with "head" in role (but not president)
+        return role.includes('head') && !role.includes('president')
+      } else if (filter === 'members') {
+        // Members filter: anyone without president or head in role
+        return !role.includes('president') && !role.includes('head')
+      }
       return false
     })
 
@@ -129,7 +127,13 @@ const Team = () => {
     }
   }
 
-  const roles = ['all', 'president', 'vice president', 'secretary', 'treasurer', 'member']
+  // Filter categories: all, president (includes VP), head, members
+  const filterCategories = [
+    { key: 'all', label: 'All Members' },
+    { key: 'president', label: 'Presidents' },
+    { key: 'head', label: 'Heads' },
+    { key: 'members', label: 'Members' }
+  ]
 
   return (
     <div className="team-page">
@@ -256,43 +260,15 @@ const Team = () => {
           {/* Team Members Section */}
           <div className="team-members-section">
             <div className="team-filters">
-              <button
-                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-                onClick={() => setFilter('all')}
-              >
-                All Members
-              </button>
-              {roles.filter(r => r !== 'all').map(role => {
-                // Improved role matching for filter buttons
-                const membersWithRole = teamMembers.filter(m => {
-                  if (!m.role) return false
-                  const memberRole = m.role.toLowerCase().trim()
-                  const filterRole = role.toLowerCase().trim()
-
-                  // Exact match
-                  if (memberRole === filterRole) return true
-
-                  // Handle variations
-                  const normalizedMemberRole = memberRole.replace(/[-\s]+/g, ' ')
-                  const normalizedFilterRole = filterRole.replace(/[-\s]+/g, ' ')
-                  if (normalizedMemberRole === normalizedFilterRole) return true
-
-                  // Partial match
-                  if (memberRole.includes(filterRole) || filterRole.includes(memberRole)) return true
-
-                  return false
-                })
-                if (membersWithRole.length === 0) return null
-                return (
-                  <button
-                    key={role}
-                    className={`filter-btn ${filter === role ? 'active' : ''}`}
-                    onClick={() => setFilter(role)}
-                  >
-                    {role.charAt(0).toUpperCase() + role.slice(1)}s
-                  </button>
-                )
-              })}
+              {filterCategories.map(({ key, label }) => (
+                <button
+                  key={key}
+                  className={`filter-btn ${filter === key ? 'active' : ''}`}
+                  onClick={() => setFilter(key)}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
             {loading ? (

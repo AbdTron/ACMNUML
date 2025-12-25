@@ -11,7 +11,7 @@ export const getDegreeAcronym = (degreeName) => {
   if (!degreeName) return null
 
   const degree = degreeName.trim()
-  
+
   // Direct matches
   if (degree === 'BSCS') return 'BSCS'
   if (degree === 'BS Software Engineering' || degree === 'BS Software Engineering (Morning)') return 'BSSE'
@@ -24,12 +24,12 @@ export const getDegreeAcronym = (degreeName) => {
   if (degree === 'BS Islamic Studies') return 'BSIS'
   if (degree === 'BBA (Hons)') return 'BBA'
   if (degree === 'BS Accounting & Finance') return 'BSAF'
-  
+
   // Associate Degrees
   if (degree.includes('Associate Degree in Computing')) return 'ADC'
   if (degree.includes('Associate Degree in Business Administration')) return 'ADBA'
   if (degree.includes('Associate Degree in English')) return 'ADE'
-  
+
   // Pattern matching for BS degrees
   if (degree.startsWith('BS ')) {
     // Extract words after "BS "
@@ -40,10 +40,10 @@ export const getDegreeAcronym = (degreeName) => {
       return acronym.length > 5 ? acronym.substring(0, 5) : acronym
     }
   }
-  
+
   // If it's already short, return as is
   if (degree.length <= 6) return degree.toUpperCase()
-  
+
   // Default: take first 4-5 characters
   return degree.substring(0, 5).toUpperCase()
 }
@@ -61,29 +61,41 @@ export const getDegreeAcronym = (degreeName) => {
  */
 export const generateFlairs = (userData, isAdminOrRole = false) => {
   const flairs = []
-  
-  // 1. ACM Role (if exists)
-  if (userData?.acmRole) {
-    const roleLower = userData.acmRole.toLowerCase()
-    if (roleLower.includes('president')) {
-      flairs.push({ text: 'President', class: 'flair-president' })
-    } else if (roleLower.includes('vice president')) {
-      flairs.push({ text: 'Vice President', class: 'flair-vp' })
+
+  // 1. ACM Role - Always generate flair if acmRole has text
+  // Auto-detect special styles for known roles, otherwise use admin-selected flairStyle
+  if (userData?.acmRole && userData.acmRole.trim()) {
+    const roleText = userData.acmRole.trim()
+    const roleLower = roleText.toLowerCase()
+
+    // Auto-apply special styles for known roles
+    let flairClass = 'flair-cabinet' // default
+    if (roleLower.includes('president') && !roleLower.includes('vice')) {
+      flairClass = 'flair-president'
+    } else if (roleLower.includes('vice president') || roleLower.includes('vice-president')) {
+      flairClass = 'flair-vp'
     } else if (roleLower.includes('secretary')) {
-      flairs.push({ text: 'Secretary', class: 'flair-secretary' })
+      flairClass = 'flair-secretary'
+    } else if (roleLower.includes('treasurer')) {
+      flairClass = 'flair-treasurer'
     } else if (roleLower.includes('moderator')) {
-      flairs.push({ text: 'Moderator', class: 'flair-moderator' })
-    } else if (roleLower.includes('member')) {
-      flairs.push({ text: 'Member', class: 'flair-member' })
+      flairClass = 'flair-moderator'
+    } else if (roleLower === 'member') {
+      flairClass = 'flair-member'
+    } else if (userData.flairStyle) {
+      // Use admin-selected flairStyle for other roles
+      flairClass = `flair-${userData.flairStyle}`
     }
+
+    flairs.push({ text: roleText, class: flairClass })
   }
-  
+
   // 2. Super Admin or Admin (if admin and not already shown as ACM role)
   // Check if user is super admin by role from admins collection
   const adminRole = typeof isAdminOrRole === 'string' ? isAdminOrRole : null
   const isMainAdminUser = adminRole === 'mainadmin'
   const isAdminUser = isAdminOrRole === true || adminRole === 'admin' || userData?.role === 'admin'
-  
+
   if (isMainAdminUser) {
     // Super Admin gets highest priority flair
     if (flairs.length < 2) {
@@ -98,18 +110,18 @@ export const generateFlairs = (userData, isAdminOrRole = false) => {
       flairs.push({ text: 'Admin', class: 'flair-admin' })
     }
   }
-  
+
   // 3. Degree + Semester (if both exist)
   if (userData?.degree && userData?.semester) {
     const degreeAcronym = getDegreeAcronym(userData.degree)
     if (degreeAcronym) {
-      flairs.push({ 
-        text: `${degreeAcronym}-${userData.semester}`, 
-        class: 'flair-degree-sem' 
+      flairs.push({
+        text: `${degreeAcronym}-${userData.semester}`,
+        class: 'flair-degree-sem'
       })
     }
   }
-  
+
   // Return max 3 flairs
   return flairs.slice(0, 3)
 }

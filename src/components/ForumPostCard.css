@@ -108,7 +108,7 @@
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
 }
 
-.flair-main-admin > * {
+.flair-main-admin>* {
   position: relative;
   z-index: 1;
 }
@@ -120,12 +120,10 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 70%
-  );
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 70%);
   animation: shine 3s infinite;
   z-index: 0;
 }
@@ -134,6 +132,7 @@
   0% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   100% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }
@@ -154,6 +153,36 @@
   background: rgba(37, 99, 235, 0.1);
   color: var(--primary-color);
   border: 1px solid var(--primary-color);
+}
+
+.flair-treasurer {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.flair-cabinet {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+}
+
+.flair-head {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  color: white;
+}
+
+.flair-lead {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: white;
+}
+
+.flair-executive {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: white;
+}
+
+.flair-team {
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  color: white;
 }
 
 .flair-degree-sem {
@@ -374,4 +403,3 @@
     gap: 0.75rem;
   }
 }
-

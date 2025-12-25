@@ -47,6 +47,7 @@ const AdminUsers = () => {
     email: '',
     role: ROLES.USER,
     acmRole: '',
+    flairStyle: 'cabinet',
     showInDirectory: true
   })
 
@@ -105,6 +106,7 @@ const AdminUsers = () => {
       email: user.email || '',
       role: user.role || ROLES.USER,
       acmRole: user.acmRole || '',
+      flairStyle: user.flairStyle || 'cabinet',
       showInDirectory: user.showInDirectory !== false // Default to true if not set
     })
     setShowEditModal(true)
@@ -130,6 +132,7 @@ const AdminUsers = () => {
         email: formData.email,
         role: formData.role,
         acmRole: formData.acmRole.trim() || null,
+        flairStyle: formData.acmRole.trim() ? formData.flairStyle : null,
         showInDirectory: formData.showInDirectory,
         updatedAt: new Date().toISOString()
       }
@@ -522,8 +525,31 @@ const AdminUsers = () => {
                       onChange={handleInputChange}
                       placeholder="e.g., President, Vice President, Secretary, etc."
                     />
-                    <small>This will be displayed on the member directory</small>
+                    <small>This will be displayed on the member directory and forums</small>
                   </div>
+                  {formData.acmRole.trim() && (
+                    <div className="form-group">
+                      <label>Flair Style</label>
+                      <select
+                        name="flairStyle"
+                        value={formData.flairStyle}
+                        onChange={handleInputChange}
+                      >
+                        <option value="president">🔴 President (Red)</option>
+                        <option value="vp">🟠 Vice President (Orange)</option>
+                        <option value="secretary">🟣 Secretary (Purple)</option>
+                        <option value="treasurer">🟢 Treasurer (Green)</option>
+                        <option value="moderator">🔵 Moderator (Cyan)</option>
+                        <option value="head">🩵 Head (Teal)</option>
+                        <option value="lead">💜 Lead/Coordinator (Violet)</option>
+                        <option value="executive">💗 Executive/Manager (Pink)</option>
+                        <option value="team">🟦 Team/Wing (Indigo)</option>
+                        <option value="member">⚪ Member (Outline)</option>
+                        <option value="cabinet">🟪 Cabinet (Default Purple)</option>
+                      </select>
+                      <small>Choose the visual style for the flair badge</small>
+                    </div>
+                  )}
                   <div className="form-group">
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                       <input
