@@ -7,7 +7,7 @@ import { FiArrowLeft, FiCalendar, FiClock, FiMapPin, FiX, FiCheck } from 'react-
 import QRCodeGenerator from '../components/QRCodeGenerator'
 import ShareButtons from '../components/ShareButtons'
 import SEOHead from '../components/SEOHead'
-import { renderTextWithLinks } from '../utils/text'
+import { renderTextWithLinks } from '../utils/text.jsx'
 import './EventDetail.css'
 
 const EventDetail = () => {
