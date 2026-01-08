@@ -7,6 +7,7 @@ import { FiArrowLeft, FiCalendar, FiClock, FiMapPin, FiX, FiCheck } from 'react-
 import QRCodeGenerator from '../components/QRCodeGenerator'
 import ShareButtons from '../components/ShareButtons'
 import SEOHead from '../components/SEOHead'
+import { renderTextWithLinks } from '../utils/text'
 import './EventDetail.css'
 
 const EventDetail = () => {
@@ -124,7 +125,7 @@ const EventDetail = () => {
             <div className={`event-detail-layout ${!hasCoverImage ? 'no-poster' : ''}`}>
               <div className="event-detail-content">
                 <h1>{event.title}</h1>
-                
+
                 {/* Share Buttons */}
                 <div style={{
                   width: '100%',
@@ -144,173 +145,173 @@ const EventDetail = () => {
                     showNativeShare={true}
                   />
                 </div>
-                
-                <div className="event-detail-meta">
-                <div>
-                  <FiCalendar />
-                  <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
-                </div>
-                {event.time && (
-                  <div>
-                    <FiClock />
-                    <span>{event.time}</span>
-                  </div>
-                )}
-                {event.location && (
-                  <div>
-                    <FiMapPin />
-                    <span>{event.location}</span>
-                  </div>
-                )}
-              </div>
 
-              {registrationSuccess && (
-                <div className="registration-success-card">
-                  <div className="success-header">
-                    <FiCheck />
-                    <h3>Registration Successful!</h3>
+                <div className="event-detail-meta">
+                  <div>
+                    <FiCalendar />
+                    <span>{format(new Date(event.date), 'EEEE, MMMM dd, yyyy')}</span>
                   </div>
-                  <p>Your registration status: <strong>{registrationStatus || 'confirmed'}</strong></p>
-                  {qrData && (
-                    <div className="qr-code-section">
-                      <p>Your registration QR code:</p>
-                      <QRCodeGenerator data={qrData} size={200} />
-                      <p className="qr-instructions">Show this QR code at the event for check-in</p>
+                  {event.time && (
+                    <div>
+                      <FiClock />
+                      <span>{event.time}</span>
+                    </div>
+                  )}
+                  {event.location && (
+                    <div>
+                      <FiMapPin />
+                      <span>{event.location}</span>
                     </div>
                   )}
                 </div>
-              )}
 
-              {!registrationSuccess && (event.registrationEnabled || event.registerLink) && (
-                event.registrationEnabled ? (
-                  <Link
-                    to={`/events/${event.id}/register`}
-                    className="event-detail-cta"
-                  >
-                    Register for Event
-                  </Link>
-                ) : (
-                  <a
-                    href={event.registerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="event-detail-cta"
-                  >
-                    Register for Event
-                  </a>
-                )
-              )}
+                {registrationSuccess && (
+                  <div className="registration-success-card">
+                    <div className="success-header">
+                      <FiCheck />
+                      <h3>Registration Successful!</h3>
+                    </div>
+                    <p>Your registration status: <strong>{registrationStatus || 'confirmed'}</strong></p>
+                    {qrData && (
+                      <div className="qr-code-section">
+                        <p>Your registration QR code:</p>
+                        <QRCodeGenerator data={qrData} size={200} />
+                        <p className="qr-instructions">Show this QR code at the event for check-in</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <div className="event-detail-description">
-                <h2>About this event</h2>
-                <div className="event-description-text">
-                  {event.longDescription || event.description}
+                {!registrationSuccess && (event.registrationEnabled || event.registerLink) && (
+                  event.registrationEnabled ? (
+                    <Link
+                      to={`/events/${event.id}/register`}
+                      className="event-detail-cta"
+                    >
+                      Register for Event
+                    </Link>
+                  ) : (
+                    <a
+                      href={event.registerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="event-detail-cta"
+                    >
+                      Register for Event
+                    </a>
+                  )
+                )}
+
+                <div className="event-detail-description">
+                  <h2>About this event</h2>
+                  <div className="event-description-text">
+                    {renderTextWithLinks(event.longDescription || event.description)}
+                  </div>
                 </div>
+
+                {event.sessions && (
+                  <div className="event-sessions">
+                    <h3>Sessions</h3>
+                    <div className="sessions-content">
+                      {event.sessions.split('\n').map((session, idx) => (
+                        session.trim() && (
+                          <div key={idx} className="session-item">
+                            {session.trim()}
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {event.agenda && Array.isArray(event.agenda) && (
+                  <div className="event-agenda">
+                    <h3>Agenda</h3>
+                    <ul>
+                      {event.agenda.map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {event.additionalImages && Array.isArray(event.additionalImages) && event.additionalImages.length > 0 && (
+                  <div className="event-gallery">
+                    <h3>Event Gallery</h3>
+                    <div className="event-gallery-grid">
+                      {event.additionalImages.map((imgUrl, idx) => (
+                        <div
+                          key={idx}
+                          className="event-gallery-item"
+                          onClick={() => setLightboxImage(imgUrl)}
+                        >
+                          {galleryImagesLoading[idx] && (
+                            <div className="gallery-image-loading">
+                              <div className="loading-spinner"></div>
+                            </div>
+                          )}
+                          <img
+                            src={imgUrl}
+                            alt={`Event image ${idx + 1}`}
+                            loading="lazy"
+                            decoding="async"
+                            style={{ display: galleryImagesLoading[idx] ? 'none' : 'block' }}
+                            onLoad={() => setGalleryImagesLoading(prev => ({ ...prev, [idx]: false }))}
+                            onError={() => setGalleryImagesLoading(prev => ({ ...prev, [idx]: false }))}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {event.sessions && (
-                <div className="event-sessions">
-                  <h3>Sessions</h3>
-                  <div className="sessions-content">
-                    {event.sessions.split('\n').map((session, idx) => (
-                      session.trim() && (
-                        <div key={idx} className="session-item">
-                          {session.trim()}
-                        </div>
-                      )
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {event.agenda && Array.isArray(event.agenda) && (
-                <div className="event-agenda">
-                  <h3>Agenda</h3>
-                  <ul>
-                    {event.agenda.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {event.additionalImages && Array.isArray(event.additionalImages) && event.additionalImages.length > 0 && (
-                <div className="event-gallery">
-                  <h3>Event Gallery</h3>
-                  <div className="event-gallery-grid">
-                    {event.additionalImages.map((imgUrl, idx) => (
-                      <div
-                        key={idx}
-                        className="event-gallery-item"
-                        onClick={() => setLightboxImage(imgUrl)}
-                      >
-                        {galleryImagesLoading[idx] && (
-                          <div className="gallery-image-loading">
-                            <div className="loading-spinner"></div>
-                          </div>
-                        )}
-                        <img 
-                          src={imgUrl} 
-                          alt={`Event image ${idx + 1}`}
-                          loading="lazy"
-                          decoding="async"
-                          style={{ display: galleryImagesLoading[idx] ? 'none' : 'block' }}
-                          onLoad={() => setGalleryImagesLoading(prev => ({ ...prev, [idx]: false }))}
-                          onError={() => setGalleryImagesLoading(prev => ({ ...prev, [idx]: false }))}
-                        />
-                      </div>
-                    ))}
-                  </div>
+              {hasCoverImage && (
+                <div className="event-detail-poster">
+                  {imageLoading && (
+                    <div className="image-loading-placeholder">
+                      <div className="loading-spinner"></div>
+                    </div>
+                  )}
+                  <img
+                    src={typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')}
+                    alt={event.title}
+                    loading="eager"
+                    decoding="async"
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      display: imageLoading ? 'none' : 'block',
+                      objectFit: 'contain'
+                    }}
+                    onLoad={() => setImageLoading(false)}
+                    onError={(e) => {
+                      console.error('EventDetail: Image failed to load:', e.target.src)
+                      setImageLoading(false)
+                      e.target.style.display = 'none'
+                    }}
+                  />
                 </div>
               )}
             </div>
-
-            {hasCoverImage && (
-              <div className="event-detail-poster">
-                {imageLoading && (
-                  <div className="image-loading-placeholder">
-                    <div className="loading-spinner"></div>
-                  </div>
-                )}
-                <img 
-                  src={typeof event.coverUrl === 'string' ? event.coverUrl : (event.coverUrl?.url || '')} 
-                  alt={event.title}
-                  loading="eager"
-                  decoding="async"
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    display: imageLoading ? 'none' : 'block',
-                    objectFit: 'contain'
-                  }}
-                  onLoad={() => setImageLoading(false)}
-                  onError={(e) => {
-                    console.error('EventDetail: Image failed to load:', e.target.src)
-                    setImageLoading(false)
-                    e.target.style.display = 'none'
-                  }}
-                />
-              </div>
-            )}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {lightboxImage && (
-        <div className="lightbox-overlay" onClick={() => setLightboxImage(null)}>
-          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-            <button className="lightbox-close" onClick={() => setLightboxImage(null)}>
-              <FiX />
-            </button>
-            <img 
-              src={lightboxImage} 
-              alt="Event gallery"
-              loading="eager"
-              decoding="async"
-            />
+        {lightboxImage && (
+          <div className="lightbox-overlay" onClick={() => setLightboxImage(null)}>
+            <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+              <button className="lightbox-close" onClick={() => setLightboxImage(null)}>
+                <FiX />
+              </button>
+              <img
+                src={lightboxImage}
+                alt="Event gallery"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </>
   )

@@ -59,7 +59,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  min-width: 0; /* Prevents grid overflow */
+  min-width: 0;
+  /* Prevents grid overflow */
   position: relative;
   z-index: 1;
 }
@@ -230,7 +231,8 @@
   width: 100%;
   max-width: 100%;
   border-radius: 1rem;
-  overflow: visible; /* Changed from hidden to visible to show full image */
+  overflow: visible;
+  /* Changed from hidden to visible to show full image */
   box-shadow: var(--shadow-lg);
   background: var(--bg-light);
   align-self: start;
@@ -253,7 +255,8 @@
   width: 100%;
   height: auto;
   display: block;
-  object-fit: contain; /* Show full image without cropping */
+  object-fit: contain;
+  /* Show full image without cropping */
   max-width: 100%;
   border-radius: 1rem;
   /* Optimize image rendering */
@@ -283,8 +286,25 @@
   color: var(--text-light);
   line-height: 1.8;
   font-size: 1.0625rem;
-  white-space: pre-line; /* Preserves newlines and collapses multiple spaces */
-  word-wrap: break-word; /* Breaks long words if needed */
+  white-space: pre-line;
+  /* Preserves newlines and collapses multiple spaces */
+  word-wrap: break-word;
+  /* Breaks long words if needed */
+}
+
+.event-description-text a,
+.event-description-text .text-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+  word-break: break-all;
+}
+
+.event-description-text a:hover,
+.event-description-text .text-link:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
 }
 
 .event-sessions {
@@ -348,7 +368,8 @@
 
   .event-detail-content {
     grid-column: 1;
-    order: 2; /* Content comes after image */
+    order: 2;
+    /* Content comes after image */
     width: 100%;
     position: relative;
     z-index: 1;
@@ -357,7 +378,8 @@
   .event-detail-poster {
     grid-column: 1;
     position: relative;
-    order: 1; /* Show image first on mobile */
+    order: 1;
+    /* Show image first on mobile */
     width: 100%;
     margin-bottom: 2rem;
     z-index: 0;
@@ -677,7 +699,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .share-buttons-wrapper > * {
+  .share-buttons-wrapper>* {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -698,6 +720,3 @@
     gap: 0.5rem;
   }
 }
-
-
-
