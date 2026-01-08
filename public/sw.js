@@ -2,7 +2,7 @@
 // Network-first caching strategy with automatic updates
 
 // ✅ 2. Cache versioning - UPDATE THIS ON EACH DEPLOY
-const CACHE_VERSION = 'v9' // Increment manually: v2, v3, v4...
+const CACHE_VERSION = 'v10' // Increment manually: v2, v3, v4...
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`
 
 
